@@ -1,0 +1,198 @@
+ <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-bg">
+        <div class="hero-circle c1"></div>
+        <div class="hero-circle c2"></div>
+        <div class="hero-circle c3"></div>
+      </div>
+      <div class="container hero-content">
+        <div class="hero-text">
+          <div class="hero-badge">
+            <span class="material-icons">verified</span>
+            Trusted by 500+ Healthcare Providers
+          </div>
+          <h1>Intelligent <span class="gradient-text">NeuroGuard</span><br>Patient Security and Monitoring</h1>
+          <p class="hero-subtitle">
+            Empower caregivers with real-time cognitive health tracking,
+            smart alerts, and the NeuroGuard Safety Bracelet for maximum patient security.
+          </p>
+          <div class="hero-actions">
+            <a mat-raised-button class="btn-primary hero-btn" routerLink="/register">
+              Start Free Trial
+              <span class="material-icons">arrow_forward</span>
+            </a>
+            <a mat-button class="btn-outline hero-btn" routerLink="/">
+              <span class="material-icons">play_circle</span>
+              Watch Demo
+            </a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-number">10K+</span>
+              <span class="stat-label">Patients Monitored</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-number">98%</span>
+              <span class="stat-label">Care Satisfaction</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-number">24/7</span>
+              <span class="stat-label">Smart Alerts</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="dashboard-preview">
+            <div class="preview-header">
+              <div class="preview-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <span class="preview-title">Patient Dashboard</span>
+            </div>
+            <div class="preview-body">
+              <div class="preview-card pc-1">
+                <mat-icon>favorite</mat-icon>
+                <div>
+                  <span class="pc-label">Heart Rate</span>
+                  <span class="pc-value">72 bpm</span>
+                </div>
+              </div>
+              <div class="preview-card pc-2">
+                <mat-icon>psychology</mat-icon>
+                <div>
+                  <span class="pc-label">Cognitive Score</span>
+                  <span class="pc-value">85/100</span>
+                </div>
+              </div>
+              <div class="preview-card pc-3">
+                <mat-icon>directions_walk</mat-icon>
+                <div>
+                  <span class="pc-label">Activity Level</span>
+                  <span class="pc-value">Active</span>
+                </div>
+              </div>
+              <div class="preview-chart">
+                <span class="chart-title">Weekly Cognitive Trend</span>
+                <div class="chart-bars">
+                  <div class="bar" *ngFor="let h of barHeights" [style.height.%]="h"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section features">
+      <div class="container">
+        <div class="section-header text-center">
+          <span class="section-tag">Why NeuroGuard</span>
+          <h2>Everything You Need for<br><span class="gradient-text">Patient Care Excellence</span></h2>
+          <p class="section-desc">Our platform combines medical expertise with cutting-edge technology
+            to deliver comprehensive Alzheimer patient monitoring.</p>
+        </div>
+        <div class="features-grid">
+          <mat-card *ngFor="let f of features" class="feature-card card-elevated">
+            <div class="feature-icon-wrap" [style.background]="f.bg">
+              <mat-icon [style.color]="f.color">{{ f.icon }}</mat-icon>
+            </div>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.desc }}</p>
+          </mat-card>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bracelet Section -->
+    <section class="section bracelet">
+      <div class="container bracelet-container">
+        <div class="bracelet-visual">
+          <img src="/assets/images/bracelet.png" alt="NeuroGuard Safety Bracelet" class="bracelet-image">
+        </div>
+        <div class="bracelet-content">
+          <span class="section-tag">Advanced Hardware</span>
+          <h2>Intelligent <span class="gradient-text">Safety Bracelet</span></h2>
+          <p>The NeuroGuard Bracelet is a state-of-the-art wearable designed specifically for Alzheimer patients. It detects falls, monitors wandering, and identifies potential dangers to ensure maximum patient security 24/7.</p>
+          <div class="bracelet-perks">
+            <div class="perk">
+              <mat-icon>notification_important</mat-icon>
+              <span>Instant Fall Detection</span>
+            </div>
+            <div class="perk">
+              <mat-icon>gps_fixed</mat-icon>
+              <span>Smart Safe-Zones</span>
+            </div>
+            <div class="perk">
+              <mat-icon>emergency</mat-icon>
+              <span>SOS Alert Button</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section how-it-works">
+      <div class="container">
+        <div class="section-header text-center">
+          <span class="section-tag">How It Works</span>
+          <h2>Simple Steps to <span class="gradient-text">Better Care</span></h2>
+        </div>
+        <div class="steps-grid">
+          <div class="step" *ngFor="let s of steps; let i = index">
+            <div class="step-number">{{ i + 1 }}</div>
+            <h3>{{ s.title }}</h3>
+            <p>{{ s.desc }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials / Trust Section -->
+    <section class="section trust">
+      <div class="container">
+        <div class="section-header text-center">
+          <span class="section-tag">Trusted By Professionals</span>
+          <h2>What <span class="gradient-text">Caregivers Say</span></h2>
+        </div>
+        <div class="testimonials-grid">
+          <mat-card *ngFor="let t of testimonials" class="testimonial-card card-elevated">
+            <div class="testimonial-header">
+              <div class="testimonial-avatar" [style.background]="t.avatarColor">
+                {{ t.initials }}
+              </div>
+              <div>
+                <p class="testimonial-name">{{ t.name }}</p>
+                <p class="testimonial-role">{{ t.role }}</p>
+              </div>
+            </div>
+            <p class="testimonial-text">"{{ t.text }}"</p>
+            <div class="testimonial-stars">
+              <mat-icon *ngFor="let s of [1,2,3,4,5]">star</mat-icon>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section cta">
+      <div class="container">
+        <div class="cta-card">
+          <h2>Ready to Transform Patient Care?</h2>
+          <p>Join thousands of healthcare providers using NeuroGuard to deliver better patient security and care.</p>
+          <div class="cta-actions">
+            <a mat-raised-button class="btn-accent hero-btn" routerLink="/register">
+              Get Started Free
+              <span class="material-icons">arrow_forward</span>
+            </a>
+            <a mat-button class="btn-outline cta-outline" routerLink="/">
+              Schedule a Demo
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
