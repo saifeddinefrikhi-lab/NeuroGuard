@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: user-service  # Name of the service registered in Eureka
+  datasource:
+    url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    user:
+      name: admin  # Default user for Spring Security
+      password: admin123  # Default password for Spring Security
+      roles:
+        - ADMIN  # Admin role for default user
+
+cloud:
+  discovery:
+    enabled: true
+    service-id: ${spring.application.name}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka  # URL of your Eureka server
+    register-with-eureka: true
+    fetch-registry: true
+
+server:
+  port: 8081  # Port on which the microservice will run
+
+jwt:
+  secret: XDkzF2YNPA/7vXmPYJmaACjY6VBhwHJbr4pzPF5jguE=
