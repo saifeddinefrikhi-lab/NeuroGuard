@@ -39,17 +39,21 @@
     &.v3 {
       display: flex;
       align-items: center;
+      justify-content: center;
 
       .auth-form {
+        display: flex;
         flex-direction: column;
+        align-items: center;
+        justify-content: center;
         background: url('../../../../assets/images/NeuroGuard.png');
         min-height: 100vh;
+        width: 100%;
         padding: 24px;
         background-repeat: no-repeat;
         background-size: auto 82%;
         background-position: left bottom;
         position: relative;
-        justify-content: space-between;
         > * {
           position: relative;
           z-index: 5;
@@ -74,8 +78,11 @@
 
       .card {
         width: 100%;
-        max-width: 495px;
-        box-shadow: none;
+        max-width: 600px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        margin: 0;
+        border: none;
+        border-radius: 0.5rem;
       }
 
       img + span {
@@ -95,5 +102,20 @@
       align-items: center;
       justify-content: space-between;
     }
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .auth-main .auth-wrapper .auth-form .card {
+    max-width: 100%;
+    margin: 0 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .auth-main .auth-wrapper .auth-form .card {
+    max-width: 100%;
+    margin: 0;
   }
 }

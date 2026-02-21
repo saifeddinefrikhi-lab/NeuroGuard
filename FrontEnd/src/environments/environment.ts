@@ -6,7 +6,9 @@ import packageInfo from '../../package.json';
 
 export const environment = {
   appVersion: packageInfo.version,
-  production: false
+  production: false,
+  apiUrl: 'http://localhost:8083', // Replace with your production gateway URL
+
 };
 
 /*

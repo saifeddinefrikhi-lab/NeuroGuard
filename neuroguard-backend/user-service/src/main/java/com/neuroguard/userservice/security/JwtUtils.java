@@ -18,16 +18,18 @@ public class JwtUtils {
 
     private final Set<String> invalidatedTokens = new HashSet<>();
 
-    // Generate JWT Token
-    public String generateJwtToken(String username, String role) {
-        Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY); // Use HMAC256 with your secret key
-
+    public String generateJwtToken(String username, String role, Long userId) {  // add userId parameter
+        Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
         return JWT.create()
-                .withSubject(username)  // The username is the subject of the token
-                .withClaim("role", role)  // Store role in the token
-                .withIssuedAt(new Date())  // Set the issued date
-                .withExpiresAt(new Date(System.currentTimeMillis() + 86400000))  // Token expiration (24 hours)
-                .sign(algorithm);  // Sign the token using the algorithm
+                .withSubject(username)
+                .withClaim("role", role)
+                .withClaim("userId", userId)          // <-- new claim
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 86400000))
+                .sign(algorithm);
+    }
+    public DecodedJWT verifyToken(String token) {
+        return JWT.require(Algorithm.HMAC256(SECRET_KEY)).build().verify(token);
     }
 
     // Get username from JWT Token

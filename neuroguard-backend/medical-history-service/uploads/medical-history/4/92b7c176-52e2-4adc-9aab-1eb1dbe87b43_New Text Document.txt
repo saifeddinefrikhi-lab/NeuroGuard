@@ -1,0 +1,80 @@
+analyse this user microservice (springboot)
+
+my app is a intelligent app for web-based intelligent application designed for Alzheimer's patient management. The application will feature automatic detection of risk situations using business rules, real-time alert generation, and comprehensive patient tracking.It will also define clear roles for key users—administrators, caregivers, healthcare providers, and patients.
+
+i want a microservice for medical history i going to give u some features of this service:
+
+
+the medical history management must be has this entitie :
+Patient ID: Unique identifier for the patient (fetched from user-service)
+Patient Name: Name of the patient (fetched from user-service)
+Provider : provider assigned to the patient.(fetched from user-service)
+Caregiver: caregiver assigned to the patient.(fetched from user-service)
+uploaded file:
+file type:
+createdAt
+UpdatedAT
+Diagnosis: List of medical conditions, including Alzheimer's diagnosis and other comorbidities (e.g., heart disease, diabetes).
+Diagnosis Date: Date when the diagnosis was made.
+Progression Stage: Alzheimer's disease progression (mild, moderate, severe).
+Surgeries: A list of all previous surgeries and the dates performed (e.g., heart surgery, joint replacement).
+Surgical Risks: Any complications during or after surgery that might impact current health (e.g., anesthesia reactions).
+Genetic Risk: Information about the presence of genetic markers (e.g., APOE e4).
+Family History: History of Alzheimer’s disease or related conditions in the patient’s family.
+Environmental Factors: Exposure to environmental risks like toxins, infections, or lifestyle-related factors.
+Comorbidities: Other diseases or conditions that increase the risk of Alzheimer’s progression, such as hypertension or diabetes.
+Medication Allergies: List of any medication allergies.
+Environmental Allergies: Known allergies to environmental factors like pollen, mold, or pet dander.
+Food Allergies: Any food-related allergies.
+
+Association:
+patient (user role) OnetoOne medicalhistory
+provider (user role) ManyToMany medicalhistory
+caregiver (user role) ManyToMany medicalhistory
+caregiver or provider (user roles) can assigned to the patient(user role)
+
+ensure those relations with Openfeign
+
+
+ 
+
+for the role Patient:
+each patient can upload his medical record as a file or image ....
+each patient can view his medical record
+(ensure those relations with Openfeign)
+
+for the role provider:
+each provider can View Medical History of a patient
+each provider can Add Medical History of a patient
+each provider can Update Medical History of a patient
+each provider can Delete Medical History of a patient
+(ensure those relations with Openfeign)
+
+
+for the role cargiver:
+each caregiver can Review Medical History of a patient
+(ensure those relations with Openfeign)
+
+
+give all the steps to this microservice of medical history using spring boot and eureka and API Gateway and Openfeign to ensure the commincation with the user-service 
+i want full completed codes for all the steps 
+
+
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "username": "doctor",
+  "email": "john.doe@example.com",
+  "phoneNumber": "1234567890",
+  "gender": "Male",
+  "age": 30,
+  "role": "PROVIDER",
+  "password": "password123"
+}
+forgot the previous prompt do for me those changes please
+
+fix those from entites and change the other related files
+
+Provider : provider assigned to the patient when provider give to patient a medical history means fetch the current user by his name.(fetched from user-service)
+Caregiver: caregiver assigned to the patient when provider give to patient a medical history means fetch the caregivers by name and asseign them

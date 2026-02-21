@@ -1,0 +1,233 @@
+<div class="container mt-3">
+  <h3>{{ isEditMode ? 'Edit' : 'Add' }} Medical History</h3>
+
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="!loading">
+    <!-- Patient Selection (only in add mode) -->
+    <div class="mb-3" *ngIf="!isEditMode">
+      <label class="form-label">Patient *</label>
+      <div *ngIf="patientsLoading" class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">Loading patients...</span>
+      </div>
+      <select 
+        class="form-control" 
+        formControlName="patientId"
+        (change)="onPatientSelect($event)"
+        [disabled]="patientsLoading || patients.length === 0">
+        <option value="">Select a patient</option>
+        <option *ngFor="let p of patients" [value]="p.id">
+          {{ p.firstName }} {{ p.lastName }} ({{ p.username }})
+        </option>
+      </select>
+      <div *ngIf="patients.length === 0 && !patientsLoading" class="text-warning mt-2">
+        No patients available. Please ensure patients are assigned to you.
+      </div>
+      <div *ngIf="submitted && form.get('patientId')?.invalid && form.get('patientId')?.errors?.['required']" class="text-danger">
+        Patient is required.
+      </div>
+    </div>
+
+    <!-- hidden patientId field -->
+    <input type="hidden" formControlName="patientId" />
+
+    <!-- Diagnosis -->
+    <div class="mb-3">
+      <label for="diagnosis" class="form-label">Diagnosis</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="diagnosis" 
+        formControlName="diagnosis"
+        placeholder="Enter diagnosis">
+    </div>
+
+    <!-- Diagnosis Date -->
+    <div class="mb-3">
+      <label for="diagnosisDate" class="form-label">Diagnosis Date</label>
+      <input 
+        type="date" 
+        class="form-control" 
+        id="diagnosisDate" 
+        formControlName="diagnosisDate">
+    </div>
+
+    <!-- Progression Stage -->
+    <div class="mb-3">
+      <label for="progressionStage" class="form-label">Progression Stage</label>
+      <select 
+        class="form-control" 
+        id="progressionStage" 
+        formControlName="progressionStage">
+        <option value="">Select stage</option>
+        <option value="MILD">Mild</option>
+        <option value="MODERATE">Moderate</option>
+        <option value="SEVERE">Severe</option>
+      </select>
+    </div>
+
+    <!-- Genetic Risk -->
+    <div class="mb-3">
+      <label for="geneticRisk" class="form-label">Genetic Risk</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="geneticRisk" 
+        formControlName="geneticRisk"
+        placeholder="Genetic risk factors">
+    </div>
+
+    <!-- Family History -->
+    <div class="mb-3">
+      <label for="familyHistory" class="form-label">Family History</label>
+      <textarea 
+        class="form-control" 
+        id="familyHistory" 
+        formControlName="familyHistory"
+        rows="2"
+        placeholder="Family history details"></textarea>
+    </div>
+
+    <!-- Environmental Factors -->
+    <div class="mb-3">
+      <label for="environmentalFactors" class="form-label">Environmental Factors</label>
+      <textarea 
+        class="form-control" 
+        id="environmentalFactors" 
+        formControlName="environmentalFactors"
+        rows="2"
+        placeholder="Environmental factors"></textarea>
+    </div>
+
+    <!-- Comorbidities -->
+    <div class="mb-3">
+      <label for="comorbidities" class="form-label">Comorbidities</label>
+      <textarea 
+        class="form-control" 
+        id="comorbidities" 
+        formControlName="comorbidities"
+        rows="2"
+        placeholder="Other conditions"></textarea>
+    </div>
+
+    <!-- Allergies sections -->
+    <div class="mb-3">
+      <label for="medicationAllergies" class="form-label">Medication Allergies</label>
+      <textarea 
+        class="form-control" 
+        id="medicationAllergies" 
+        formControlName="medicationAllergies"
+        rows="2"
+        placeholder="Medication allergies"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="environmentalAllergies" class="form-label">Environmental Allergies</label>
+      <textarea 
+        class="form-control" 
+        id="environmentalAllergies" 
+        formControlName="environmentalAllergies"
+        rows="2"
+        placeholder="Environmental allergies"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="foodAllergies" class="form-label">Food Allergies</label>
+      <textarea 
+        class="form-control" 
+        id="foodAllergies" 
+        formControlName="foodAllergies"
+        rows="2"
+        placeholder="Food allergies"></textarea>
+    </div>
+
+    <!-- Surgeries (dynamic list) -->
+    <div class="mb-3">
+      <label class="form-label">Surgeries</label>
+      <div formArrayName="surgeries">
+        <div *ngFor="let surgery of surgeries.controls; let i = index" [formGroupName]="i" class="row mb-2">
+          <div class="col-md-5">
+            <input 
+              type="text" 
+              class="form-control" 
+              formControlName="description"
+              placeholder="Surgery description">
+          </div>
+          <div class="col-md-5">
+            <input 
+              type="date" 
+              class="form-control" 
+              formControlName="date">
+          </div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-danger" (click)="removeSurgery(i)">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-secondary" (click)="addSurgery()">
+        <i class="ti ti-plus"></i> Add Surgery
+      </button>
+    </div>
+
+    <!-- Additional Providers as checkboxes (selection by name) -->
+    <div class="mb-3">
+      <label class="form-label">Additional Providers</label>
+      <div *ngIf="providers.length === 0" class="alert alert-info mb-0">
+        No other providers available.
+      </div>
+      <div *ngFor="let p of providers">
+        <div class="form-check">
+          <input 
+            class="form-check-input" 
+            type="checkbox" 
+            [checked]="isProviderSelected(p)"
+            (change)="toggleProvider(p, $event)"
+            [id]="'provider-' + p.id">
+          <label class="form-check-label" [for]="'provider-' + p.id">
+            {{ p.firstName }} {{ p.lastName }} ({{ p.email }})
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Caregivers as checkboxes (selection by name) -->
+<div class="mb-3">
+  <label class="form-label">Caregivers</label>
+  <div *ngIf="caregiversLoading" class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Loading caregivers...</span>
+  </div>
+  <div *ngIf="caregivers.length === 0 && !caregiversLoading" class="alert alert-info mb-0">
+    No caregivers available.
+  </div>
+  <div *ngFor="let c of caregivers">
+    <div class="form-check">
+      <input 
+        class="form-check-input" 
+        type="checkbox" 
+        [checked]="isCaregiverSelected(c)"
+        (change)="toggleCaregiver(c, $event)"
+        [id]="'caregiver-' + c.id">
+      <label class="form-check-label" [for]="'caregiver-' + c.id">
+        {{ c.firstName }} {{ c.lastName }} ({{ c.email }})
+      </label>
+    </div>
+  </div>
+</div>
+    <!-- Submit and Cancel Buttons -->
+    <div class="mt-4">
+      <button type="submit" class="btn btn-primary me-2" [disabled]="submitting">
+        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+    </div>
+  </form>
+</div>

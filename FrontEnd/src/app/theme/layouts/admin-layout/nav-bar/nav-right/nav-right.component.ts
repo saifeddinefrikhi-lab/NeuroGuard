@@ -91,12 +91,7 @@ export class NavRightComponent {
       icon: 'wallet',
       title: 'Billing'
     },
-    {
-      icon: 'logout',
-      title: 'Logout',
-      action: () => this.logout()  // Add an action for logout
-
-    }
+    
   ];
 
   setting = [

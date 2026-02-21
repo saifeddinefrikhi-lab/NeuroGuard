@@ -1,0 +1,155 @@
+<div class="container mt-3">
+  <h3>My Medical History</h3>
+
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+  <div *ngIf="history && !loading" class="card mb-4">
+    <div class="card-header">
+      <h5>Medical Information</h5>
+    </div>
+    <div class="card-body">
+      <!-- Basic Info -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Diagnosis:</strong> {{ history.diagnosis || 'N/A' }}
+        </div>
+        <div class="col-md-6">
+          <strong>Diagnosis Date:</strong> {{ (history.diagnosisDate | date:'mediumDate') || 'N/A' }}
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Progression Stage:</strong> {{ history.progressionStage || 'N/A' }}
+        </div>
+        <div class="col-md-6">
+          <strong>Genetic Risk:</strong> {{ history.geneticRisk || 'N/A' }}
+        </div>
+      </div>
+
+      <!-- Family History -->
+      <div class="mb-3">
+        <strong>Family History:</strong>
+        <p class="form-control-static">{{ history.familyHistory || 'None' }}</p>
+      </div>
+
+      <!-- Environmental Factors -->
+      <div class="mb-3">
+        <strong>Environmental Factors:</strong>
+        <p class="form-control-static">{{ history.environmentalFactors || 'None' }}</p>
+      </div>
+
+      <!-- Comorbidities -->
+      <div class="mb-3">
+        <strong>Comorbidities:</strong>
+        <p class="form-control-static">{{ history.comorbidities || 'None' }}</p>
+      </div>
+
+      <!-- Allergies -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <strong>Medication Allergies:</strong>
+          <p>{{ history.medicationAllergies || 'None' }}</p>
+        </div>
+        <div class="col-md-4">
+          <strong>Environmental Allergies:</strong>
+          <p>{{ history.environmentalAllergies || 'None' }}</p>
+        </div>
+        <div class="col-md-4">
+          <strong>Food Allergies:</strong>
+          <p>{{ history.foodAllergies || 'None' }}</p>
+        </div>
+      </div>
+
+      <!-- Surgeries -->
+      <div class="mb-3">
+        <strong>Surgeries:</strong>
+        <table class="table table-sm" *ngIf="history.surgeries && history.surgeries.length > 0; else noSurgeries">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let surgery of history.surgeries">
+              <td>{{ surgery.description }}</td>
+              <td>{{ surgery.date | date:'mediumDate' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noSurgeries>None</ng-template>
+      </div>
+
+      <!-- Providers & Caregivers (read-only) -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Assigned Providers:</strong>
+          <ul *ngIf="history.providerNames && history.providerNames.length > 0; else noProviders">
+            <li *ngFor="let name of history.providerNames">{{ name }}</li>
+          </ul>
+          <ng-template #noProviders>None</ng-template>
+        </div>
+        <div class="col-md-6">
+          <strong>Assigned Caregivers:</strong>
+          <ul *ngIf="history.caregiverNames && history.caregiverNames.length > 0; else noCaregivers">
+            <li *ngFor="let name of history.caregiverNames">{{ name }}</li>
+          </ul>
+          <ng-template #noCaregivers>None</ng-template>
+        </div>
+      </div>
+
+      <!-- Timestamps -->
+      <div class="text-muted small">
+        Created: {{ history.createdAt | date:'medium' }} | Last Updated: {{ history.updatedAt | date:'medium' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Files Section -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5>My Files</h5>
+      <div>
+        <label for="fileUpload" class="btn btn-primary btn-sm" [class.disabled]="uploading">
+          <span *ngIf="uploading" class="spinner-border spinner-border-sm me-1"></span>
+          Upload New File
+        </label>
+        <input type="file" id="fileUpload" class="d-none" (change)="onFileSelected($event)" [disabled]="uploading">
+      </div>
+    </div>
+    <div class="card-body">
+      <div *ngIf="files.length === 0" class="alert alert-info">
+        No files uploaded yet.
+      </div>
+      <table class="table table-sm" *ngIf="files.length > 0">
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Type</th>
+            <th>Uploaded</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let file of files">
+            <td>{{ file.fileName }}</td>
+            <td>{{ file.fileType }}</td>
+            <td>{{ file.uploadedAt | date:'medium' }}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" (click)="downloadFile(file.id, file.fileName)">
+                <i class="ti ti-download"></i> Download
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

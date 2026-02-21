@@ -1,0 +1,143 @@
+<div class="container mt-3">
+  <button class="btn btn-link mb-3" (click)="goBack()">
+    <i class="ti ti-arrow-left"></i> Back to List
+  </button>
+
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div *ngIf="history && !loading" class="card">
+    <div class="card-header">
+      <h4>Medical History for {{ history.patientName }} (ID: {{ history.patientId }})</h4>
+    </div>
+    <div class="card-body">
+      <!-- Basic Info -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Diagnosis:</strong> {{ history.diagnosis || 'N/A' }}
+        </div>
+        <div class="col-md-6">
+          <strong>Diagnosis Date:</strong> {{ history.diagnosisDate ? (history.diagnosisDate | date:'mediumDate') : 'N/A' }}
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Progression Stage:</strong> {{ history.progressionStage || 'N/A' }}
+        </div>
+        <div class="col-md-6">
+          <strong>Genetic Risk:</strong> {{ history.geneticRisk || 'N/A' }}
+        </div>
+      </div>
+
+      <!-- Family History -->
+      <div class="mb-3">
+        <strong>Family History:</strong>
+        <p class="form-control-static">{{ history.familyHistory || 'None' }}</p>
+      </div>
+
+      <!-- Environmental Factors -->
+      <div class="mb-3">
+        <strong>Environmental Factors:</strong>
+        <p class="form-control-static">{{ history.environmentalFactors || 'None' }}</p>
+      </div>
+
+      <!-- Comorbidities -->
+      <div class="mb-3">
+        <strong>Comorbidities:</strong>
+        <p class="form-control-static">{{ history.comorbidities || 'None' }}</p>
+      </div>
+
+      <!-- Allergies -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <strong>Medication Allergies:</strong>
+          <p>{{ history.medicationAllergies || 'None' }}</p>
+        </div>
+        <div class="col-md-4">
+          <strong>Environmental Allergies:</strong>
+          <p>{{ history.environmentalAllergies || 'None' }}</p>
+        </div>
+        <div class="col-md-4">
+          <strong>Food Allergies:</strong>
+          <p>{{ history.foodAllergies || 'None' }}</p>
+        </div>
+      </div>
+
+      <!-- Surgeries -->
+      <div class="mb-3">
+        <strong>Surgeries:</strong>
+        <table class="table table-sm" *ngIf="history && history.surgeries && history.surgeries.length > 0; else noSurgeries">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let surgery of history.surgeries">
+              <td>{{ surgery.description }}</td>
+              <td>{{ surgery.date | date:'mediumDate' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noSurgeries>None</ng-template>
+      </div>
+
+      <!-- Providers & Caregivers -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Providers:</strong>
+          <ul *ngIf="history && history.providerNames && history.providerNames.length > 0; else noProviders">
+            <li *ngFor="let name of history.providerNames">{{ name }}</li>
+          </ul>
+          <ng-template #noProviders>None</ng-template>
+        </div>
+        <div class="col-md-6">
+          <strong>Caregivers:</strong>
+          <ul *ngIf="history && history.caregiverNames && history.caregiverNames.length > 0; else noCaregivers">
+            <li *ngFor="let name of history.caregiverNames">{{ name }}</li>
+          </ul>
+          <ng-template #noCaregivers>None</ng-template>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="mb-3">
+        <strong>Attached Files:</strong>
+        <table class="table table-sm" *ngIf="history && history.files && history.files.length > 0; else noFiles">
+          <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Type</th>
+              <th>Uploaded</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let file of history.files">
+              <td>{{ file.fileName }}</td>
+              <td>{{ file.fileType }}</td>
+              <td>{{ file.uploadedAt | date:'medium' }}</td>
+              <td>
+                <button class="btn btn-sm btn-primary" (click)="downloadFile(file.id, file.fileName)">
+                  <i class="ti ti-download"></i> Download
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noFiles>No files attached.</ng-template>
+      </div>
+
+      <!-- Timestamps -->
+      <div class="text-muted small">
+        Created: {{ history.createdAt | date:'medium' }} | Last Updated: {{ history.updatedAt | date:'medium' }}
+      </div>
+    </div>
+  </div>
+</div>

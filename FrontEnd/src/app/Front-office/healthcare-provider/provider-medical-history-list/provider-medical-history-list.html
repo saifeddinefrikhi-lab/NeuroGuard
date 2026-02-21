@@ -1,0 +1,51 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4>Patients Medical Histories</h4>
+  <button class="btn btn-primary" (click)="onAdd()">
+    <i class="ti ti-plus"></i> Add New Medical History
+  </button>
+</div>
+
+<div *ngIf="loading" class="text-center my-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+<div *ngIf="!loading && histories.length === 0" class="alert alert-info">
+  No medical histories found.
+</div>
+
+<table class="table table-hover" *ngIf="histories.length > 0">
+  <thead>
+    <tr>
+      <th>Patient ID</th>
+      <th>Patient Name</th>
+      <th>Diagnosis</th>
+      <th>Progression Stage</th>
+      <th>Last Updated</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let h of histories">
+      <td>{{ h.patientId }}</td>
+      <td>{{ h.patientName }}</td>
+      <td>{{ h.diagnosis || 'N/A' }}</td>
+      <td>{{ h.progressionStage || 'N/A' }}</td>
+      <td>{{ h.updatedAt | date:'short' }}</td>
+      <td>
+        <button class="btn btn-info me-2" title="View" (click)="onView(h.patientId)">
+          <i class="ti ti-eye"></i> View
+        </button>
+        <button class="btn btn-warning me-2" title="Edit" (click)="onUpdate(h.patientId)">
+          <i class="ti ti-edit"></i> Edit
+        </button>
+        <button class="btn btn-danger" title="Delete" (click)="onDelete(h.patientId)">
+          <i class="ti ti-trash"></i> Delete
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>

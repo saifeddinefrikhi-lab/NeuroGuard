@@ -32,14 +32,12 @@ public class UserService implements UserDetailsService {
         return "User registered successfully!";
     }
 
-    // Login method that returns a JWT token
     public String loginUser(String username, String password) {
-        User user = userRepository.findByUsername(username)
-                .orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
         if (user != null && new BCryptPasswordEncoder().matches(password, user.getPassword())) {
-            return jwtUtils.generateJwtToken(user.getUsername(), user.getRole().name()); // Generate JWT token
+            return jwtUtils.generateJwtToken(user.getUsername(), user.getRole().name(), user.getId()); // pass ID
         }
-        return null; // Invalid credentials
+        return null;
     }
 
     @Override
