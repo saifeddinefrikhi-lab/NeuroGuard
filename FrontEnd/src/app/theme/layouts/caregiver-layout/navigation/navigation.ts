@@ -104,7 +104,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'View Medical History',
         type: 'item',
         classes: 'nav-item',
-        url: '/caregiver/medical-history', // Path to view patient medical history
+        url: '/caregiver/medical-history/patients', // Path to view patient medical history
         icon: 'file-text', // Ant Design file-text icon
       },
     ]

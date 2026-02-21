@@ -22,5 +22,6 @@ public class MedicalHistoryRequest {
     private String foodAllergies;
     private List<Surgery> surgeries;
     private List<Long> providerIds;          // optional additional providers (by ID)
-    private List<String> caregiverNames;      // caregivers to assign by name
+    private List<String> caregiverNames;     // caregivers to assign by username (optional)
+    private List<Long> caregiverIds;         // caregivers to assign by ID (optional, preferred)
 }

@@ -14,4 +14,7 @@ public interface MedicalHistoryRepository extends JpaRepository<MedicalHistory, 
 
     @Query("SELECT h FROM MedicalHistory h WHERE :providerId MEMBER OF h.providerIds")
     List<MedicalHistory> findByProviderId(@Param("providerId") Long providerId);
+
+    @Query("SELECT h FROM MedicalHistory h WHERE :caregiverId MEMBER OF h.caregiverIds")
+    List<MedicalHistory> findByCaregiverId(@Param("caregiverId") Long caregiverId);
 }

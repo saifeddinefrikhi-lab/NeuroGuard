@@ -45,6 +45,12 @@ public class MedicalHistoryService {
         return histories.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    // ------------------- Caregiver Operations -------------------
+    public List<MedicalHistoryResponse> getAllMedicalHistoriesForCaregiver(Long caregiverId) {
+        List<MedicalHistory> histories = historyRepository.findByCaregiverId(caregiverId);
+        return histories.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     @Transactional
     public MedicalHistoryResponse createMedicalHistory(MedicalHistoryRequest request, Long providerId) {
         // Check if patient already has a medical history
@@ -83,7 +89,16 @@ public class MedicalHistoryService {
         updateEntityFromRequest(history, request);
         // Update caregiver IDs
         history.setCaregiverIds(caregiverIds);
-        // providerIds are already updated via updateEntityFromRequest
+        // Preserve existing providerIds - don't let request override them
+        // The current provider is already authorized, so keep all existing providers
+        if (request.getProviderIds() != null && !request.getProviderIds().isEmpty()) {
+            // Merge new provider IDs with existing ones
+            for (Long newProviderId : request.getProviderIds()) {
+                if (!history.getProviderIds().contains(newProviderId)) {
+                    history.getProviderIds().add(newProviderId);
+                }
+            }
+        }
 
         history = historyRepository.save(history);
         return mapToResponse(history);
@@ -204,15 +219,25 @@ public class MedicalHistoryService {
         }
         List<Long> ids = new ArrayList<>();
         for (String name : caregiverNames) {
+            // Skip empty or whitespace-only names
+            if (name == null || name.trim().isEmpty()) {
+                log.debug("Skipping empty caregiver name");
+                continue;
+            }
+
             try {
                 UserDto user = userServiceClient.getUserByUsername(name);
                 // Ensure the user has the CAREGIVER role
                 if (!"CAREGIVER".equals(user.getRole())) {
-                    throw new RuntimeException("User " + name + " is not a caregiver");
+                    log.warn("User {} exists but is not a caregiver, role is: {}", name, user.getRole());
+                    continue;
                 }
                 ids.add(user.getId());
+                log.debug("Successfully resolved caregiver name {} to ID {}", name, user.getId());
             } catch (Exception e) {
-                throw new RuntimeException("Caregiver not found: " + name);
+                log.warn("Could not resolve caregiver name '{}': {}", name, e.getMessage());
+                // Don't throw exception, just skip this caregiver
+                // This allows the update to proceed even if some caregivers can't be found
             }
         }
         return ids;
@@ -237,8 +262,8 @@ public class MedicalHistoryService {
         history.setEnvironmentalAllergies(req.getEnvironmentalAllergies());
         history.setFoodAllergies(req.getFoodAllergies());
         history.setSurgeries(req.getSurgeries() != null ? req.getSurgeries() : new ArrayList<>());
-        history.setProviderIds(req.getProviderIds() != null ? req.getProviderIds() : new ArrayList<>());
-        // caregiverIds are set separately after name resolution
+        // Note: providerIds should NOT be updated here during updates
+        // They are managed separately to preserve existing provider associations
     }
 
     private MedicalHistoryResponse mapToResponse(MedicalHistory history) {

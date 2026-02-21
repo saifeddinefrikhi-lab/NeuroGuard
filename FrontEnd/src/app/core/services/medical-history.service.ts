@@ -135,4 +135,20 @@ uploadFile(file: File): Observable<FileDto> {
       catchError(err => this.handleError(err))
     );
   }
+
+  // Get list of patients assigned to this caregiver
+getAssignedPatients(): Observable<UserDto[]> {
+  const url = `${this.apiUrl}/api/caregiver/medical-history/patients`;
+  console.log('[MedicalHistoryService] Fetching assigned patients from:', url);
+  return this.http.get<UserDto[]>(url)
+    .pipe(catchError(err => this.handleError(err)));
+}
+
+// Get a specific patient's medical history (for caregiver view)
+getPatientHistoryForCaregiver(patientId: number): Observable<MedicalHistoryResponse> {
+  const url = `${this.apiUrl}/api/caregiver/medical-history/${patientId}`;
+  console.log('[MedicalHistoryService] Fetching patient history for caregiver:', url);
+  return this.http.get<MedicalHistoryResponse>(url)
+    .pipe(catchError(err => this.handleError(err)));
+}
 }

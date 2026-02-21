@@ -69,6 +69,15 @@ export const routes: Routes = [
         path: 'caregiver/home',
         loadComponent: () => import('./Front-office/caregiver/home/home.component').then((c) => c.HomeComponent)
       },
+      {
+        path: 'caregiver/medical-history/patients',
+        loadComponent: () => import('./Front-office/caregiver/caregiver-patient-list/caregiver-patient-list').then((c) => c.CaregiverPatientListComponent)
+      },
+      {
+        path: 'caregiver/medical-history/view/:patientId',
+        loadComponent: () => import('./Front-office/caregiver/caregiver-patient-detail/caregiver-patient-detail').then((c) => c.CaregiverPatientDetailComponent)
+      }
+      
     ]
   },
 
