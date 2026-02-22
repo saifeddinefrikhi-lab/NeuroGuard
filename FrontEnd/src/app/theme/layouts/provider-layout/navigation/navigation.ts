@@ -97,7 +97,7 @@ export const NavigationItems: NavigationItem[] = [
     id: 'consultation-management',
     title: 'Consultation Management',
     type: 'group',
-    icon: 'stethoscope', // Ant Design stethoscope icon
+    icon: 'schedule', // Ant Design schedule icon
     children: [
       {
         id: 'consultation-schedule',

@@ -11,7 +11,8 @@ import { SharedModule } from 'src/app/theme/shared/shared.module';
   selector: 'app-nav-item',
   imports: [CommonModule, SharedModule, RouterModule],
   templateUrl: './nav-item.component.html',
-  styleUrls: ['./nav-item.component.scss']
+  styleUrls: ['./nav-item.component.scss'],
+  host: { 'data-layout': 'provider', 'data-nav': 'nav-item' }
 })
 export class NavItemComponent {
   // public props

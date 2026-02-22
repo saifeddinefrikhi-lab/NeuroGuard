@@ -44,4 +44,13 @@ public class PatientController {
         List<FileDto> files = historyService.getFiles(patientId, patientId, role);
         return ResponseEntity.ok(files);
     }
+
+    @DeleteMapping("/me/files/{fileId}")
+    public ResponseEntity<Void> deleteFile(@PathVariable Long fileId,
+                                           HttpServletRequest httpRequest) {
+        Long patientId = (Long) httpRequest.getAttribute("userId");
+        String role = (String) httpRequest.getAttribute("userRole");
+        historyService.deleteFile(patientId, fileId, patientId, role);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -1,31 +1,64 @@
-<div class="container mt-3">
-  <h3>My Assigned Patients</h3>
+<div class="container-fluid px-4 mt-3 mb-5">
+  <!-- Header -->
+  <div class="page-header mb-5">
+    <div class="page-header-content">
+      <h1 class="page-title">
+        <i class="ti ti-users-group"></i> My Assigned Patients
+      </h1>
+      <p class="page-subtitle">Manage and view medical history for your assigned patients</p>
+    </div>
+  </div>
 
+  <!-- Loading State -->
   <div *ngIf="loading" class="text-center my-5">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 
-  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-
-  <div *ngIf="!loading && patients.length === 0" class="alert alert-info">
-    No patients assigned to you yet.
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>{{ errorMessage }}
   </div>
 
-  <div class="row" *ngIf="patients.length > 0">
-    <div class="col-md-4 mb-3" *ngFor="let patient of patients">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">{{ patient.firstName }} {{ patient.lastName }}</h5>
-          <p class="card-text">
-            <strong>Username:</strong> {{ patient.username }}<br>
-            <strong>Email:</strong> {{ patient.email }}
-          </p>
-          <button class="btn btn-primary" (click)="viewHistory(patient.id)">
-            <i class="ti ti-eye"></i> View Medical History
-          </button>
+  <!-- Empty State -->
+  <div *ngIf="!loading && patients.length === 0" class="empty-state-container">
+    <div class="empty-state">
+      <i class="ti ti-inbox"></i>
+      <h4>No Patients Assigned</h4>
+      <p>You don't have any patients assigned to you yet. Check back later!</p>
+    </div>
+  </div>
+
+  <!-- Patients Grid -->
+  <div class="patients-grid" *ngIf="patients.length > 0">
+    <div class="patient-card" *ngFor="let patient of patients">
+      <div class="patient-card-header">
+        <div class="patient-avatar">
+          <i class="ti ti-user"></i>
         </div>
+        <div class="patient-info-header">
+          <h3 class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</h3>
+          <p class="patient-username" *ngIf="patient.username">@{{ patient.username }}</p>
+          <p class="patient-username" *ngIf="!patient.username">No username available</p>
+        </div>
+      </div>
+      
+      <div class="patient-card-body">
+        <div class="info-row">
+          <span class="info-label">
+            <i class="ti ti-mail"></i> Email
+          </span>
+          <span class="info-value" *ngIf="patient.email">{{ patient.email }}</span>
+          <span class="info-value text-muted" *ngIf="!patient.email">No email available</span>
+        </div>
+      </div>
+
+      <div class="patient-card-footer">
+        <button class="btn-modern btn-view" (click)="viewHistory(patient.id)">
+          <i class="ti ti-file-medical"></i>
+          <span>View History</span>
+        </button>
       </div>
     </div>
   </div>

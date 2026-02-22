@@ -1,18 +1,15 @@
 <mat-toolbar class="navbar">
       <div class="navbar-inner">
         <a routerLink="/homePage" class="logo">
-          <img src="/assets/images/logo.png" alt="NeuroGuard Logo" class="logo-img">
+          <img src="/assets/images/logo1.png" alt="NeuroGuard Logo" class="logo-img">
         </a>
 
         <nav class="nav-links">
           <a routerLink="/homePage" routerLinkActive="active">Home</a>
-          <a routerLink="/login" routerLinkActive="active" *ngIf="!auth.isLoggedIn">Login</a>
-          <a routerLink="/register" routerLinkActive="active" *ngIf="!auth.isLoggedIn">Register</a>
-          <button mat-button class="btn-accent nav-cta" routerLink="/register" *ngIf="!auth.isLoggedIn">
+          <a routerLink="/login" routerLinkActive="active">Login</a>
+          <a routerLink="/register" routerLinkActive="active">Register</a>
+          <button mat-button class="btn-accent nav-cta" routerLink="/register">
             Get Started
-          </button>
-          <button mat-button *ngIf="auth.isLoggedIn" (click)="auth.logout()" class="logout-btn">
-            <mat-icon>logout</mat-icon> Logout
           </button>
         </nav>
 
@@ -25,15 +22,9 @@
       <div class="mobile-menu" [class.open]="menuOpen">
         <a routerLink="/" (click)="menuOpen = false" routerLinkActive="active"
            [routerLinkActiveOptions]="{exact: true}">Home</a>
-        <a routerLink="/login" (click)="menuOpen = false" routerLinkActive="active"
-           *ngIf="!auth.isLoggedIn">Login</a>
-        <a routerLink="/register" (click)="menuOpen = false" routerLinkActive="active"
-           *ngIf="!auth.isLoggedIn">Register</a>
+        <a routerLink="/login" (click)="menuOpen = false" routerLinkActive="active">Login</a>
+        <a routerLink="/register" (click)="menuOpen = false" routerLinkActive="active">Register</a>
         <button mat-raised-button class="btn-accent mobile-cta" routerLink="/register"
-                (click)="menuOpen = false" *ngIf="!auth.isLoggedIn">Get Started</button>
-        <button mat-button *ngIf="auth.isLoggedIn" (click)="auth.logout(); menuOpen = false"
-                class="logout-btn">
-          <mat-icon>logout</mat-icon> Logout
-        </button>
+                (click)="menuOpen = false">Get Started</button>
       </div>
     </mat-toolbar>

@@ -57,7 +57,7 @@ export const NavigationItems: NavigationItem[] = [
         type: 'item',
         classes: 'nav-item',
         url: '/caregiver/consultations', // Path to manage consultations
-        icon: 'schedule', // Ant Design stethoscope icon
+        icon: 'schedule', // Ant Design schedule icon
       },
     ]
   },

@@ -144,4 +144,25 @@ export class PatientMedicalHistoryComponent implements OnInit {
       }
     });
   }
+
+  deleteFile(fileId: number): void {
+    if (confirm('Are you sure you want to delete this file?')) {
+      this.medicalHistoryService.deleteMyFile(fileId).subscribe({
+        next: () => {
+          this.successMessage = 'File deleted successfully.';
+          this.files = this.files.filter(f => f.id !== fileId);
+          this.cdr.markForCheck();
+          setTimeout(() => {
+            this.successMessage = '';
+            this.cdr.markForCheck();
+          }, 3000);
+        },
+        error: (err) => {
+          this.errorMessage = 'Failed to delete file.';
+          console.error('Error deleting file:', err);
+          this.cdr.markForCheck();
+        }
+      });
+    }
+  }
 }

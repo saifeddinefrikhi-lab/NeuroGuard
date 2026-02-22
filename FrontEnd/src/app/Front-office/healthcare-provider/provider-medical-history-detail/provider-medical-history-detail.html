@@ -1,5 +1,5 @@
-<div class="container mt-3">
-  <button class="btn btn-link mb-3" (click)="goBack()">
+<div class="container-fluid px-4 mt-3 mb-5">
+  <button class="btn btn-outline-secondary btn-sm mb-4" (click)="goBack()">
     <i class="ti ti-arrow-left"></i> Back to List
   </button>
 
@@ -9,134 +9,194 @@
     </div>
   </div>
 
-  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>{{ errorMessage }}
+  </div>
 
-  <div *ngIf="history && !loading" class="card">
-    <div class="card-header">
-      <h4>Medical History for {{ history.patientName }} (ID: {{ history.patientId }})</h4>
+  <div *ngIf="history && !loading" class="modern-card">
+    <div class="card-header-modern">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h2 class="patient-name">{{ history.patientName }}</h2>
+          <p class="patient-id">Patient ID: {{ history.patientId }}</p>
+        </div>
+        <span class="stage-badge" [ngClass]="'stage-' + (history.progressionStage?.toLowerCase() || '')">{{ history.progressionStage || 'Unassigned' }}</span>
+      </div>
     </div>
-    <div class="card-body">
-      <!-- Basic Info -->
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <strong>Diagnosis:</strong> {{ history.diagnosis || 'N/A' }}
+    <div class="card-body-modern">
+      <!-- Basic Info Grid -->
+      <div class="info-grid mb-4">
+        <div class="info-card">
+          <div class="info-icon diagnosis-icon">
+            <i class="ti ti-stethoscope"></i>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Diagnosis</span>
+            <p class="info-value">{{ history.diagnosis || 'Not specified' }}</p>
+          </div>
         </div>
-        <div class="col-md-6">
-          <strong>Diagnosis Date:</strong> {{ history.diagnosisDate ? (history.diagnosisDate | date:'mediumDate') : 'N/A' }}
+        <div class="info-card">
+          <div class="info-icon date-icon">
+            <i class="ti ti-calendar"></i>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Diagnosis Date</span>
+            <p class="info-value">{{ history.diagnosisDate ? (history.diagnosisDate | date:'MMM d, y') : 'Not specified' }}</p>
+          </div>
         </div>
-      </div>
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <strong>Progression Stage:</strong> {{ history.progressionStage || 'N/A' }}
-        </div>
-        <div class="col-md-6">
-          <strong>Genetic Risk:</strong> {{ history.geneticRisk || 'N/A' }}
-        </div>
-      </div>
-
-      <!-- Family History -->
-      <div class="mb-3">
-        <strong>Family History:</strong>
-        <p class="form-control-static">{{ history.familyHistory || 'None' }}</p>
-      </div>
-
-      <!-- Environmental Factors -->
-      <div class="mb-3">
-        <strong>Environmental Factors:</strong>
-        <p class="form-control-static">{{ history.environmentalFactors || 'None' }}</p>
-      </div>
-
-      <!-- Comorbidities -->
-      <div class="mb-3">
-        <strong>Comorbidities:</strong>
-        <p class="form-control-static">{{ history.comorbidities || 'None' }}</p>
-      </div>
-
-      <!-- Allergies -->
-      <div class="row mb-3">
-        <div class="col-md-4">
-          <strong>Medication Allergies:</strong>
-          <p>{{ history.medicationAllergies || 'None' }}</p>
-        </div>
-        <div class="col-md-4">
-          <strong>Environmental Allergies:</strong>
-          <p>{{ history.environmentalAllergies || 'None' }}</p>
-        </div>
-        <div class="col-md-4">
-          <strong>Food Allergies:</strong>
-          <p>{{ history.foodAllergies || 'None' }}</p>
+        <div class="info-card">
+          <div class="info-icon genetic-icon">
+            <i class="ti ti-dna"></i>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Genetic Risk</span>
+            <p class="info-value">{{ history.geneticRisk || 'Not assessed' }}</p>
+          </div>
         </div>
       </div>
 
-      <!-- Surgeries -->
-      <div class="mb-3">
-        <strong>Surgeries:</strong>
-        <table class="table table-sm" *ngIf="history && history.surgeries && history.surgeries.length > 0; else noSurgeries">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let surgery of history.surgeries">
-              <td>{{ surgery.description }}</td>
-              <td>{{ surgery.date | date:'mediumDate' }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <ng-template #noSurgeries>None</ng-template>
+      <!-- Medical Context Section -->
+      <div class="section mb-5">
+        <h5 class="section-title"><i class="ti ti-alert-hexagon"></i> Medical Context</h5>
+        <div class="context-grid">
+          <div class="context-item" *ngIf="history.familyHistory">
+            <span class="context-label">Family History</span>
+            <div class="context-value">{{ history.familyHistory }}</div>
+          </div>
+          <div class="context-item" *ngIf="history.environmentalFactors">
+            <span class="context-label">Environmental Factors</span>
+            <div class="context-value">{{ history.environmentalFactors }}</div>
+          </div>
+          <div class="context-item" *ngIf="history.comorbidities">
+            <span class="context-label">Comorbidities</span>
+            <div class="context-value">{{ history.comorbidities }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Allergies Section -->
+      <div class="section mb-5">
+        <h5 class="section-title"><i class="ti ti-alert-circle"></i> Allergies</h5>
+        <div class="allergies-container">
+          <div class="allergy-item medication-allergy" *ngIf="history.medicationAllergies">
+            <i class="ti ti-pill"></i>
+            <div>
+              <span class="allergy-type">Medications</span>
+              <p class="allergy-value">{{ history.medicationAllergies }}</p>
+            </div>
+          </div>
+          <div class="allergy-item environmental-allergy" *ngIf="history.environmentalAllergies">
+            <i class="ti ti-wind"></i>
+            <div>
+              <span class="allergy-type">Environmental</span>
+              <p class="allergy-value">{{ history.environmentalAllergies }}</p>
+            </div>
+          </div>
+          <div class="allergy-item food-allergy" *ngIf="history.foodAllergies">
+            <i class="ti ti-apple"></i>
+            <div>
+              <span class="allergy-type">Food</span>
+              <p class="allergy-value">{{ history.foodAllergies }}</p>
+            </div>
+          </div>
+          <div class="allergy-placeholder" *ngIf="!history.medicationAllergies && !history.environmentalAllergies && !history.foodAllergies">
+            <i class="ti ti-check"></i> No known allergies
+          </div>
+        </div>
+      </div>
+
+      <!-- Surgeries Section -->
+      <div class="section mb-5">
+        <h5 class="section-title"><i class="ti ti-surgical-mask"></i> Surgical History</h5>
+        <div class="surgeries-list" *ngIf="history && history.surgeries && history.surgeries.length > 0; else noSurgeries">
+          <div class="surgery-item" *ngFor="let surgery of history.surgeries; let last = last">
+            <div class="surgery-marker"></div>
+            <div class="surgery-content">
+              <p class="surgery-description">{{ surgery.description }}</p>
+              <span class="surgery-date">
+                <i class="ti ti-calendar-event"></i> {{ surgery.date | date:'MMM d, yyyy' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <ng-template #noSurgeries>
+          <div class="empty-state">
+            <i class="ti ti-check-circle"></i>
+            <p>No surgical procedures recorded</p>
+          </div>
+        </ng-template>
       </div>
 
       <!-- Providers & Caregivers -->
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <strong>Providers:</strong>
-          <ul *ngIf="history && history.providerNames && history.providerNames.length > 0; else noProviders">
-            <li *ngFor="let name of history.providerNames">{{ name }}</li>
-          </ul>
-          <ng-template #noProviders>None</ng-template>
-        </div>
-        <div class="col-md-6">
-          <strong>Caregivers:</strong>
-          <ul *ngIf="history && history.caregiverNames && history.caregiverNames.length > 0; else noCaregivers">
-            <li *ngFor="let name of history.caregiverNames">{{ name }}</li>
-          </ul>
-          <ng-template #noCaregivers>None</ng-template>
+      <div class="section mb-5">
+        <h5 class="section-title"><i class="ti ti-users"></i> Care Team</h5>
+        <div class="team-grid">
+          <div class="team-section">
+            <h6 class="team-label"><i class="ti ti-user-check"></i> Healthcare Providers</h6>
+            <div class="team-members" *ngIf="history && history.providerNames && history.providerNames.length > 0; else noProviders">
+              <span class="team-badge" *ngFor="let name of history.providerNames">{{ name }}</span>
+            </div>
+            <ng-template #noProviders>
+              <p class="text-muted">No providers assigned</p>
+            </ng-template>
+          </div>
+          <div class="team-section">
+            <h6 class="team-label"><i class="ti ti-user-heart"></i> Caregivers</h6>
+            <div class="team-members" *ngIf="history && history.caregiverNames && history.caregiverNames.length > 0; else noCaregivers">
+              <span class="team-badge caregiver" *ngFor="let name of history.caregiverNames">{{ name }}</span>
+            </div>
+            <ng-template #noCaregivers>
+              <p class="text-muted">No caregivers assigned</p>
+            </ng-template>
+          </div>
         </div>
       </div>
 
-      <!-- Files -->
-      <div class="mb-3">
-        <strong>Attached Files:</strong>
-        <table class="table table-sm" *ngIf="history && history.files && history.files.length > 0; else noFiles">
-          <thead>
-            <tr>
-              <th>File Name</th>
-              <th>Type</th>
-              <th>Uploaded</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let file of history.files">
-              <td>{{ file.fileName }}</td>
-              <td>{{ file.fileType }}</td>
-              <td>{{ file.uploadedAt | date:'medium' }}</td>
-              <td>
-                <button class="btn btn-sm btn-primary" (click)="downloadFile(file.id, file.fileName)">
-                  <i class="ti ti-download"></i> Download
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <ng-template #noFiles>No files attached.</ng-template>
+      <!-- Files Section -->
+      <div class="section mb-5">
+        <h5 class="section-title"><i class="ti ti-file-text"></i> Medical Documents</h5>
+        <div class="files-list" *ngIf="history && history.files && history.files.length > 0; else noFiles">
+          <div class="file-item" *ngFor="let file of history.files">
+            <div class="file-icon">
+              <i class="ti ti-file"></i>
+            </div>
+            <div class="file-info">
+              <p class="file-name">{{ file.fileName }}</p>
+              <div class="file-meta">
+                <span class="file-type">{{ file.fileType }}</span>
+                <span class="file-date">{{ file.uploadedAt | date:'MMM d, yyyy' }}</span>
+              </div>
+            </div>
+            <div class="file-actions">
+              <button class="btn-modern btn-download" (click)="downloadFile(file.id, file.fileName)" title="Download file">
+                <i class="ti ti-download"></i>
+                <span>Download</span>
+              </button>
+              <button class="btn-modern btn-delete" (click)="deleteFile(file.id)" title="Delete file">
+                <i class="ti ti-trash"></i>
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <ng-template #noFiles>
+          <div class="empty-state">
+            <i class="ti ti-file-off"></i>
+            <p>No documents attached</p>
+          </div>
+        </ng-template>
       </div>
 
-      <!-- Timestamps -->
-      <div class="text-muted small">
-        Created: {{ history.createdAt | date:'medium' }} | Last Updated: {{ history.updatedAt | date:'medium' }}
+      <!-- Record Metadata -->
+      <div class="record-metadata">
+        <div class="metadata-item">
+          <span class="metadata-label">Record Created</span>
+          <span class="metadata-value">{{ history.createdAt | date:'MMM d, yyyy' }}</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Last Updated</span>
+          <span class="metadata-value">{{ history.updatedAt | date:'MMM d, yyyy' }}</span>
+        </div>
       </div>
     </div>
   </div>

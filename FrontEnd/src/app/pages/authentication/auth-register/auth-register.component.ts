@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { timeout, finalize } from 'rxjs';
 
 @Component({
   selector: 'app-auth-register',
@@ -21,7 +22,8 @@ export class AuthRegisterComponent {
   constructor(
     private authService: AuthService, 
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -181,11 +183,38 @@ export class AuthRegisterComponent {
 
     console.log('Attempting to register user:', userData);
 
-    this.authService.register(userData).subscribe({
+    this.authService.register(userData).pipe(
+      timeout(8000),
+      finalize(() => {
+        this.isLoading = false;
+        this.registerForm.enable();
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
       next: (response) => {
+        const message = (response || '').toString().trim();
+        const lowered = message.toLowerCase();
+
+        if (lowered.includes('already exists') || lowered.includes('already exist') || lowered.includes('exists')) {
+          this.isLoading = false;
+          this.errorMessage = 'User already exists. Please use different information.';
+          this.successMessage = '';
+          this.cdr.markForCheck();
+          return;
+        }
+
+        if (message && !lowered.includes('success') && !lowered.includes('created') && !lowered.includes('registered')) {
+          this.isLoading = false;
+          this.errorMessage = message;
+          this.successMessage = '';
+          this.cdr.markForCheck();
+          return;
+        }
+
         console.log('Registration response:', response);
         this.isLoading = false;
         this.successMessage = 'Registration successful! Redirecting to login...';
+        this.cdr.markForCheck();
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
@@ -193,6 +222,13 @@ export class AuthRegisterComponent {
       error: (error) => {
         console.error('Registration error:', error);
         this.isLoading = false;
+        this.registerForm.enable();
+
+        if (error?.name === 'TimeoutError') {
+          this.errorMessage = 'Registration is taking too long. Please try again.';
+          this.cdr.markForCheck();
+          return;
+        }
         
         if (error.message.includes('already exists')) {
           this.errorMessage = error.message;
@@ -203,6 +239,7 @@ export class AuthRegisterComponent {
         } else {
           this.errorMessage = 'Registration failed. Please try again.';
         }
+        this.cdr.markForCheck();
       }
     });
   }

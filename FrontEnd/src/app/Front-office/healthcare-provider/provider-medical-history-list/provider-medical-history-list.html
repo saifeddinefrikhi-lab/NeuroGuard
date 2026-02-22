@@ -1,51 +1,101 @@
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4>Patients Medical Histories</h4>
-  <button class="btn btn-primary" (click)="onAdd()">
-    <i class="ti ti-plus"></i> Add New Medical History
-  </button>
-</div>
+<div class="container-fluid px-4 mt-0 mb-5">
+  <div class="sticky-action">
+    <button class="btn-modern btn-add" (click)="onAdd()">
+      <i class="ti ti-plus"></i>
+      <span>Add New History</span>
+    </button>
+  </div>
 
-<div *ngIf="loading" class="text-center my-5">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Loading...</span>
+  <!-- Page Header -->
+  <div class="page-header mb-5">
+    <div class="page-header-content d-flex justify-content-between align-items-start">
+      <div>
+        <h1 class="page-title">
+          <i class="ti ti-file-medical"></i> Patients Medical Histories
+        </h1>
+        <p class="page-subtitle">Manage and track patient medical records and histories</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading medical histories...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>
+    <strong>Error:</strong> {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && histories.length === 0" class="empty-state-container">
+    <div class="empty-state">
+      <i class="ti ti-inbox"></i>
+      <h4>No Medical Histories Found</h4>
+      <p>Start by creating a new medical history record for your patients</p>
+      <button class="btn-modern btn-add" (click)="onAdd()">
+        <i class="ti ti-plus"></i>
+        <span>Create First History</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Histories Grid -->
+  <div class="histories-grid" *ngIf="!loading && histories.length > 0">
+    <div class="history-card" *ngFor="let h of histories">
+      <!-- Card Header with Patient Name -->
+      <div class="history-card-header">
+        <div class="patient-section">
+          <h3 class="patient-name">{{ h.patientName }}</h3>
+          <p class="patient-id">
+            <i class="ti ti-hash"></i> ID: {{ h.patientId }}
+          </p>
+        </div>
+        <div class="stage-badge" [ngClass]="'stage-' + (h.progressionStage || 'unknown') | lowercase">
+          {{ h.progressionStage || 'Unknown' }}
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="history-card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">
+              <i class="ti ti-stethoscope"></i> Diagnosis
+            </span>
+            <span class="info-value">{{ h.diagnosis || 'Not specified' }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              <i class="ti ti-calendar"></i> Last Updated
+            </span>
+            <span class="info-value">{{ h.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Footer - Actions -->
+      <div class="history-card-footer">
+        <button class="btn-modern btn-view" title="View" (click)="onView(h.patientId)">
+          <i class="ti ti-eye"></i>
+          <span>View</span>
+        </button>
+        <button class="btn-modern btn-edit" title="Edit" (click)="onUpdate(h.patientId)">
+          <i class="ti ti-edit"></i>
+          <span>Edit</span>
+        </button>
+        <button class="btn-modern btn-delete" title="Delete" (click)="onDelete(h.patientId)">
+          <i class="ti ti-trash"></i>
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
-
-<div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-
-<div *ngIf="!loading && histories.length === 0" class="alert alert-info">
-  No medical histories found.
-</div>
-
-<table class="table table-hover" *ngIf="histories.length > 0">
-  <thead>
-    <tr>
-      <th>Patient ID</th>
-      <th>Patient Name</th>
-      <th>Diagnosis</th>
-      <th>Progression Stage</th>
-      <th>Last Updated</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let h of histories">
-      <td>{{ h.patientId }}</td>
-      <td>{{ h.patientName }}</td>
-      <td>{{ h.diagnosis || 'N/A' }}</td>
-      <td>{{ h.progressionStage || 'N/A' }}</td>
-      <td>{{ h.updatedAt | date:'short' }}</td>
-      <td>
-        <button class="btn btn-info me-2" title="View" (click)="onView(h.patientId)">
-          <i class="ti ti-eye"></i> View
-        </button>
-        <button class="btn btn-warning me-2" title="Edit" (click)="onUpdate(h.patientId)">
-          <i class="ti ti-edit"></i> Edit
-        </button>
-        <button class="btn btn-danger" title="Delete" (click)="onDelete(h.patientId)">
-          <i class="ti ti-trash"></i> Delete
-        </button>
-      </td>
-    </tr>
-  </tbody>
-</table>

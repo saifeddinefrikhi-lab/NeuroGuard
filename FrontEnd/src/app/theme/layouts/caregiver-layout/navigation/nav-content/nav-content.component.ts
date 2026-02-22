@@ -20,7 +20,15 @@ import {
   FontSizeOutline,
   ProfileOutline,
   BgColorsOutline,
-  AntDesignOutline
+  AntDesignOutline,
+  HomeOutline,
+  ScheduleOutline,
+  CalendarOutline,
+  AlertOutline,
+  BellOutline,
+  HeartOutline,
+  BookOutline,
+  FileTextOutline
 } from '@ant-design/icons-angular/icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
@@ -28,7 +36,8 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
   selector: 'app-nav-content',
   imports: [CommonModule, RouterModule, NavGroupComponent, NgScrollbarModule],
   templateUrl: './nav-content.component.html',
-  styleUrls: ['./nav-content.component.scss']
+  styleUrls: ['./nav-content.component.scss'],
+  host: { 'data-layout': 'caregiver', 'data-nav': 'nav-content' }
 })
 export class NavContentComponent implements OnInit {
   private location = inject(Location);
@@ -59,7 +68,15 @@ export class NavContentComponent implements OnInit {
         BgColorsOutline,
         AntDesignOutline,
         ChromeOutline,
-        QuestionOutline
+        QuestionOutline,
+        HomeOutline,
+        ScheduleOutline,
+        CalendarOutline,
+        AlertOutline,
+        BellOutline,
+        HeartOutline,
+        BookOutline,
+        FileTextOutline
       ]
     );
     this.navigations = NavigationItems;

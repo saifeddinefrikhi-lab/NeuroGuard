@@ -10,7 +10,8 @@ import { NavRightComponent } from './nav-right/nav-right.component';
   selector: 'app-nav-bar',
   imports: [SharedModule, NavLeftComponent, NavRightComponent],
   templateUrl: './nav-bar.component.html',
-  styleUrls: ['./nav-bar.component.scss']
+  styleUrls: ['./nav-bar.component.scss'],
+  host: { 'data-layout': 'provider', 'data-nav': 'nav-bar' }
 })
 export class NavBarComponent {
   // public props

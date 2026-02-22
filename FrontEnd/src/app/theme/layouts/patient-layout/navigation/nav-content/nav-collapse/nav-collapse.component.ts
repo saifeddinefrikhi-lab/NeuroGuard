@@ -12,7 +12,8 @@ import { NavItemComponent } from '../nav-item/nav-item.component';
   selector: 'app-nav-collapse',
   imports: [CommonModule, SharedModule, RouterModule, NavItemComponent],
   templateUrl: './nav-collapse.component.html',
-  styleUrls: ['./nav-collapse.component.scss']
+    styleUrls: ['./nav-collapse.component.scss'],
+    host: { 'data-layout': 'patient', 'data-nav': 'nav-collapse' }
 })
 export class NavCollapseComponent {
   private location = inject(Location);

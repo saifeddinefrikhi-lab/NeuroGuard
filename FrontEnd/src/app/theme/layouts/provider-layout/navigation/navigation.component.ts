@@ -10,7 +10,8 @@ import { NavContentComponent } from './nav-content/nav-content.component';
   selector: 'app-navigation',
   imports: [SharedModule, NavContentComponent, CommonModule],
   templateUrl: './navigation.component.html',
-  styleUrls: ['./navigation.component.scss']
+  styleUrls: ['./navigation.component.scss'],
+  host: { 'data-layout': 'provider', 'data-nav': 'navigation' }
 })
 export class NavigationComponent {
   // media 1025 After Use Menu Open

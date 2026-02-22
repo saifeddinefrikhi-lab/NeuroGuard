@@ -28,7 +28,8 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
   selector: 'app-nav-content',
   imports: [CommonModule, RouterModule, NavGroupComponent, NgScrollbarModule],
   templateUrl: './nav-content.component.html',
-  styleUrls: ['./nav-content.component.scss']
+  styleUrls: ['./nav-content.component.scss'],
+  host: { 'data-layout': 'admin', 'data-nav': 'nav-content' }
 })
 export class NavContentComponent implements OnInit {
   private location = inject(Location);

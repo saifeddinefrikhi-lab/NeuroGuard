@@ -71,6 +71,23 @@ export class ProviderMedicalHistoryDetailComponent implements OnInit {
     });
   }
 
+  deleteFile(fileId: number): void {
+    if (this.patientId && confirm('Are you sure you want to delete this file?')) {
+      this.medicalHistoryService.deletePatientFile(this.patientId, fileId).subscribe({
+        next: () => {
+          if (this.history) {
+            this.history.files = this.history.files.filter(f => f.id !== fileId);
+            this.cdr.markForCheck();
+          }
+        },
+        error: (err) => {
+          console.error('Error deleting file:', err);
+          alert('Failed to delete file.');
+        }
+      });
+    }
+  }
+
   goBack(): void {
     this.router.navigate(['/provider/medical-history']);
   }

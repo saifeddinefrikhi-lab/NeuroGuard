@@ -58,19 +58,19 @@ export class CaregiverPatientDetailComponent implements OnInit {
   }
 
   downloadFile(fileId: number, fileName: string): void {
-  this.medicalHistoryService.downloadFile(fileId).subscribe({
-    next: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    },
-    error: (err) => {
-      alert('Download failed.');
-      console.error(err);
-    }
-  });
-}
+    this.medicalHistoryService.downloadFile(fileId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        alert('Download failed.');
+        console.error(err);
+      }
+    });
+  }
 }

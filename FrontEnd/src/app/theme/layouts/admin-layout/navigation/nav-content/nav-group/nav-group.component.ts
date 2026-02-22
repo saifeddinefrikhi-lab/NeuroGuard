@@ -12,7 +12,8 @@ import { NavItemComponent } from '../nav-item/nav-item.component';
   selector: 'app-nav-group',
   imports: [CommonModule, SharedModule, NavCollapseComponent, NavItemComponent],
   templateUrl: './nav-group.component.html',
-  styleUrls: ['./nav-group.component.scss']
+  styleUrls: ['./nav-group.component.scss'],
+  host: { 'data-layout': 'admin', 'data-nav': 'nav-group' }
 })
 export class NavGroupComponent implements OnInit {
   private location = inject(Location);

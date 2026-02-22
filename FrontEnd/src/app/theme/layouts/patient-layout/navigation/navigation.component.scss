@@ -1,1 +1,14 @@
-// This file is intentionally left empty to allow customers to add custom CSS if needed.
+.m-header .app-logo {
+	display: block;
+	width: auto;
+	height: auto;
+	max-width: 170px;
+	max-height: 68px;
+}
+
+@media (max-width: 768px) {
+	.m-header .app-logo {
+		max-width: 140px;
+		max-height: 54px;
+	}
+}

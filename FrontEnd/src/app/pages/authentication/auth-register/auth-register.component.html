@@ -1,11 +1,14 @@
 <div class="auth-main">
   <div class="auth-wrapper v3">
     <div class="auth-form">
-      <div class="card my-5">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-end mb-4">
-            <h3 class="mb-0"><b>Create Account</b></h3>
-            <a [routerLink]="['/login']" class="link-primary">Already have an account?</a>
+      <div class="card auth-card my-5">
+        <div class="card-body auth-card-body">
+          <div class="auth-header">
+            <div>
+              <h3 class="auth-title">Create Account</h3>
+              <p class="auth-subtitle">Build your NeuroGuard profile in a few steps.</p>
+            </div>
+            <a [routerLink]="['/login']" class="link-primary auth-link">Already have an account?</a>
           </div>
 
           <!-- Success Alert -->
@@ -227,7 +230,7 @@
             </div>
 
             <div class="d-grid mt-4">
-              <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+              <button type="submit" class="btn btn-primary btn-auth" [disabled]="isLoading">
                 <span *ngIf="!isLoading">Create Account</span>
                 <span *ngIf="isLoading">
                   <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

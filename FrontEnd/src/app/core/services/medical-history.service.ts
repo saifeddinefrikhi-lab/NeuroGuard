@@ -21,7 +21,20 @@ export class MedicalHistoryService {
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'An error occurred';
     
-    if (error.status === 403) {
+    if (error.status === 400) {
+      // Bad Request - extract backend error message if available
+      if (error.error && typeof error.error === 'object') {
+        if (error.error.message) {
+          errorMessage = `Bad Request: ${error.error.message}`;
+        } else if (error.error.error) {
+          errorMessage = `Bad Request: ${error.error.error}`;
+        } else {
+          errorMessage = `Bad Request: Invalid data sent to server. ${JSON.stringify(error.error).substring(0, 100)}`;
+        }
+      } else {
+        errorMessage = 'Bad Request: The data sent to the server is invalid.';
+      }
+    } else if (error.status === 403) {
       errorMessage = 'Access Forbidden: You do not have permission to access this resource.';
     } else if (error.status === 401) {
       errorMessage = 'Unauthorized: Please log in again.';
@@ -38,7 +51,7 @@ export class MedicalHistoryService {
     }
     
     console.error(`[MedicalHistoryService Error] ${errorMessage}`, error);
-    console.error('Full error object:', error);
+    console.error('Full error response:', error.error);
     return throwError(() => new Error(errorMessage));
   }
 
@@ -134,6 +147,22 @@ uploadFile(file: File): Observable<FileDto> {
     }).pipe(
       catchError(err => this.handleError(err))
     );
+  }
+
+  // Delete file from patient's own medical history
+  deleteMyFile(fileId: number): Observable<void> {
+    const url = `${this.apiUrl}/api/patient/medical-history/me/files/${fileId}`;
+    console.log('[MedicalHistoryService] Deleting my file:', url);
+    return this.http.delete<void>(url)
+      .pipe(catchError(err => this.handleError(err)));
+  }
+
+  // Delete file from patient's medical history (provider access)
+  deletePatientFile(patientId: number, fileId: number): Observable<void> {
+    const url = `${this.apiUrl}/api/provider/medical-history/${patientId}/files/${fileId}`;
+    console.log('[MedicalHistoryService] Deleting patient file:', url);
+    return this.http.delete<void>(url)
+      .pipe(catchError(err => this.handleError(err)));
   }
 
   // Get list of patients assigned to this caregiver

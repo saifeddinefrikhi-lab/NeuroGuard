@@ -211,6 +211,43 @@ public class MedicalHistoryService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteFile(Long patientId, Long fileId, Long requesterId, String requesterRole) {
+        MedicalHistory history = historyRepository.findByPatientId(patientId)
+                .orElseThrow(() -> new RuntimeException("Medical history not found for patient: " + patientId));
+
+        // Authorization check
+        switch (requesterRole) {
+            case "PATIENT":
+                if (!history.getPatientId().equals(requesterId)) {
+                    throw new RuntimeException("Access denied: You can only delete files from your own medical history");
+                }
+                break;
+            case "PROVIDER":
+                if (!history.getProviderIds().contains(requesterId)) {
+                    throw new RuntimeException("Access denied: Provider not assigned to this patient");
+                }
+                break;
+            default:
+                throw new RuntimeException("Access denied: Only patients and providers can delete files");
+        }
+
+        // Find and delete the file
+        MedicalRecordFile file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new RuntimeException("File not found: " + fileId));
+
+        // Verify the file belongs to this medical history
+        if (!file.getMedicalHistoryId().equals(history.getId())) {
+            throw new RuntimeException("File does not belong to this medical history");
+        }
+
+        // Delete from disk
+        deleteFileFromDisk(file.getFilePath());
+
+        // Delete from database
+        fileRepository.delete(file);
+    }
+
     // ------------------- Helper Methods -------------------
 
     private List<Long> resolveCaregiverNamesToIds(List<String> caregiverNames) {

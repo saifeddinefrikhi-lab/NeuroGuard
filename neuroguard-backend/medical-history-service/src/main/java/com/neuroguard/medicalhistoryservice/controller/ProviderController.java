@@ -73,4 +73,14 @@ public class ProviderController {
         List<UserDto> caregivers = userServiceClient.getUsersByRole("CAREGIVER");
         return ResponseEntity.ok(caregivers);
     }
+
+    @DeleteMapping("/{patientId}/files/{fileId}")
+    public ResponseEntity<Void> deleteFile(@PathVariable Long patientId,
+                                           @PathVariable Long fileId,
+                                           HttpServletRequest httpRequest) {
+        Long providerId = (Long) httpRequest.getAttribute("userId");
+        String role = (String) httpRequest.getAttribute("userRole");
+        historyService.deleteFile(patientId, fileId, providerId, role);
+        return ResponseEntity.noContent().build();
+    }
 }

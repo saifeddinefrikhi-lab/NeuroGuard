@@ -40,21 +40,50 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
-      patientId: ['', Validators.required], // hidden, set via dropdown
-      diagnosis: [''],
-      diagnosisDate: [''],
-      progressionStage: [''],
-      geneticRisk: [''],
-      familyHistory: [''],
-      environmentalFactors: [''],
-      comorbidities: [''],
-      medicationAllergies: [''],
-      environmentalAllergies: [''],
-      foodAllergies: [''],
+      patientId: ['', Validators.required],
+      diagnosis: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(255)]],
+      diagnosisDate: ['', [Validators.required, this.validateDiagnosisDate.bind(this)]],
+      progressionStage: ['', [Validators.required, Validators.maxLength(50)]],
+      geneticRisk: ['', [Validators.minLength(2), Validators.maxLength(255)]],
+      familyHistory: ['', [Validators.maxLength(1000)]],
+      environmentalFactors: ['', [Validators.maxLength(1000)]],
+      comorbidities: ['', [Validators.maxLength(1000)]],
+      medicationAllergies: ['', [Validators.maxLength(1000)]],
+      environmentalAllergies: ['', [Validators.maxLength(1000)]],
+      foodAllergies: ['', [Validators.maxLength(1000)]],
       surgeries: this.fb.array([]),
       providerNames: this.fb.array([]),
-      caregiverNames: this.fb.array([])    // <-- changed from caregiverIds
-    });
+      caregiverNames: this.fb.array([])
+    }, { validators: [this.requireMedicalDataValidator.bind(this)] });
+  }
+
+  // Custom validator for diagnosis date
+  validateDiagnosisDate(control: any) {
+    if (!control.value) {
+      return null; // Will be caught by required validator
+    }
+    const diagnosisDate = new Date(control.value);
+    const today = new Date();
+    // Set time to 00:00 for date comparison
+    today.setHours(0, 0, 0, 0);
+    diagnosisDate.setHours(0, 0, 0, 0);
+    if (diagnosisDate > today) {
+      return { futureDateNotAllowed: true };
+    }
+    return null;
+  }
+
+  // Custom form validator to ensure meaningful medical data
+  requireMedicalDataValidator(formGroup: FormGroup): { [key: string]: any } | null {
+    const diagnosis = formGroup.get('diagnosis')?.value?.trim();
+    const diagnosisDate = formGroup.get('diagnosisDate')?.value;
+    const progressionStage = formGroup.get('progressionStage')?.value?.trim();
+
+    // At least diagnosis AND diagnosisDate AND progressionStage must be filled
+    if (!diagnosis || !diagnosisDate || !progressionStage) {
+      return { insufficientMedicalData: true };
+    }
+    return null;
   }
 
   ngOnInit(): void {
@@ -112,7 +141,55 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     return this.form.get('caregiverNames') as FormArray;
   }
 
-  // No add/remove methods for names – handled by checkboxes
+  // Validation error message helpers
+  getFieldError(fieldName: string): string {
+    const control = this.form.get(fieldName);
+    if (!control || !control.errors || !this.submitted) {
+      return '';
+    }
+    const errors = control.errors;
+    if (errors['required']) return `${this.formatFieldName(fieldName)} is required.`;
+    if (errors['minlength']) return `${this.formatFieldName(fieldName)} must be at least ${errors['minlength'].requiredLength} characters.`;
+    if (errors['maxlength']) return `${this.formatFieldName(fieldName)} cannot exceed ${errors['maxlength'].requiredLength} characters.`;
+    if (errors['futureDateNotAllowed']) return `${this.formatFieldName(fieldName)} cannot be in the future.`;
+    return 'Invalid value';
+  }
+
+  formatFieldName(field: string): string {
+    return field
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .trim();
+  }
+
+  hasFieldError(fieldName: string): boolean {
+    const control = this.form.get(fieldName);
+    return !!(this.submitted && control && control.invalid && control.touched);
+  }
+
+  isSurgeryInvalid(index: number): boolean {
+    const surgery = this.surgeries.at(index) as FormGroup;
+    return this.submitted && surgery && surgery.invalid;
+  }
+
+  getSurgeryError(index: number, fieldName: string): string {
+    const surgery = this.surgeries.at(index) as FormGroup;
+    const control = surgery.get(fieldName);
+    if (!control || !control.errors || !this.submitted) {
+      return '';
+    }
+    if (control.errors['required']) return `Surgery ${this.formatFieldName(fieldName)} is required.`;
+    return 'Invalid value';
+  }
+
+  // Check if form has insufficient medical data
+  hasInsufficientMedicalData(): boolean {
+    return !!(this.submitted && this.form.errors?.['insufficientMedicalData']);
+  }
+
+  getInsufficientDataMessage(): string {
+    return 'At least Diagnosis, Diagnosis Date, and Progression Stage are required to create a medical history record.';
+  }
 
   loadPatients(): void {
     this.patientsLoading = true;
@@ -268,32 +345,70 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.submitted = true;
+    this.form.markAllAsTouched();
+    
+    // Check for form-level errors
+    if (this.form.errors?.['insufficientMedicalData']) {
+      this.errorMessage = this.getInsufficientDataMessage();
+      this.cdr.markForCheck();
+      return;
+    }
+    
+    // Check for field-level errors
     if (this.form.invalid || (!this.selectedPatientId && !this.isEditMode)) {
-      this.submitted = true;
-      this.form.markAllAsTouched();
+      this.errorMessage = 'Please fix the validation errors above.';
       this.cdr.markForCheck();
       return;
     }
 
     this.submitting = true;
+    this.errorMessage = '';
     this.cdr.markForCheck();
+    
     const raw = this.form.getRawValue(); // includes disabled fields
+    
+    // Validate patientId
+    if (!raw.patientId || raw.patientId <= 0) {
+      this.errorMessage = 'Patient ID is required and must be valid.';
+      this.submitting = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    
+    // Validate required fields
+    if (!raw.diagnosis?.trim() || !raw.diagnosisDate || !raw.progressionStage) {
+      this.errorMessage = 'Diagnosis, Diagnosis Date, and Progression Stage are required.';
+      this.submitting = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    
+    // Clean up empty strings and build request
     const request: MedicalHistoryRequest = {
-      patientId: raw.patientId,
-      diagnosis: raw.diagnosis,
+      patientId: Number(raw.patientId),
+      diagnosis: raw.diagnosis.trim(),
       diagnosisDate: raw.diagnosisDate,
       progressionStage: raw.progressionStage,
-      geneticRisk: raw.geneticRisk,
-      familyHistory: raw.familyHistory,
-      environmentalFactors: raw.environmentalFactors,
-      comorbidities: raw.comorbidities,
-      medicationAllergies: raw.medicationAllergies,
-      environmentalAllergies: raw.environmentalAllergies,
-      foodAllergies: raw.foodAllergies,
-      surgeries: raw.surgeries,
-      providerNames: raw.providerNames || [],
-      caregiverNames: raw.caregiverNames || []      // <-- send names, not IDs
+      geneticRisk: raw.geneticRisk?.trim() || undefined,
+      familyHistory: raw.familyHistory?.trim() || undefined,
+      environmentalFactors: raw.environmentalFactors?.trim() || undefined,
+      comorbidities: raw.comorbidities?.trim() || undefined,
+      medicationAllergies: raw.medicationAllergies?.trim() || undefined,
+      environmentalAllergies: raw.environmentalAllergies?.trim() || undefined,
+      foodAllergies: raw.foodAllergies?.trim() || undefined,
+      surgeries: (raw.surgeries || [])
+        .filter((s: any) => s && s.description?.trim() && s.date)
+        .map((s: any) => ({
+          description: s.description.trim(),
+          date: s.date
+        })),
+      providerNames: (raw.providerNames || []).filter((name: string) => name && name.trim()).map((name: string) => name.trim()),
+      caregiverNames: (raw.caregiverNames || []).filter((name: string) => name && name.trim()).map((name: string) => name.trim())
     };
+
+    console.log('[ProviderMedicalHistoryForm] Validated request payload:', JSON.stringify(request, null, 2));
+    console.log('[ProviderMedicalHistoryForm] Form status:', { isValid: this.form.valid, isInvalid: this.form.invalid, errors: this.form.errors });
 
     if (this.isEditMode && this.patientId) {
       this.medicalHistoryService.update(this.patientId, request).subscribe({
@@ -301,7 +416,7 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
           this.router.navigate(['/provider/medical-history']);
         },
         error: (err) => {
-          this.errorMessage = 'Update failed.';
+          this.errorMessage = `Update failed: ${err.message || 'Unknown error'}`;
           this.submitting = false;
           console.error('Error updating medical history:', err);
           this.cdr.markForCheck();
@@ -313,7 +428,7 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
           this.router.navigate(['/provider/medical-history']);
         },
         error: (err) => {
-          this.errorMessage = 'Creation failed.';
+          this.errorMessage = `Creation failed: ${err.message || 'Unknown error'}`;
           this.submitting = false;
           console.error('Error creating medical history:', err);
           this.cdr.markForCheck();

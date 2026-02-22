@@ -28,9 +28,10 @@
       text-decoration: none;
     }
     .logo-img {
-      height: 200px;
+      height: 58px;
       width: auto;
       display: block;
+      max-width: 180px;
     }
     .logo-text {
       font-size: 22px;
@@ -97,6 +98,10 @@
       margin-top: 8px;
     }
     @media (max-width: 768px) {
+      .logo-img {
+        height: 48px;
+        max-width: 150px;
+      }
       .nav-links { display: none; }
       .hamburger { display: inline-flex; }
     }

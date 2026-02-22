@@ -32,13 +32,14 @@ export class CaregiverPatientListComponent implements OnInit {
     this.cdr.markForCheck();
     this.medicalHistoryService.getAssignedPatients().subscribe({
       next: (data) => {
+        console.log('[CaregiverPatientList] Received patients data:', data);
         this.patients = data;
         this.loading = false;
         this.cdr.markForCheck();
       },
       error: (err) => {
         this.errorMessage = 'Failed to load assigned patients.';
-        console.error(err);
+        console.error('[CaregiverPatientList] Error loading patients:', err);
         this.loading = false;
         this.cdr.markForCheck();
       }

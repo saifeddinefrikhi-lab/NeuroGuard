@@ -12,7 +12,8 @@ import { MenuUnfoldOutline, MenuFoldOutline, SearchOutline } from '@ant-design/i
   selector: 'app-nav-left',
   imports: [SharedModule],
   templateUrl: './nav-left.component.html',
-  styleUrls: ['./nav-left.component.scss']
+  styleUrls: ['./nav-left.component.scss'],
+  host: { 'data-layout': 'patient', 'data-nav': 'nav-left' }
 })
 export class NavLeftComponent {
   private iconService = inject(IconService);

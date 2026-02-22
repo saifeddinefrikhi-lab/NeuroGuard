@@ -136,10 +136,7 @@ export const routes: Routes = [
       }
     ]
   },
-  {
-    path: '**',
-    redirectTo: 'homePage'
-  }
+  
 ];
 
 @NgModule({

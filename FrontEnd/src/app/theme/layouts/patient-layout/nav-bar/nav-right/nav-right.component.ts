@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 
 // project import
 import { SharedModule } from 'src/app/theme/shared/shared.module';
+import { AuthService } from 'src/app/core/services/auth.service';
 
 // third party
 
@@ -33,11 +34,13 @@ import {
   selector: 'app-nav-right',
   imports: [SharedModule, RouterModule],
   templateUrl: './nav-right.component.html',
-  styleUrls: ['./nav-right.component.scss']
+  styleUrls: ['./nav-right.component.scss'],
+  host: { 'data-layout': 'patient', 'data-nav': 'nav-right' }
 })
 export class NavRightComponent {
   private iconService = inject(IconService);
   private router = inject(Router);  // Injecting the Router service
+  public auth = inject(AuthService);  // Injecting the Auth service
 
 
   // public props
@@ -123,8 +126,7 @@ export class NavRightComponent {
   ];
 
   logout() {
-    // Perform any necessary logout actions (e.g., clearing session storage, token, etc.)
-    // Navigate to the login page
-    this.router.navigate(['/login']);
+    // Perform logout using AuthService which clears token and navigates
+    this.auth.logout();
   }
 }
