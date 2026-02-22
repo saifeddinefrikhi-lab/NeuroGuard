@@ -30,6 +30,7 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
   caregivers: UserDto[] = [];
   providers: UserDto[] = [];
   selectedPatientId: number | null = null;
+  selectedCaregivers: UserDto[] = []; // Track full caregiver objects
 
   constructor(
     private fb: FormBuilder,
@@ -214,6 +215,7 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     this.cdr.markForCheck();
     this.medicalHistoryService.getCaregivers().subscribe({
       next: (data) => {
+        console.log('[ProviderMedicalHistoryForm] Loaded caregivers:', data);
         this.caregivers = data;
         this.caregiversLoading = false;
         this.cdr.markForCheck();
@@ -228,9 +230,13 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
   }
 
   loadProviders(): void {
-    this.medicalHistoryService.getPatients().subscribe({
+    this.medicalHistoryService.getProviders().subscribe({
       next: (data) => {
-        this.providers = data;
+        console.log('[ProviderMedicalHistoryForm] Loaded providers:', data);
+        // Filter out the current logged-in provider
+        const currentUserId = this.authService.currentUser?.userId;
+        this.providers = data.filter(p => p.id !== currentUserId);
+        console.log('[ProviderMedicalHistoryForm] Filtered providers (excluding current user ID:', currentUserId, '):', this.providers);
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -254,10 +260,14 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     const providerArray = this.form.get('providerNames') as FormArray;
     const fullName = `${provider.firstName} ${provider.lastName}`;
     const index = providerArray.controls.findIndex(ctrl => ctrl.value === fullName);
+    console.log(`[ProviderMedicalHistoryForm] Toggle provider "${fullName}":`, checked ? 'ADD' : 'REMOVE', 'Current index:', index);
+    
     if (checked && index === -1) {
       providerArray.push(this.fb.control(fullName));
+      console.log('[ProviderMedicalHistoryForm] After add, providerNames:', providerArray.value);
     } else if (!checked && index !== -1) {
       providerArray.removeAt(index);
+      console.log('[ProviderMedicalHistoryForm] After remove, providerNames:', providerArray.value);
     }
   }
 
@@ -267,22 +277,23 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     return providerArray.controls.some(ctrl => ctrl.value === fullName);
   }
 
-  // Toggle caregiver selection (checkbox) – store username
+  // Toggle caregiver selection (checkbox) – track caregiver objects
   toggleCaregiver(caregiver: UserDto, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    const caregiverArray = this.form.get('caregiverNames') as FormArray;
-    const username = caregiver.username;
-    const index = caregiverArray.controls.findIndex(ctrl => ctrl.value === username);
+    const index = this.selectedCaregivers.findIndex(c => c.id === caregiver.id);
+    console.log(`[ProviderMedicalHistoryForm] Toggle caregiver "${caregiver.firstName} ${caregiver.lastName}" (ID: ${caregiver.id}):`, checked ? 'ADD' : 'REMOVE');
+    
     if (checked && index === -1) {
-      caregiverArray.push(this.fb.control(username));
+      this.selectedCaregivers.push(caregiver);
     } else if (!checked && index !== -1) {
-      caregiverArray.removeAt(index);
+      this.selectedCaregivers.splice(index, 1);
     }
+    
+    console.log('[ProviderMedicalHistoryForm] Selected caregivers:', this.selectedCaregivers.map(c => `${c.firstName} ${c.lastName} (${c.username || 'no-username'})}`));
   }
 
   isCaregiverSelected(caregiver: UserDto): boolean {
-    const caregiverArray = this.form.get('caregiverNames') as FormArray;
-    return caregiverArray.controls.some(ctrl => ctrl.value === caregiver.username);
+    return this.selectedCaregivers.some(c => c.id === caregiver.id);
   }
 
   loadHistory(patientId: number): void {
@@ -290,6 +301,9 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     this.cdr.markForCheck();
     this.medicalHistoryService.getByPatientId(patientId).subscribe({
       next: (data) => {
+        console.log('[ProviderMedicalHistoryForm] Received medical history data:', data);
+        console.log('[ProviderMedicalHistoryForm] Provider names in response:', data.providerNames);
+        console.log('[ProviderMedicalHistoryForm] Caregiver names in response:', data.caregiverNames);
         this.patchForm(data);
         this.loading = false;
         this.cdr.markForCheck();
@@ -304,6 +318,8 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
   }
 
   patchForm(data: MedicalHistoryResponse): void {
+    console.log('[ProviderMedicalHistoryForm] Patching form with data:', data);
+    
     this.form.patchValue({
       patientId: data.patientId,
       diagnosis: data.diagnosis,
@@ -334,12 +350,24 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     data.providerNames?.forEach(name => {
       this.providerNames.push(this.fb.control(name));
     });
+    console.log('[ProviderMedicalHistoryForm] Populated providerNames:', this.providerNames.value);
 
-    // Caregiver Names – populate from response
+    // Caregiver Names – match with loaded caregivers by name
     this.caregiverNames.clear();
+    this.selectedCaregivers = [];
+    
     data.caregiverNames?.forEach(name => {
       this.caregiverNames.push(this.fb.control(name));
+      // Find matching caregiver by full name (since username might be null)
+      const matchingCaregiver = this.caregivers.find(c => 
+        `${c.firstName} ${c.lastName}` === name || c.username === name
+      );
+      if (matchingCaregiver && !this.selectedCaregivers.some(sc => sc.id === matchingCaregiver.id)) {
+        this.selectedCaregivers.push(matchingCaregiver);
+      }
     });
+    console.log('[ProviderMedicalHistoryForm] Populated caregiverNames:', this.caregiverNames.value);
+    console.log('[ProviderMedicalHistoryForm] Selected caregivers:', this.selectedCaregivers.map(c => `${c.firstName} ${c.lastName} (ID: ${c.id})`));
 
     this.cdr.markForCheck();
   }
@@ -367,6 +395,10 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
     this.cdr.markForCheck();
     
     const raw = this.form.getRawValue(); // includes disabled fields
+    console.log('[ProviderMedicalHistoryForm] Raw form value:', raw);
+    console.log('[ProviderMedicalHistoryForm] providerNames from form:', raw.providerNames);
+    console.log('[ProviderMedicalHistoryForm] caregiverNames from form:', raw.caregiverNames);
+    console.log('[ProviderMedicalHistoryForm] selectedCaregivers:', this.selectedCaregivers.map(c => c.username || `${c.firstName} ${c.lastName}`));
     
     // Validate patientId
     if (!raw.patientId || raw.patientId <= 0) {
@@ -404,7 +436,10 @@ export class ProviderMedicalHistoryFormComponent implements OnInit {
           date: s.date
         })),
       providerNames: (raw.providerNames || []).filter((name: string) => name && name.trim()).map((name: string) => name.trim()),
-      caregiverNames: (raw.caregiverNames || []).filter((name: string) => name && name.trim()).map((name: string) => name.trim())
+      // Map selected caregivers to usernames (or full names if username is null)
+      caregiverNames: this.selectedCaregivers
+        .map(c => c.username || `${c.firstName} ${c.lastName}`)
+        .filter(name => name && name.trim())
     };
 
     console.log('[ProviderMedicalHistoryForm] Validated request payload:', JSON.stringify(request, null, 2));

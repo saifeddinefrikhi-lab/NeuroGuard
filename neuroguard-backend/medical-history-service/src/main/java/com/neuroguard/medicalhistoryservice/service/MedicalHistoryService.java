@@ -58,15 +58,20 @@ public class MedicalHistoryService {
             throw new RuntimeException("Medical history already exists for patient: " + request.getPatientId());
         }
 
-        // Resolve caregiver names to IDs
-        List<Long> caregiverIds = resolveCaregiverNamesToIds(request.getCaregiverNames());
-
         MedicalHistory history = mapRequestToEntity(request);
+
         // Ensure the creator provider is added to providerIds if not present
         if (!history.getProviderIds().contains(providerId)) {
             history.getProviderIds().add(providerId);
         }
-        // Set resolved caregiver IDs
+
+        // Handle caregiver assignments - prefer IDs over names
+        List<Long> caregiverIds = new ArrayList<>();
+        if (request.getCaregiverIds() != null && !request.getCaregiverIds().isEmpty()) {
+            caregiverIds = request.getCaregiverIds();
+        } else if (request.getCaregiverNames() != null && !request.getCaregiverNames().isEmpty()) {
+            caregiverIds = resolveCaregiverNamesToIds(request.getCaregiverNames());
+        }
         history.setCaregiverIds(caregiverIds);
 
         history = historyRepository.save(history);
@@ -83,14 +88,21 @@ public class MedicalHistoryService {
             throw new RuntimeException("Provider not assigned to this patient");
         }
 
-        // Resolve caregiver names to IDs
-        List<Long> caregiverIds = resolveCaregiverNamesToIds(request.getCaregiverNames());
-
+        // Update basic fields
         updateEntityFromRequest(history, request);
-        // Update caregiver IDs
-        history.setCaregiverIds(caregiverIds);
-        // Preserve existing providerIds - don't let request override them
-        // The current provider is already authorized, so keep all existing providers
+
+        // Handle caregiver assignments - prefer IDs over names
+        if (request.getCaregiverIds() != null) {
+            // Direct ID assignment (preferred method)
+            history.setCaregiverIds(request.getCaregiverIds());
+        } else if (request.getCaregiverNames() != null && !request.getCaregiverNames().isEmpty()) {
+            // Resolve names to IDs (fallback method)
+            List<Long> caregiverIds = resolveCaregiverNamesToIds(request.getCaregiverNames());
+            history.setCaregiverIds(caregiverIds);
+        }
+        // If neither is provided, keep existing caregiverIds unchanged
+
+        // Handle provider assignments
         if (request.getProviderIds() != null && !request.getProviderIds().isEmpty()) {
             // Merge new provider IDs with existing ones
             for (Long newProviderId : request.getProviderIds()) {
@@ -98,6 +110,10 @@ public class MedicalHistoryService {
                     history.getProviderIds().add(newProviderId);
                 }
             }
+        }
+        // Always ensure the updating provider remains in the list
+        if (!history.getProviderIds().contains(providerId)) {
+            history.getProviderIds().add(providerId);
         }
 
         history = historyRepository.save(history);

@@ -74,6 +74,12 @@ public class ProviderController {
         return ResponseEntity.ok(caregivers);
     }
 
+    @GetMapping("/providers")
+    public ResponseEntity<List<UserDto>> getProviders() {
+        List<UserDto> providers = userServiceClient.getUsersByRole("PROVIDER");
+        return ResponseEntity.ok(providers);
+    }
+
     @DeleteMapping("/{patientId}/files/{fileId}")
     public ResponseEntity<Void> deleteFile(@PathVariable Long patientId,
                                            @PathVariable Long fileId,

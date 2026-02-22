@@ -307,7 +307,7 @@
                   (change)="toggleProvider(p, $event)"
                   [id]="'provider-' + p.id">
                 <label class="form-check-label" [for]="'provider-' + p.id">
-                  {{ p.firstName }} {{ p.lastName }} ({{ p.email }})
+                  {{ p.firstName }} {{ p.lastName }}<span *ngIf="p.email"> ({{ p.email }})</span><span *ngIf="!p.email && p.username"> (@{{ p.username }})</span>
                 </label>
               </div>
             </div>
@@ -332,7 +332,7 @@
                   (change)="toggleCaregiver(c, $event)"
                   [id]="'caregiver-' + c.id">
                 <label class="form-check-label" [for]="'caregiver-' + c.id">
-                  {{ c.firstName }} {{ c.lastName }} ({{ c.email }})
+                  {{ c.firstName }} {{ c.lastName }}<span *ngIf="c.email"> ({{ c.email }})</span><span *ngIf="!c.email && c.username"> (@{{ c.username }})</span>
                 </label>
               </div>
             </div>

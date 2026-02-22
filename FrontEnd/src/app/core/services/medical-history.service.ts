@@ -71,6 +71,14 @@ export class MedicalHistoryService {
       );
   }
 
+  getProviders(): Observable<UserDto[]> {
+    console.log('[MedicalHistoryService] Fetching providers from:', `${this.apiUrl}/api/provider/medical-history/providers`);
+    return this.http.get<UserDto[]>(`${this.apiUrl}/api/provider/medical-history/providers`)
+      .pipe(
+        catchError(err => this.handleError(err))
+      );
+  }
+
   // Get all medical histories for the logged-in provider
   getAllForProvider(): Observable<MedicalHistoryResponse[]> {
     console.log('[MedicalHistoryService] Fetching all medical histories from:', `${this.apiUrl}/api/provider/medical-history`);
