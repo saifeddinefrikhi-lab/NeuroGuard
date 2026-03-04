@@ -18,7 +18,18 @@ export class PostListComponent implements OnInit {
   posts: PostDto[] = [];
   loading = false;
   error = '';
-  private userCache: Map<number, string> = new Map(); // Cache usernames by userId
+  currentPage = 0;
+  totalPages = 0;
+  totalElements = 0;
+  pageSize = 10;
+  sortOption = 'newest';
+  readonly sortOptions: { value: string; label: string }[] = [
+    { value: 'newest', label: 'Newest' },
+    { value: 'oldest', label: 'Oldest' },
+    { value: 'mostLiked', label: 'Most liked' },
+    { value: 'mostComments', label: 'Most comments' }
+  ];
+  private userCache: Map<number, string> = new Map();
 
   constructor(
     private forumService: ForumService,
@@ -34,28 +45,44 @@ export class PostListComponent implements OnInit {
 
   loadPosts(): void {
     this.loading = true;
-    console.log('Loading posts...');
-    this.forumService.getAllPosts().pipe(observeOn(asyncScheduler)).subscribe({
+    this.error = '';
+    this.forumService.getPostsPaged(this.currentPage, this.pageSize, this.sortOption).pipe(observeOn(asyncScheduler)).subscribe({
       next: (data) => {
-        console.log('Posts loaded:', data);
-        console.log('Posts data:', data.map(p => ({
-          id: p.id,
-          title: p.title,
-          authorId: p.authorId,
-          authorUsername: p.authorUsername
-        })));
-        this.posts = data;
+        this.posts = data.content;
+        this.totalElements = data.totalElements;
+        this.totalPages = data.totalPages;
         this.resolvePostUsernames();
         this.loading = false;
         this.cdr.markForCheck();
       },
-      error: (err) => {
+      error: () => {
         this.error = 'Failed to load posts.';
         this.loading = false;
-        console.error('Error loading posts:', err);
         this.cdr.markForCheck();
       }
     });
+  }
+
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages) return;
+    this.currentPage = page;
+    this.loadPosts();
+  }
+
+  setSort(value: string): void {
+    this.sortOption = value;
+    this.currentPage = 0;
+    this.loadPosts();
+  }
+
+  getPageNumbers(): number[] {
+    const maxVisible = 7;
+    let start = Math.max(0, this.currentPage - Math.floor(maxVisible / 2));
+    const end = Math.min(this.totalPages, start + maxVisible);
+    start = Math.max(0, end - maxVisible);
+    const pages: number[] = [];
+    for (let i = start; i < end; i++) pages.push(i);
+    return pages;
   }
 
   private resolvePostUsernames(): void {
@@ -64,20 +91,15 @@ export class PostListComponent implements OnInit {
     );
 
     if (postsNeedingUsernames.length === 0) {
-      return; // All posts already have usernames
+      return;
     }
-
-    console.log(`Resolving usernames for ${postsNeedingUsernames.length} posts`);
 
     // Create an array of observables for all username resolutions
     const usernameResolutions = postsNeedingUsernames.map(post =>
       this.resolveUsername(post.authorId).pipe(
         map(username => ({ post, username })),
         // In case of error, fallback to 'Unknown User' for that post
-        catchError((error) => {
-          console.warn(`Error resolving username for authorId ${post.authorId}:`, error);
-          return of({ post, username: 'Unknown User' });
-        })
+        catchError(() => of({ post, username: 'Unknown User' }))
       )
     );
 
@@ -86,44 +108,26 @@ export class PostListComponent implements OnInit {
       results => {
         results.forEach(({ post, username }) => {
           const postToUpdate = this.posts.find(p => p.id === post.id);
-          if (postToUpdate) {
-            console.log(`Updating post ${postToUpdate.id} with username: ${username}`);
-            postToUpdate.authorUsername = username;
-          }
+          if (postToUpdate) postToUpdate.authorUsername = username;
         });
         this.cdr.markForCheck();
       },
-      error => {
-        // Even if some resolutions fail, mark for check to update UI
-        console.error('Error resolving usernames:', error);
-        this.cdr.markForCheck();
-      }
+      error => this.cdr.markForCheck()
     );
   }
 
   private resolveUsername(userId: number): Observable<string> {
-    if (this.userCache.has(userId)) {
-      const cached = this.userCache.get(userId) || '';
-      console.log(`Username cache hit for userId ${userId}: ${cached}`);
-      return of(cached);
-    }
-
-    console.log(`Fetching username for userId ${userId}`);
+    if (this.userCache.has(userId)) return of(this.userCache.get(userId) || '');
     return new Observable<string>(observer => {
-      this.userService.getUserById(userId).subscribe(
-        user => {
-          // Build full name from firstName and lastName, fallback to username if both are empty
+      this.userService.getUserById(userId).subscribe({
+        next: user => {
           const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'Unknown User';
-          console.log(`Resolved userId ${userId} to: ${fullName}`, user);
           this.userCache.set(userId, fullName);
           observer.next(fullName);
           observer.complete();
         },
-        error => {
-          console.error(`Failed to resolve username for userId ${userId}:`, error);
-          observer.error(error);
-        }
-      );
+        error: e => observer.error(e)
+      });
     });
   }
 

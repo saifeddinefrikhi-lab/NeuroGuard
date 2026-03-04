@@ -1,5 +1,6 @@
 package com.neuroguard.forumsservice.controller;
 
+import com.neuroguard.forumsservice.dto.PagedResponse;
 import com.neuroguard.forumsservice.dto.PostRequest;
 import com.neuroguard.forumsservice.dto.PostResponse;
 import com.neuroguard.forumsservice.service.PostService;
@@ -32,6 +33,16 @@ public class PostController {
     public ResponseEntity<List<PostResponse>> getAllPosts(HttpServletRequest request) {
         Long currentUserId = getCurrentUserId(request);
         return ResponseEntity.ok(postService.getAllPosts(currentUserId));
+    }
+
+    @GetMapping("/paged")
+    public ResponseEntity<PagedResponse<PostResponse>> getPostsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "newest") String sort,
+            HttpServletRequest request) {
+        Long currentUserId = getCurrentUserId(request);
+        return ResponseEntity.ok(postService.getPostsPaged(page, size, sort, currentUserId));
     }
 
     @GetMapping("/{id}")

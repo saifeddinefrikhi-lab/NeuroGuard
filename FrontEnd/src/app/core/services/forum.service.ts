@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PostDto, CreatePostRequest, UpdatePostRequest } from '../models/post.dto';
+import { PostDto, CreatePostRequest, UpdatePostRequest, PagedResponse } from '../models/post.dto';
 import { CommentDto, CreateCommentRequest, CreateReplyRequest } from '../models/comment.dto';
 
 @Injectable({
@@ -16,6 +16,11 @@ export class ForumService {
   // ---------- Posts ----------
   getAllPosts(): Observable<PostDto[]> {
     return this.http.get<PostDto[]>(this.baseUrl);
+  }
+
+  getPostsPaged(page = 0, size = 10, sort = 'newest'): Observable<PagedResponse<PostDto>> {
+    const params = { page: String(page), size: String(size), sort };
+    return this.http.get<PagedResponse<PostDto>>(`${this.baseUrl}/paged`, { params });
   }
 
   getPostById(id: number): Observable<PostDto> {

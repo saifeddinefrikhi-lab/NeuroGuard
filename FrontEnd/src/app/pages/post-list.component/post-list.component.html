@@ -6,6 +6,13 @@
         <h1 class="forum-title">Community Forum</h1>
         <p class="forum-subtitle">Share experiences, ask questions, and connect with others</p>
       </div>
+      <div class="header-actions">
+        <label class="sort-label">
+          Sort by
+          <select class="sort-select" [value]="sortOption" (change)="setSort($any($event.target).value)">
+            <option *ngFor="let opt of sortOptions" [value]="opt.value">{{ opt.label }}</option>
+          </select>
+        </label>
       <button *ngIf="authService.isLoggedIn" (click)="createPost()" class="btn-create-post">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -13,6 +20,7 @@
         </svg>
         New Post
       </button>
+      </div>
     </div>
   </div>
 
@@ -115,6 +123,20 @@
           </svg>
           <span>Share</span>
         </button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1 && posts.length > 0" class="pagination-wrap">
+      <p class="pagination-info">
+        Showing {{ currentPage * pageSize + 1 }}–{{ currentPage * pageSize + posts.length }} of {{ totalElements }}
+      </p>
+      <div class="pagination">
+        <button type="button" class="pagination-btn" [disabled]="currentPage === 0" (click)="goToPage(currentPage - 1)">Previous</button>
+        <span class="pagination-pages">
+          <button *ngFor="let p of getPageNumbers()" type="button" class="pagination-btn" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p + 1 }}</button>
+        </span>
+        <button type="button" class="pagination-btn" [disabled]="currentPage >= totalPages - 1" (click)="goToPage(currentPage + 1)">Next</button>
       </div>
     </div>
 

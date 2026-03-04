@@ -1,5 +1,6 @@
 package com.neuroguard.forumsservice.service;
 
+import com.neuroguard.forumsservice.dto.PagedResponse;
 import com.neuroguard.forumsservice.dto.PostRequest;
 import com.neuroguard.forumsservice.dto.PostResponse;
 import com.neuroguard.forumsservice.dto.UserDto;
@@ -11,6 +12,10 @@ import com.neuroguard.forumsservice.repository.PostLikeRepository;
 import com.neuroguard.forumsservice.repository.PostRepository;
 import com.neuroguard.forumsservice.repository.PostShareRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +48,46 @@ public class PostService {
         return postRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(post -> mapToResponse(post, currentUserId))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get posts with pagination and sorting.
+     * @param page 0-based page index
+     * @param size page size (default 10)
+     * @param sort one of: newest, oldest, mostLiked, mostComments
+     */
+    public PagedResponse<PostResponse> getPostsPaged(int page, int size, String sort, Long currentUserId) {
+        if (size < 1) size = 10;
+        if (size > 50) size = 50;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> postPage;
+        switch (sort != null ? sort.toLowerCase() : "newest") {
+            case "oldest":
+                pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+                postPage = postRepository.findAll(pageable);
+                break;
+            case "mostliked":
+                postPage = postRepository.findPostsOrderByLikesDesc(pageable);
+                break;
+            case "mostcomments":
+                postPage = postRepository.findPostsOrderByCommentCountDesc(pageable);
+                break;
+            default: // newest
+                postPage = postRepository.findAllByOrderByCreatedAtDesc(pageable);
+                break;
+        }
+        List<PostResponse> content = postPage.getContent().stream()
+                .map(post -> mapToResponse(post, currentUserId))
+                .collect(Collectors.toList());
+        return new PagedResponse<>(
+                content,
+                postPage.getTotalElements(),
+                postPage.getTotalPages(),
+                postPage.getSize(),
+                postPage.getNumber(),
+                postPage.isFirst(),
+                postPage.isLast()
+        );
     }
 
     public PostResponse getPostById(Long id, Long currentUserId) {

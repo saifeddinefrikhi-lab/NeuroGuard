@@ -22,3 +22,13 @@ export interface UpdatePostRequest {
   title?: string;
   content?: string;
 }
+
+export interface PagedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;  // current page (0-based)
+  first: boolean;
+  last: boolean;
+}
