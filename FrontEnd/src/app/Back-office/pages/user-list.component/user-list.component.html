@@ -4,7 +4,12 @@
       <h2>User Management</h2>
       <p class="subtitle">Manage platform users, roles, and profile information</p>
     </div>
-    <button class="primary-btn" (click)="openCreateForm()" [disabled]="isSubmitting">+ Add User</button>
+    <div class="d-flex gap-2 align-items-center">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="exportPdf()" [disabled]="exportPdfLoading">
+        {{ exportPdfLoading ? 'Exporting...' : 'Export PDF' }}
+      </button>
+      <button class="primary-btn" (click)="openCreateForm()" [disabled]="isSubmitting">+ Add User</button>
+    </div>
   </div>
 
   <div *ngIf="successMessage" class="alert alert-success">

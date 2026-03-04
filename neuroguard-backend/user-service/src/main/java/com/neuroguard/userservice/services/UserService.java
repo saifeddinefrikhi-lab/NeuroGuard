@@ -3,6 +3,7 @@ package com.neuroguard.userservice.services;
 import com.neuroguard.userservice.dto.CreateUserRequest;
 import com.neuroguard.userservice.dto.UpdateUserRequest;
 import com.neuroguard.userservice.dto.UserDto;
+import com.neuroguard.userservice.dto.UserStatsDto;
 import com.neuroguard.userservice.entities.Role;
 import com.neuroguard.userservice.entities.User;
 import com.neuroguard.userservice.security.JwtUtils;
@@ -140,5 +141,14 @@ public class UserService implements UserDetailsService {
         dto.setLastName(user.getLastName());
         dto.setRole(user.getRole().name());
         return dto;
+    }
+
+    public UserStatsDto getStats() {
+        long patients = userRepository.countByRole(Role.PATIENT);
+        long providers = userRepository.countByRole(Role.PROVIDER);
+        long caregivers = userRepository.countByRole(Role.CAREGIVER);
+        long admins = userRepository.countByRole(Role.ADMIN);
+        long total = userRepository.count();
+        return new UserStatsDto(total, patients, providers, caregivers, admins);
     }
 }

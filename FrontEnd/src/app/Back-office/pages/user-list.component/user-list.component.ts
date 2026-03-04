@@ -24,6 +24,7 @@ export class UserListComponent implements OnInit {
   errorMessage = '';
   searchQuery = '';
   selectedRole = '';
+  exportPdfLoading = false;
 
   // For create/edit form
   formData: CreateUserRequest = {
@@ -82,6 +83,35 @@ export class UserListComponent implements OnInit {
     this.searchQuery = '';
     this.selectedRole = '';
     this.applyFilters();
+  }
+
+  exportPdf(): void {
+    this.exportPdfLoading = true;
+    this.errorMessage = '';
+    this.cdr.markForCheck();
+    const roleParam = this.selectedRole?.trim() || undefined;
+    this.userService.getUsersPdf(roleParam).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'users.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.exportPdfLoading = false;
+        this.successMessage = 'PDF downloaded successfully.';
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.successMessage = '';
+          this.cdr.markForCheck();
+        }, 3000);
+      },
+      error: () => {
+        this.exportPdfLoading = false;
+        this.errorMessage = 'Failed to export PDF.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   openCreateForm(): void {

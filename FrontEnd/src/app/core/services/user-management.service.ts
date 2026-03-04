@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserDto } from '../models/user.dto';
+import { UserStatsDto } from '../models/user-stats.dto';
 import { CreateUserRequest, UpdateUserRequest } from '../models/user-request.dto';
 
 @Injectable({
@@ -13,6 +14,11 @@ export class UserManagementService {
   private baseUrl = `${environment.apiUrl}/users`;  // through gateway
 
   constructor(private http: HttpClient) {}
+
+  // Get user stats by role (admin only)
+  getStats(): Observable<UserStatsDto> {
+    return this.http.get<UserStatsDto>(`${this.baseUrl}/dashboard/stats`);
+  }
 
   // Get all users (admin only)
   getAllUsers(): Observable<UserDto[]> {
@@ -37,5 +43,17 @@ export class UserManagementService {
   // Delete a user (admin only)
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Export user list as PDF. Optional role filter (e.g. PATIENT, PROVIDER).
+   * Returns blob for download.
+   */
+  getUsersPdf(role?: string): Observable<Blob> {
+    let url = `${this.baseUrl}/dashboard/export/pdf`;
+    if (role && role.trim()) {
+      url += `?role=${encodeURIComponent(role.trim())}`;
+    }
+    return this.http.get(url, { responseType: 'blob' });
   }
 }

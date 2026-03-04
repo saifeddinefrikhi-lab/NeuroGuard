@@ -3,13 +3,17 @@ package com.neuroguard.userservice.controllers;
 import com.neuroguard.userservice.dto.CreateUserRequest;
 import com.neuroguard.userservice.dto.UpdateUserRequest;
 import com.neuroguard.userservice.dto.UserDto;
+import com.neuroguard.userservice.dto.UserStatsDto;
 import com.neuroguard.userservice.entities.Role;
 import com.neuroguard.userservice.entities.User;
 import com.neuroguard.userservice.repositories.UserRepository;
+import com.neuroguard.userservice.services.UserPdfService;
 import com.neuroguard.userservice.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,10 +34,41 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserPdfService userPdfService;
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/dashboard/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserStatsDto> getStats() {
+        return ResponseEntity.ok(userService.getStats());
+    }
+
+    @GetMapping(value = "/dashboard/export/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportUsersPdf(@RequestParam(required = false) String role) {
+        List<UserDto> users;
+        String roleFilter = null;
+        if (role != null && !role.isBlank()) {
+            try {
+                Role roleEnum = Role.valueOf(role.toUpperCase());
+                users = userRepository.findByRole(roleEnum).stream().map(this::convertToDto).collect(Collectors.toList());
+                roleFilter = roleEnum.name();
+            } catch (IllegalArgumentException e) {
+                users = userService.getAllUsers();
+            }
+        } else {
+            users = userService.getAllUsers();
+        }
+        byte[] pdf = userPdfService.generateUsersPdf(users, roleFilter);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", "users.pdf");
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 
     @PostMapping
