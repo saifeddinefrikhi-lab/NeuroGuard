@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: careplan-service
+  profiles:
+    active: local   # charge application-local.yaml (mail + mot de passe). Sans ce fichier, mail reste désactivé.
+  datasource:
+    url: jdbc:mysql://localhost:3306/careplandb?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: ""                     # ← mettez votre mot de passe MySQL ici (vide si pas de mot de passe)
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:neuroguard584@gmail.com}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:true}
+
+jwt:
+  secret: XDkzF2YNPA/7vXmPYJmaACjY6VBhwHJbr4pzPF5jguE=   # ← clé identique à celle de user-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+server:
+  port: 8084   # 8082 utilisé par medical-history-service
+
+# Mail: care plan creation → email sent to patient. Account: neuroguard584@gmail.com
+# To enable: set MAIL_ENABLED=true and MAIL_PASSWORD=<Gmail app password>
+neuroguard:
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:neuroguard584@gmail.com}
+
+logging:
+  level:
+    com.esprit.microservice.careplanservice: DEBUG
+    com.esprit.microservice.careplanservice.feign: DEBUG   # ← corrigé pour correspondre au package réel
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000

@@ -1,0 +1,88 @@
+server:
+  port: 8083
+
+# Eureka : si le serveur Eureka (port 8761) n'est pas démarré, lancez avec le profil "standalone"
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "http://127.0.0.1:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: user-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/auth/**
+        - id: user-users
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        - id: medical-provider
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/provider/medical-history/**
+        - id: medical-patient
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/patient/medical-history/**
+        - id: medical-caregiver
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/caregiver/medical-history/**
+        - id: medical-files
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/files/**
+        - id: medical-test
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/test
+        - id: care-plans
+          uri: lb://careplan-service
+          predicates:
+            - Path=/api/care-plans/**
+        # Proxy Ollama (set OLLAMA_URI if Ollama runs elsewhere, e.g. http://host:11434)
+        # Strip Ollama's CORS headers to avoid duplicate (gateway CORS adds them once)
+        - id: ollama
+          uri: ${OLLAMA_URI:http://localhost:11434}
+          predicates:
+            - Path=/api/ollama/**
+          filters:
+            - RewritePath=/api/ollama(?<segment>/?.*), /api${segment}
+            # Add CORS first in list so they run AFTER RemoveResponseHeader when response comes back
+            - AddResponseHeader=Access-Control-Allow-Origin,http://localhost:4200
+            - AddResponseHeader=Access-Control-Allow-Credentials,true
+            - RemoveResponseHeader=Access-Control-Allow-Origin
+            - RemoveResponseHeader=Access-Control-Allow-Credentials
+            - RemoveResponseHeader=Access-Control-Expose-Headers
+            - RemoveResponseHeader=Access-Control-Allow-Methods
+            - RemoveResponseHeader=Access-Control-Allow-Headers
+            - RemoveResponseHeader=Access-Control-Max-Age
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG

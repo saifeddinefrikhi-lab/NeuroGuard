@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: medical-history-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/medical_history_db?createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+
+jwt:
+  secret: XDkzF2YNPA/7vXmPYJmaACjY6VBhwHJbr4pzPF5jguE=   # must match user-service secret
+
+# Feign client configuration for user-service
+user-service:
+  url: http://localhost:8081   # or use service discovery, Feign will resolve via Eureka
+
+logging:
+  level:
+    com.neuroguard.medicalhistoryservice.security: DEBUG
+    org.springframework.security: DEBUG

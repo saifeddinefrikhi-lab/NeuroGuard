@@ -1,0 +1,8 @@
+# Profil "standalone" : démarrer la gateway SANS Eureka (utile si Eureka n'est pas lancé).
+# Commande : mvnw spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=standalone"
+# Les routes lb:// (user-service, care-plan-service, etc.) ne marcheront pas ; la route /api/ollama si.
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
