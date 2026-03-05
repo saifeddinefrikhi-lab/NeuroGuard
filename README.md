@@ -2,17 +2,22 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Angular](https://img.shields.io/badge/Angular-18-DD0031?logo=angular)](https://angular.io/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-6DB33F?logo=springboot)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-17-007396?logo=java)](https://www.java.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql)](https://www.mysql.com/)
+[![Eureka](https://img.shields.io/badge/Eureka-Discovery-blueviolet)](https://spring.io/projects/spring-cloud-netflix)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.x-7952B3?logo=bootstrap)](https://getbootstrap.com/)
 
-> *An intelligent web application for comprehensive Alzheimer's disease patient management, featuring automated risk detection, real-time alerts, and multi-role patient monitoring.*
+> *An intelligent web application for comprehensive Alzheimer's disease patient management, featuring automated risk detection, real-time alerts, multi-role monitoring, and a microservices architecture.*
 
 ---
 
 ## 📋 Overview
 
 **NeuroGuard** is a cutting-edge healthcare platform designed to revolutionize the care of Alzheimer's disease patients. Continuous monitoring is essential for preventing high-risk situations such as falls, wandering, and abnormal behaviors. However, existing solutions often lack automation and personalization. NeuroGuard addresses these challenges by providing an intelligent, automated system that continuously analyzes patient behavior and enhances their safety through predictive analytics and business rule-based detection.
+
+The system is built using a modern **microservices architecture**, enabling scalability, maintainability, and independent deployment of each service. It integrates a **machine learning model** to predict hospitalization risks, a **rule-based alert engine**, and an **Angular frontend** with role-based views for patients, caregivers, healthcare providers, and administrators.
 
 ### 🎯 Project Context
 
@@ -31,22 +36,22 @@ Current solutions are often:
 ### 🎯 Objectives
 
 NeuroGuard aims to develop an intelligent web application with the following capabilities:
-- 🔍 **Automated Risk Detection** - Business rule-based algorithms for identifying dangerous situations
-- 🔔 **Smart Alert Generation** - Real-time notifications to relevant stakeholders
-- 📊 **Comprehensive Patient Monitoring** - Continuous tracking of patient health and behavior
-- 👥 **Multi-Role Management** - Clear role definitions for administrators, caregivers, healthcare providers, and patients
-- 📈 **Medical History Tracking** - Detailed progression and diagnostic records
-- 💬 **Community Forum** - Knowledge sharing and support network
+- 🔍 **Automated Risk Detection** – Business rule-based algorithms for identifying dangerous situations
+- 🔔 **Smart Alert Generation** – Real-time notifications to relevant stakeholders (in-app, optionally email)
+- 📊 **Comprehensive Patient Monitoring** – Continuous tracking of patient health and behavior
+- 👥 **Multi-Role Management** – Clear role definitions for administrators, caregivers, healthcare providers, and patients
+- 📈 **Medical History Tracking** – Detailed progression and diagnostic records
+- 🤖 **ML-Powered Risk Prediction** – Hospitalization risk assessment using patient features
+- 💬 **Community Forum** – Knowledge sharing and support network
 
 ---
 
 ## ✨ Features
 
 ### 🔐 Authentication & Authorization
-- Secure user registration and login
-- Role-based access control (RBAC)
-- JWT token-based authentication
-- Password recovery and reset
+- Secure user registration and login with JWT
+- Role-based access control (Admin, Patient, Caregiver, Provider)
+- Token invalidation on logout (server-side blacklist)
 
 ### 👤 User Role Management
 
@@ -56,43 +61,55 @@ NeuroGuard aims to develop an intelligent web application with the following cap
 - Overall platform oversight
 
 #### 🏥 Healthcare Provider
-- Patient medical history management
-- Disease progression tracking
-- Diagnosis and treatment planning
-- Alert monitoring and response
+- Create and manage patient medical histories
+- Track disease progression (Mild, Moderate, Severe)
+- Assign caregivers to patients
+- View and respond to alerts (rule‑based & ML)
+- Trigger manual or predictive alert generation
 
 #### 🤝 Caregiver
-- Assigned patient monitoring
-- Daily care task management
-- Alert notifications and handling
-- Patient activity tracking
+- View assigned patients’ medical histories
+- Receive notifications when new alerts are created
+- Monitor patient alerts and mark them as resolved (if permitted)
 
 #### 🙋 Patient
-- Personal profile management
-- Medical history viewing
-- Alert history access
-- Forum participation
+- View personal medical history
+- See own alerts (past and present)
+- Upload/download medical documents
+- Participate in the community forum
 
 ### 🚨 Alert System
-- Real-time risk detection
-- Automated severity classification
-- Multi-channel notifications
-- Alert history and analytics
-- Customizable alert rules
+- **Rule-based alerts** – Triggered by configurable medical rules (e.g., severe progression, allergies, comorbidities)
+- **ML-based alerts** – Generated when hospitalization risk exceeds a threshold (from Python ML service)
+- **Manual alerts** – Providers can create custom alerts
+- Alert severity levels: INFO, WARNING, CRITICAL
+- Real-time **in-app notifications** for patients and caregivers
+- Alert resolution tracking
 
 ### 📋 Medical History Management
-- Comprehensive patient records
-- Disease progression tracking
-- Diagnosis documentation
-- Treatment history
-- Stage-based categorization (Mild, Moderate, Severe)
+- Comprehensive patient records including:
+  - Diagnosis and date
+  - Progression stage (Mild, Moderate, Severe)
+  - Genetic risk, family history, environmental factors
+  - Comorbidities (comma-separated)
+  - Allergies (medication, environmental, food)
+  - List of surgeries (with description and date)
+  - Assigned providers and caregivers (by ID or username)
+- File attachments (e.g., MRI scans, lab reports) – upload/download
+- One medical history per patient (unique constraint)
+
+### 🔬 ML-Powered Risk Prediction
+- Python Flask microservice (`ml-predictor-service`)
+- Accepts patient features (`age`, `gender`, `progressionStage`, `yearsSinceDiagnosis`, counts of comorbidities/allergies/surgeries, etc.)
+- Returns hospitalization probability and risk level (MINIMAL, LOW, MODERATE, HIGH, CRITICAL)
+- Can use a trained scikit‑learn model or a mock rule‑based model for testing
+- Integrated with the risk‑alert‑service via Feign client
 
 ### 💬 Community Forum
 - Post creation and management
 - Comment system with threading
 - Topic categorization
 - User engagement and support
-- Knowledge sharing platform
 
 ### 🔍 Advanced Search & Filtering
 - Real-time search functionality
@@ -107,93 +124,153 @@ NeuroGuard aims to develop an intelligent web application with the following cap
 ### Frontend
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| ![Angular](https://img.shields.io/badge/-Angular-DD0031?logo=angular&logoColor=white) | 18.x | Core framework |
-| ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) | 5.x | Primary language |
-| ![Bootstrap](https://img.shields.io/badge/-Bootstrap-7952B3?logo=bootstrap&logoColor=white) | 5.x | UI framework |
-| ![SCSS](https://img.shields.io/badge/-SCSS-CC6699?logo=sass&logoColor=white) | - | Styling |
-| ![RxJS](https://img.shields.io/badge/-RxJS-B7178C?logo=reactivex&logoColor=white) | - | Reactive programming |
-| **Tabler Icons** | - | Icon library |
-| **FormsModule & ReactiveFormsModule** | - | Form handling |
+| **Angular** | 18.x | Core framework |
+| **TypeScript** | 5.x | Primary language |
+| **Bootstrap** | 5.x | UI framework |
+| **SCSS** | – | Styling |
+| **RxJS** | – | Reactive programming |
+| **Tabler Icons** | – | Icon library |
+| **FormsModule & ReactiveFormsModule** | – | Form handling |
+| **HTTP Interceptors** | – | JWT injection |
 
-**Key Frontend Features:**
-- 🎨 Modern, gradient-based UI design
-- 📱 Fully responsive layout
-- ♿ Accessibility features
-- 🔄 OnPush change detection strategy
-- 🎭 Standalone component architecture
-- 🚀 Lazy loading modules
-- 🔌 HTTP interceptors for authentication
+### Backend (Microservices)
 
-### Backend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| ![Spring Boot](https://img.shields.io/badge/-Spring%20Boot-6DB33F?logo=springboot&logoColor=white) | 3.x | Backend framework |
-| ![Java](https://img.shields.io/badge/-Java-007396?logo=java&logoColor=white) | 17+ | Programming language |
-| ![MySQL](https://img.shields.io/badge/-MySQL-4479A1?logo=mysql&logoColor=white) | 8.x | Database |
-| **Spring Security** | - | Authentication & authorization |
-| **JWT** | - | Token-based auth |
-| **Spring Data JPA** | - | Data persistence |
-| **Hibernate** | - | ORM framework |
-| **Lombok** | - | Code generation |
+| Service | Port | Technology | Purpose |
+|---------|------|------------|---------|
+| **Eureka Server** | 8761 | Spring Cloud Netflix | Service registry |
+| **Gateway Service** | 8083 | Spring Cloud Gateway | API routing, CORS, load balancing |
+| **User Service** | 8081 | Spring Boot, JPA, MySQL | User management, authentication, JWT |
+| **Medical History Service** | 8082 | Spring Boot, JPA, MySQL | Patient medical records, file storage |
+| **Risk Alert Service** | 8084 | Spring Boot, JPA, MySQL | Alert generation (rules & ML), notifications |
+| **ML Predictor Service** | 5000 | Python, Flask, scikit‑learn | Hospitalization risk prediction |
 
-**Key Backend Features:**
-- 🔐 JWT-based authentication
-- 🛡️ Role-based authorization
-- 📊 RESTful API architecture
-- 🗄️ JPA/Hibernate ORM
-- 🔄 Business rule engine for risk detection
-- 📧 Email notification system
-- 🧪 Unit and integration testing
+**Common Backend Technologies:**
+- Java 17, Spring Boot 3.4.3
+- Spring Security, JWT (Auth0)
+- Spring Data JPA, Hibernate, MySQL
+- Spring Cloud Netflix Eureka (client)
+- Spring Cloud OpenFeign (with token propagation interceptor)
+- Lombok
+- Maven
 
 ---
 
 ## 🏗️ Architecture
 
-### Frontend Architecture
+The system follows a microservices architecture with service discovery and an API gateway.
+
 ```
-src/
-├── app/
-│   ├── core/                    # Core services & guards
-│   │   ├── guards/              # Route guards
-│   │   ├── interceptors/        # HTTP interceptors
-│   │   ├── models/              # TypeScript interfaces/models
-│   │   └── services/            # Business logic services
-│   ├── Front-office/            # User-facing modules
-│   │   ├── patient/             # Patient features
-│   │   ├── caregiver/           # Caregiver features
-│   │   └── healthcare-provider/ # Provider features
-│   ├── Back-office/             # Admin modules
-│   ├── pages/                   # Shared pages
-│   │   ├── authentication/      # Login/Register
-│   │   ├── post-list/           # Forum posts
-│   │   └── post-detail/         # Post details
-│   └── theme/                   # Layouts & shared components
-├── assets/                      # Static resources
-├── environments/                # Environment configs
-└── scss/                        # Global styles
+┌─────────────────────────────────────────────────────────────────┐
+│                         Angular Frontend                         │
+│                         (http://localhost:4200)                   │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Gateway Service (8083)                       │
+│              (Routing, CORS, Load Balancing)                      │
+└───────┬──────────────────┬──────────────────┬──────────────────┬─┘
+        │                  │                  │                  │
+        ▼                  ▼                  ▼                  ▼
+┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+│  User Service │  │Medical History│  │Risk Alert     │  │   ML Predictor│
+│    (8081)     │  │  Service (8082)│  │Service (8084) │  │   (5000)      │
+│ - Auth        │  │ - CRUD history│  │ - Rule alerts │  │ - /predict    │
+│ - User CRUD   │  │ - File upload │  │ - ML alerts   │  │ - /health     │
+│ - JWT tokens  │  │ - Caregiver   │  │ - Notifications│  │               │
+└───────────────┘  │   assignment  │  └───────────────┘  └───────────────┘
+                   └───────────────┘
+        │                  │                  │                  │
+        └──────────────────┴──────────────────┴──────────────────┘
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │   Eureka Server (8761) │
+                    │   Service Registry     │
+                    └───────────────────────┘
 ```
 
-### Backend Architecture
-```
-src/main/java/
-├── controllers/          # REST API endpoints
-├── services/            # Business logic
-├── repositories/        # Data access layer
-├── models/              # Entity classes
-├── dto/                 # Data transfer objects
-├── security/            # Security configuration
-├── config/              # Application config
-└── utils/               # Utility classes
-```
+- **Eureka Server** – All microservices register themselves, enabling dynamic discovery.
+- **Gateway** – Routes requests to appropriate services, adds CORS headers, and forwards JWT tokens.
+- **User Service** – Manages users, roles, authentication, and JWT issuance.
+- **Medical History Service** – Core domain for patient medical data and file storage.
+- **Risk Alert Service** – Evaluates patient data against rules and ML predictions, generates alerts and notifications.
+- **ML Predictor Service** – Python‑based service that returns hospitalisation risk probabilities.
 
-### Design Patterns
-- ✅ **MVC Pattern** - Separation of concerns
-- ✅ **Dependency Injection** - Loose coupling
-- ✅ **Repository Pattern** - Data abstraction
-- ✅ **DTO Pattern** - Data transfer
-- ✅ **Guard Pattern** - Route protection
-- ✅ **Interceptor Pattern** - HTTP request/response handling
-- ✅ **Observer Pattern** - RxJS reactive programming
+---
+
+## 📦 Microservices Details
+
+### 📦 Eureka Server
+- **Port:** `8761`
+- **Purpose:** Service registry.
+- **Configuration:** Self‑registration disabled.
+- **Run:** `mvn spring-boot:run`
+
+### 📦 Gateway Service
+- **Port:** `8083`
+- **Purpose:** API Gateway with dynamic routing and CORS.
+- **Routes:**
+  | Path | Target Service |
+  |------|----------------|
+  | `/auth/**`, `/users/**` | user-service |
+  | `/api/provider/medical-history/**`, `/api/patient/medical-history/**`, `/api/caregiver/medical-history/**`, `/files/**`, `/test` | medical-history-service |
+  | `/api/patient/alerts/**`, `/api/caregiver/alerts/**`, `/api/provider/alerts/**` | risk-alert-service |
+- **Run:** `mvn spring-boot:run`
+
+### 📦 User Service
+- **Port:** `8081`
+- **Database:** `userdb`
+- **Key Entities:** `User` (id, firstName, lastName, username, email, phoneNumber, gender, age, role, password)
+- **Key Endpoints:**
+  - `POST /auth/login` – Login, returns JWT
+  - `POST /auth/register` – Register new user
+  - `GET /users/{id}` – Get user by ID (includes gender & age for ML features)
+  - `GET /users/role/{role}` – Get all users of a role
+  - Admin endpoints for user management
+- **Run:** `mvn spring-boot:run`
+
+### 📦 Medical History Service
+- **Port:** `8082`
+- **Database:** `medical_history_db`
+- **Key Entities:** `MedicalHistory`, `MedicalRecordFile`, `Surgery`
+- **Key Endpoints:**
+  - `POST /api/provider/medical-history` – Create history
+  - `GET /api/provider/medical-history/features/{patientId}` – Get ML features (age, gender, progression stage, counts, etc.)
+  - `GET /api/patient/medical-history/me` – Patient view
+  - File upload/download endpoints
+- **File Storage:** Local directory `uploads/medical-history/`
+- **Run:** `mvn spring-boot:run`
+
+### 📦 Risk Alert Service
+- **Port:** `8084`
+- **Database:** `risk_alert_db`
+- **Key Entities:** `Alert`, `Notification`
+- **Alert Generation:**
+  - **Rule‑based:** 10 medical rules (severe progression, allergies, age, etc.)
+  - **ML‑based:** Calls `ml-predictor-service`; creates alert if probability > 0.7
+  - **Manual:** Providers can create alerts via API
+- **Notifications:** In‑app notifications for patients and assigned caregivers (stored in DB, exposed via REST)
+- **Key Endpoints:**
+  - `POST /api/provider/alerts/generate` – Rule‑based generation
+  - `POST /api/provider/alerts/generate-predictive` – ML generation
+  - `GET /api/patient/alerts` – Patient’s own alerts
+  - `GET /api/caregiver/alerts` – Alerts for assigned patients
+  - `POST /api/notifications/mark-read` – Mark notifications as read
+- **Run:** `mvn spring-boot:run`
+
+### 📦 ML Predictor Service (Python)
+- **Port:** `5000`
+- **Purpose:** Hospitalization risk prediction.
+- **Endpoints:**
+  - `POST /predict` – Accepts patient features, returns `{ patientId, prediction (0/1), probability, riskLevel, riskPercentage, recommendation }`
+  - `GET /health` – Health check
+- **Model:** Can use a trained scikit‑learn model or a mock rule‑based model (for testing).
+- **Run:**
+  ```bash
+  pip install -r requirements.txt
+  python app.py
+  ```
 
 ---
 
@@ -202,14 +279,14 @@ src/main/java/
 This project was developed by a dedicated team of students and supervised by experienced faculty members.
 
 ### Development Team
-- 👨‍💻 **[Team Member 1]** - Full Stack Developer
-- 👨‍💻 **[Team Member 2]** - Frontend Developer
-- 👨‍💻 **[Team Member 3]** - Backend Developer
-- 👨‍💻 **[Team Member 4]** - UI/UX Designer
+- 👨‍💻 **Saif Eddine Ben Hadj Youssef** – Lead Developer
+- 👨‍💻 **[Team Member 2]** – Frontend Developer
+- 👨‍💻 **[Team Member 3]** – Backend Developer
+- 👨‍💻 **[Team Member 4]** – UI/UX Designer
 
 ### Academic Supervision
-- 👨‍🏫 **[Supervisor Name]** - Project Supervisor
-- 🏛️ **[Institution Name]** - Academic Institution
+- 👨‍🏫 **[Supervisor Name]** – Project Supervisor
+- 🏛️ **[Institution Name]** – Academic Institution
 
 ---
 
@@ -238,108 +315,75 @@ This project is developed as part of an **Integrated Project (Projet Intégré)*
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- Angular CLI (v18)
-- Java JDK 17+
-- Maven 3.8+
-- MySQL 8.0+
-- Git
+- Java 17+
+- Node.js 18+ & npm
+- MySQL 8.0
+- Python 3.10+ (for ML service)
+- Maven
 
-### Installation
+### Backend Setup
 
-#### 1️⃣ Clone the Repository
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/neuroguard.git
+   cd neuroguard/Backend
+   ```
+
+2. **Create MySQL databases**
+   ```sql
+   CREATE DATABASE userdb;
+   CREATE DATABASE medical_history_db;
+   CREATE DATABASE risk_alert_db;
+   ```
+
+3. **Update configuration**  
+   Edit `application.yaml` in each microservice to match your MySQL credentials and JWT secret.
+
+4. **Build and run Eureka Server**
+   ```bash
+   cd eureka-server
+   mvn clean package
+   java -jar target/eureka-server-0.0.1-SNAPSHOT.jar
+   ```
+
+5. **Run the other microservices** (in separate terminals):
+   ```bash
+   cd user-service && mvn spring-boot:run
+   cd medical-history-service && mvn spring-boot:run
+   cd risk-alert-service && mvn spring-boot:run
+   cd gateway-service && mvn spring-boot:run
+   ```
+
+6. **Start the ML predictor**
+   ```bash
+   cd ml-predictor-service
+   pip install -r requirements.txt
+   python app.py
+   ```
+
+### Frontend Setup
+
 ```bash
-git clone https://github.com/your-username/neuroguard.git
-cd neuroguard
-```
-
-#### 2️⃣ Frontend Setup
-```bash
-# Navigate to frontend directory
 cd FrontEnd
-
-# Install dependencies
 npm install
-
-# Start development server
 ng serve
-
-# Application will run on http://localhost:4200
 ```
 
-#### 3️⃣ Backend Setup
-```bash
-# Navigate to backend directory
-cd BackEnd
-
-# Configure database in application.properties
-# Update the following properties:
-# spring.datasource.url=jdbc:mysql://localhost:3306/neuroguard
-# spring.datasource.username=your_username
-# spring.datasource.password=your_password
-
-# Build the application
-mvn clean install
-
-# Run the application
-mvn spring-boot:run
-
-# API will run on http://localhost:8080
-```
-
-#### 4️⃣ Database Setup
-```sql
--- Create database
-CREATE DATABASE neuroguard;
-
--- The application will auto-create tables on first run
--- Or import the provided SQL schema if available
-```
-
-### Environment Configuration
-
-**Frontend** (`src/environments/environment.ts`):
-```typescript
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8080/api'
-};
-```
-
-**Backend** (`application.properties`):
-```properties
-server.port=8080
-spring.datasource.url=jdbc:mysql://localhost:3306/neuroguard
-spring.datasource.username=root
-spring.datasource.password=yourpassword
-spring.jpa.hibernate.ddl-auto=update
-jwt.secret=your-secret-key
-```
+The application will be available at `http://localhost:4200`.
 
 ### Default Credentials
-```
-Administrator:
-Email: admin@neuroguard.com
-Password: admin123
-
-Healthcare Provider:
-Email: provider@neuroguard.com
-Password: provider123
-
-Caregiver:
-Email: caregiver@neuroguard.com
-Password: caregiver123
-
-Patient:
-Email: patient@neuroguard.com
-Password: patient123
-```
+| Role | Email | Password |
+|------|-------|----------|
+| Administrator | admin@neuroguard.com | admin123 |
+| Healthcare Provider | provider@neuroguard.com | provider123 |
+| Caregiver | caregiver@neuroguard.com | caregiver123 |
+| Patient | patient@neuroguard.com | patient123 |
 
 ---
 
 ## 🧪 Testing
 
-### Run Frontend Tests
+### Frontend
 ```bash
 # Unit tests
 ng test
@@ -351,7 +395,7 @@ ng e2e
 ng test --code-coverage
 ```
 
-### Run Backend Tests
+### Backend
 ```bash
 # Run all tests
 mvn test
@@ -367,28 +411,29 @@ mvn test -Dtest=AlertServiceTest
 ### Frontend Production Build
 ```bash
 ng build --configuration production
-
-# Output will be in dist/ directory
+# Output in dist/
 ```
 
 ### Backend Production Build
 ```bash
 mvn clean package
-
-# JAR file will be in target/ directory
-java -jar target/neuroguard-backend.jar
+# JAR files in target/ of each service
+java -jar service-name.jar
 ```
+
+### Docker (optional)
+Each microservice includes a `Dockerfile`; you can use `docker-compose` to orchestrate all services.
 
 ---
 
 ## 📱 Application Features Demo
 
 ### Dashboard Views
-- 🏠 **Home Dashboard** - Overview of patient status and recent alerts
-- 📊 **Analytics** - Visual representations of patient data
-- 🔔 **Alert Management** - Real-time alert monitoring and response
-- 📋 **Patient Records** - Comprehensive medical history
-- 💬 **Forum** - Community engagement platform
+- 🏠 **Home Dashboard** – Overview of patient status and recent alerts
+- 📊 **Analytics** – Visual representations of patient data
+- 🔔 **Alert Management** – Real-time alert monitoring and response
+- 📋 **Patient Records** – Comprehensive medical history
+- 💬 **Forum** – Community engagement platform
 
 ---
 
@@ -412,17 +457,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- 🎨 **Mantis Template** - Base admin dashboard template
-- 📚 **Angular Team** - Excellent framework and documentation
-- 🍃 **Spring Team** - Robust backend framework
-- 🎓 **Academic Supervisors** - Guidance and support
-- 💡 **Healthcare Professionals** - Domain expertise and requirements
-- 🌟 **Open Source Community** - Libraries and tools
-
-### Special Thanks
-- All healthcare professionals who provided insights into Alzheimer's care challenges
-- Beta testers who provided valuable feedback
-- The open-source community for amazing tools and libraries
+- 🎨 **Mantis Template** – Base admin dashboard template
+- 📚 **Angular Team** – Excellent framework and documentation
+- 🍃 **Spring Team** – Robust backend framework
+- 🎓 **Academic Supervisors** – Guidance and support
+- 💡 **Healthcare Professionals** – Domain expertise and requirements
+- 🌟 **Open Source Community** – Libraries and tools
 
 ---
 
@@ -441,16 +481,18 @@ For questions, issues, or suggestions:
 ### Current Version (v1.0)
 - ✅ User authentication and authorization
 - ✅ Multi-role management
-- ✅ Alert system
-- ✅ Medical history tracking
-- ✅ Community forum
+- ✅ Rule-based alert system
+- ✅ ML-based risk prediction (mock model)
+- ✅ Medical history tracking with file upload
+- ✅ In-app notifications
+- ✅ Community forum (basic)
 
 ### Future Enhancements (v2.0)
-- 🔮 AI/ML-based behavior prediction
+- 🔮 AI/ML-based behavior prediction (advanced models)
 - 📱 Mobile application (iOS & Android)
 - 🌐 Multi-language support
-- 📊 Advanced analytics dashboard
-- 🔗 IoT device integration
+- 📊 Advanced analytics dashboard with charts
+- 🔗 IoT device integration (wearables)
 - 📞 Video consultation feature
 - 🗣️ Voice assistant integration
 
@@ -463,6 +505,3 @@ For questions, issues, or suggestions:
 ⭐ Star this repository if you find it helpful!
 
 </div>
-
-
-
