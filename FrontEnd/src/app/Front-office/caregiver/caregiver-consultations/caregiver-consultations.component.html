@@ -1,0 +1,156 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">My Consultations</h2>
+      <p class="text-muted small mb-0">Consultations for patients under your care</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-success" (click)="openCreateForm()">
+        <span class="me-1">+</span> New Consultation
+      </button>
+      <button class="btn btn-primary" (click)="loadConsultations()">
+        <span class="me-1">↻</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Loading...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Consultation creation form -->
+  <div class="card mb-4" *ngIf="showForm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>New Consultation</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelForm()">Cancel</button>
+    </div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">
+        Select a doctor/nurse and a slot from their availability. A consultation can only be created during declared slots.
+      </p>
+      <form [formGroup]="consultationForm" (ngSubmit)="onCreateSubmit()">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Doctor / Nurse <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="providerId">
+              <option value="">-- Select a doctor --</option>
+              <option *ngFor="let p of providers" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+            </select>
+            <small class="text-muted" *ngIf="providersLoading">Loading...</small>
+            <small class="text-muted" *ngIf="!providersLoading && providers.length === 0">No doctors registered.</small>
+            <small class="text-danger" *ngIf="getControl('providerId')?.invalid && (getControl('providerId')?.touched || submitted)">
+              Required
+            </small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Patient <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="patientId">
+              <option value="">-- Select a patient --</option>
+              <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+            </select>
+            <small class="text-muted" *ngIf="patientsLoading">Loading...</small>
+            <small class="text-muted" *ngIf="!patientsLoading && patients.length === 0">No patients registered.</small>
+            <small class="text-danger" *ngIf="getControl('patientId')?.invalid && (getControl('patientId')?.touched || submitted)">
+              Required
+            </small>
+          </div>
+          <div class="col-12" *ngIf="providerAvailabilities.length > 0">
+            <label class="form-label">Doctor Availability</label>
+            <div class="bg-light rounded p-2 small">
+              <span *ngFor="let av of providerAvailabilities" class="badge bg-secondary me-1 mb-1">
+                {{ getDayName(av.dayOfWeek) }} : {{ av.startTime }} - {{ av.endTime }}
+              </span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Start Date and Time <span class="text-danger">*</span></label>
+            <input type="datetime-local" class="form-control" formControlName="startTime" />
+            <small class="text-danger" *ngIf="getControl('startTime')?.invalid && (getControl('startTime')?.touched || submitted)">
+              Required
+            </small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">End Date and Time (optional)</label>
+            <input type="datetime-local" class="form-control" formControlName="endTime" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="title" placeholder="Ex: Follow-up consultation" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type</label>
+            <select class="form-select" formControlName="type">
+              <option [value]="ConsultationType.PRESENTIAL">In-Person</option>
+              <option [value]="ConsultationType.ONLINE">Online</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" formControlName="description" rows="2"></textarea>
+          </div>
+          <div class="col-12" *ngIf="submitError" class="alert alert-danger">{{ submitError }}</div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Create Consultation</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">Consultation List</div>
+    <div class="card-body p-0">
+      <table class="table table-striped modern-table mb-0" *ngIf="consultations.length > 0">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Patient ID</th>
+            <th>Start Date</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of consultations">
+            <td>{{ c.title }}</td>
+            <td>{{ c.patientId }}</td>
+            <td>{{ formatDateTime(c.startTime) }}</td>
+            <td>{{ c.type === 'ONLINE' ? 'Online' : 'In-Person' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="{
+                'scheduled': c.status === 'SCHEDULED',
+                'ongoing': c.status === 'ONGOING',
+                'completed': c.status === 'COMPLETED',
+                'cancelled': c.status === 'CANCELLED'
+              }">{{ c.status }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" *ngIf="c.type === 'ONLINE'" (click)="joinOnlineConsultation(c)">
+                Join Consultation
+              </button>
+              <span *ngIf="c.type !== 'ONLINE'" class="text-muted small">In-Person</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="consultations.length === 0" class="p-4 text-center text-muted">
+        No consultations found.
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showMeetingModal" (click)="closeMeetingModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ meetingTitle }}</h5>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMeetingInNewTab()">Open in new tab</button>
+          <button type="button" class="btn-close" (click)="closeMeetingModal()" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0">
+        <iframe *ngIf="meetingUrl" [src]="meetingUrl" class="meeting-iframe" allow="camera; microphone; fullscreen"></iframe>
+      </div>
+    </div>
+  </div>
+</div>

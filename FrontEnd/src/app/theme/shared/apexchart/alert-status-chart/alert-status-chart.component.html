@@ -1,0 +1,18 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">Alert Resolution Status</h5>
+  </div>
+  <div class="card-body">
+    <apx-chart
+      #chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [dataLabels]="chartOptions.dataLabels"
+      [colors]="chartOptions.colors"
+      [xaxis]="chartOptions.xaxis"
+      [yaxis]="chartOptions.yaxis"
+      [grid]="chartOptions.grid"
+      [theme]="chartOptions.theme"
+    ></apx-chart>
+  </div>
+</div>

@@ -1,0 +1,80 @@
+<div class="container-fluid px-4 mt-0 mb-5">
+  <div class="page-header mb-4">
+    <div class="page-header-content">
+      <h1 class="page-title">
+        <i class="ti ti-chart-bar"></i> Care Plan Statistics
+      </h1>
+      <p class="page-subtitle">Overview of care plans by priority and section</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading statistics...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>
+    <strong>Error:</strong> {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''; loadStats()" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="!loading && stats" class="row">
+    <!-- Total plans -->
+    <div class="col-md-6 col-xl-3 mb-4">
+      <app-card [showHeader]="false" blockClass="dashboard-card">
+        <h6 class="mb-2 f-w-400 text-muted">Total care plans</h6>
+        <h4 class="mb-0">{{ stats.totalCarePlans }}</h4>
+        <p class="mb-0 text-muted text-sm mt-2">
+          <i antIcon type="heart" theme="outline"></i> Active plans
+        </p>
+      </app-card>
+    </div>
+
+    <!-- By priority -->
+    <div class="col-md-6 col-xl-3 mb-4" *ngFor="let key of ['HIGH', 'MEDIUM', 'LOW']">
+      <app-card [showHeader]="false" blockClass="dashboard-card">
+        <h6 class="mb-2 f-w-400 text-muted">Priority {{ getPriorityLabel(key) }}</h6>
+        <h4 class="mb-0">{{ stats.byPriority?.[key] ?? 0 }}</h4>
+        <p class="mb-0 text-muted text-sm mt-2">
+          <span class="badge priority-{{ key | lowercase }}">{{ getPriorityLabel(key) }}</span>
+        </p>
+      </app-card>
+    </div>
+
+    <!-- Section stats (TODO / DONE) -->
+    <div class="col-12 mb-3">
+      <h5 class="mb-3">Progress by section</h5>
+    </div>
+    <div class="col-md-6 col-xl-3 mb-4" *ngFor="let section of stats.sectionStats">
+      <app-card [showHeader]="true" [cardTitle]="getSectionLabel(section.section)">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small">
+            <i antIcon type="clock-circle" theme="outline"></i> To do: {{ section.todo }}
+          </span>
+          <span class="text-success small">
+            <i antIcon type="check-circle" theme="outline"></i> Done: {{ section.done }}
+          </span>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div
+            class="progress-bar bg-success"
+            role="progressbar"
+            [style.width.%]="donePercent(section)"
+            [attr.aria-valuenow]="section.done"
+            aria-valuemin="0"
+            [attr.aria-valuemax]="totalTodo(section)">
+          </div>
+        </div>
+        <p class="mb-0 mt-2 text-muted text-sm">{{ donePercent(section) }}% completed</p>
+      </app-card>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && stats && stats.totalCarePlans === 0" class="alert alert-info">
+    <i class="ti ti-info-circle me-2"></i>
+    No care plans yet. Statistics will appear once plans exist.
+  </div>
+</div>

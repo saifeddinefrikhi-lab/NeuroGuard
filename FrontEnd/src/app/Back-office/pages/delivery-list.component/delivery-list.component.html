@@ -1,0 +1,170 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h3 class="title">Deliveries</h3>
+      <p class="subtitle">Link each delivery to one order (one delivery per order).</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateForm()">New delivery</button>
+  </div>
+
+  <div class="alerts">
+    <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+  </div>
+
+  <div class="toolbar row g-2 align-items-center">
+    <div class="col-12 col-md-6">
+      <input
+        class="form-control"
+        placeholder="Search by address, status (e.g. PENDING), or order #…"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchInput()"
+      />
+    </div>
+    <div class="col-auto">
+      <label class="me-2 text-muted small">Per page</label>
+      <select
+        class="form-select form-select-sm d-inline-block w-auto"
+        [(ngModel)]="pageSize"
+        (ngModelChange)="onPageSizeChange()"
+      >
+        <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card tbl-card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th class="sortable" (click)="toggleSort('deliveryDate')">
+              DATE {{ sortIndicator('deliveryDate') }}
+            </th>
+            <th class="sortable" (click)="toggleSort('orderId')">ORDER {{ sortIndicator('orderId') }}</th>
+            <th class="sortable" (click)="toggleSort('address')">ADDRESS {{ sortIndicator('address') }}</th>
+            <th class="sortable" (click)="toggleSort('status')">STATUS {{ sortIndicator('status') }}</th>
+            <th class="sortable" (click)="toggleSort('status')">FEE {{ sortIndicator('status') }}</th>
+            <th class="text-end">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of deliveries">
+            <td>
+              <div>{{ d.deliveryDate | date : 'short' }}</div>
+              <span class="badge bg-secondary mt-1" style="font-size: 0.7em;" title="Smart Scheduling applied">
+                <i class="bi bi-clock-history"></i> Smart Scheduled
+              </span>
+            </td>
+            <td>#{{ d.orderId }}</td>
+            <td class="text-truncate" style="max-width: 260px" [title]="getCleanAddress(d.address)">
+              {{ getCleanAddress(d.address) }}
+              <div *ngIf="hasPromo(d.address)" class="mt-1">
+                <span class="badge bg-success" style="font-size: 0.75em;" title="Logistics Promotions">
+                  <i class="bi bi-tags-fill"></i> {{ getPromoBadge(d.address) }}
+                </span>
+              </div>
+            </td>
+            <td>
+               <span class="badge" 
+                     [ngClass]="{
+                       'bg-warning text-dark': d.status === 'PENDING',
+                       'bg-primary': d.status === 'SHIPPED',
+                       'bg-info': d.status === 'IN_TRANSIT',
+                       'bg-success': d.status === 'DELIVERED',
+                       'bg-danger': d.status === 'CANCELLED'
+                     }">
+                 {{ statusLabel(d.status) }}
+               </span>
+            </td>
+            <td>
+              <div class="fw-bold text-primary">{{ d.fee | currency:'USD' }}</div>
+              <span class="badge bg-light text-dark border mt-1" style="font-size: 0.7em;" title="Dynamic Cost Calculation (base + weight + value)">
+                Dynamic Cost
+              </span>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-2" (click)="openEditForm(d)">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" (click)="delete(d.id)">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="deliveries.length === 0">
+            <td colspan="5" class="text-center text-muted py-4">No deliveries yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2" *ngIf="totalElements > 0">
+      <span class="text-muted small"> Showing {{ rangeStart }}–{{ rangeEnd }} of {{ totalElements }} </span>
+      <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-outline-secondary" [disabled]="first" (click)="goToPage(0)">«</button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="first" (click)="goToPage(pageIndex - 1)">‹</button>
+        <button type="button" class="btn btn-outline-secondary" disabled>
+          {{ pageIndex + 1 }} / {{ totalPages || 1 }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="last" (click)="goToPage(pageIndex + 1)">›</button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="last" (click)="goToPage(totalPages - 1)">»</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showForm">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h5 class="m-0">{{ formMode === 'edit' ? 'Edit delivery' : 'New delivery' }}</h5>
+        <button class="btn btn-sm btn-light" (click)="closeForm()">Close</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3" *ngIf="formMode === 'create'">
+          <label class="form-label">Order</label>
+          <select
+            class="form-select"
+            [(ngModel)]="formOrderId"
+            [disabled]="isLoadingOrders"
+          >
+            <option [ngValue]="null">— Select order —</option>
+            <option *ngFor="let o of orderChoices" [ngValue]="o.id">
+              #{{ o.id }} — {{ o.orderDate | date : 'short' }} — {{ o.status }}
+            </option>
+          </select>
+          <div class="form-text" *ngIf="isLoadingOrders">Loading orders…</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Address</label>
+          <input class="form-control" [(ngModel)]="formAddress" maxlength="500" placeholder="Full delivery address" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Status</label>
+          <select class="form-select" [(ngModel)]="formStatus">
+            <option *ngFor="let opt of statusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <div class="mb-0">
+          <label class="form-label">Delivery date & time</label>
+          <input class="form-control" type="datetime-local" [(ngModel)]="formDeliveryDateLocal" />
+          <div class="form-text" *ngIf="formMode === 'create'">Leave empty to use the current date and time.</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-light me-2" (click)="closeForm()" [disabled]="isSubmitting">Cancel</button>
+        <button class="btn btn-primary" (click)="submitForm()" [disabled]="isSubmitting">
+          {{
+            isSubmitting
+              ? formMode === 'edit'
+                ? 'Saving…'
+                : 'Creating…'
+              : formMode === 'edit'
+                ? 'Save'
+                : 'Create'
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

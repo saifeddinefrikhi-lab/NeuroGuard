@@ -1,0 +1,351 @@
+<div class="provider-reservations-container">
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="bi bi-clipboard-check"></i> My Schedule
+      </h1>
+      <p class="page-subtitle">Manage your reservations and consultations</p>
+    </div>
+  </div>
+
+  <!-- View Tabs -->
+  <div class="view-tabs">
+    <button class="tab-btn" 
+            [class.active]="currentView === 'reservations'"
+            (click)="switchView('reservations')">
+      <i class="bi bi-calendar-check"></i> Reservations
+    </button>
+    <button class="tab-btn" 
+            [class.active]="currentView === 'consultations'"
+            (click)="switchView('consultations')">
+      <i class="bi bi-chat-dots"></i> Consultations
+    </button>
+  </div>
+
+  <!-- Reservations View -->
+  <div *ngIf="currentView === 'reservations'">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card stat-pending">
+        <div class="stat-icon">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ pendingCount }}</h3>
+          <p>Pending</p>
+        </div>
+      </div>
+      <div class="stat-card stat-accepted">
+        <div class="stat-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ acceptedCount }}</h3>
+          <p>Accepted</p>
+        </div>
+      </div>
+      <div class="stat-card stat-rejected">
+        <div class="stat-icon">
+          <i class="bi bi-x-circle-fill"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ rejectedCount }}</h3>
+          <p>Rejected</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <h5 class="filter-label">Filter by Status:</h5>
+      <div class="filter-buttons">
+        <button class="filter-btn" 
+                [class.active]="filterStatus === 'ALL'"
+                (click)="filterStatus = 'ALL'; applyFilter()">
+          All Reservations
+        </button>
+        <button class="filter-btn" 
+                [class.active]="filterStatus === 'PENDING'"
+                (click)="filterStatus = 'PENDING'; applyFilter()">
+          Pending
+        </button>
+        <button class="filter-btn" 
+                [class.active]="filterStatus === 'ACCEPTED'"
+                (click)="filterStatus = 'ACCEPTED'; applyFilter()">
+          Accepted
+        </button>
+      <button class="filter-btn" 
+              [class.active]="filterStatus === 'REJECTED'"
+              (click)="filterStatus = 'REJECTED'; applyFilter()">
+        Rejected
+      </button>
+    </div>
+  </div>
+
+  <!-- Reservations List -->
+  <div class="reservations-container">
+    <div *ngIf="filteredReservations.length === 0" class="no-data">
+      <div class="no-data-icon">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h3>No reservations found</h3>
+      <p>Your patients' reservation requests will appear here.</p>
+    </div>
+
+    <div class="reservations-list">
+      <div *ngFor="let reservation of filteredReservations" 
+           class="reservation-item"
+           [class.pending]="reservation.status === 'PENDING'"
+           [ngClass]="'status-' + reservation.status">
+        
+        <div class="item-header">
+          <div class="reservation-info">
+            <h4 class="patient-name">
+              <i class="bi bi-person-circle"></i>
+              {{ reservation.patientName || 'Patient #' + reservation.patientId }}
+            </h4>
+            <span class="reservation-date">
+              <i class="bi bi-calendar"></i>
+              {{ reservation.reservationDate | date: 'MMM d, yyyy' }}
+              <span class="time-badge">{{ reservation.timeSlot }}</span>
+            </span>
+          </div>
+          <span class="status-badge" [ngClass]="'status-' + reservation.status">
+            {{ getStatusText(reservation.status) }}
+          </span>
+        </div>
+
+        <div class="item-details">
+          <div class="detail-tags">
+            <span class="tag" [ngClass]="reservation.consultationType === 'ONLINE' ? 'tag-online' : 'tag-presential'">
+              <i [ngClass]="reservation.consultationType === 'ONLINE' ? 'bi bi-camera-video' : 'bi bi-person-check'"></i>
+              {{ getConsultationTypeDisplay(reservation.consultationType) }}
+            </span>
+            <span class="tag tag-info" *ngIf="reservation.consultationId">
+              <i class="bi bi-check-circle"></i>
+              Consultation Created
+            </span>
+          </div>
+
+          <div class="notes-section" *ngIf="reservation.notes">
+            <label>Patient Notes:</label>
+            <p>{{ reservation.notes }}</p>
+          </div>
+        </div>
+
+        <div class="item-actions" [ngClass]="{'actions-disabled': isActionDisabled(reservation.status)}">
+          <button class="btn btn-success btn-sm" 
+                  (click)="acceptReservation(reservation.id!, $event)"
+                  [disabled]="loadingAction[reservation.id!] || isActionDisabled(reservation.status)"
+                  *ngIf="reservation.status === 'PENDING'">
+            <i class="bi bi-check-circle"></i>
+            <span *ngIf="!loadingAction[reservation.id!]">Accept</span>
+            <span *ngIf="loadingAction[reservation.id!]" class="spinner-border spinner-border-sm"></span>
+          </button>
+
+          <button class="btn btn-danger btn-sm" 
+                  (click)="rejectReservation(reservation.id!, $event)"
+                  [disabled]="loadingAction[reservation.id!] || isActionDisabled(reservation.status)"
+                  *ngIf="reservation.status === 'PENDING'">
+            <i class="bi bi-x-circle"></i>
+            Reject
+          </button>
+
+          <button class="btn btn-outline-secondary btn-sm" 
+                  (click)="viewDetails(reservation)">
+            <i class="bi bi-eye"></i>
+            View
+          </button>
+
+          <button class="btn btn-outline-danger btn-sm" 
+                  (click)="deleteReservation(reservation.id!, $event)"
+                  [disabled]="loadingAction[reservation.id!]">
+            <i class="bi bi-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Consultations View -->
+  <div *ngIf="currentView === 'consultations'">
+    <div class="consultations-container">
+      <div *ngIf="consultations.length === 0" class="no-data">
+        <div class="no-data-icon">
+          <i class="bi bi-inbox"></i>
+        </div>
+        <h3>No consultations yet</h3>
+        <p>Your scheduled consultations will appear here.</p>
+      </div>
+
+      <div class="consultations-list" *ngIf="consultations.length > 0">
+        <div *ngFor="let consultation of consultations" class="consultation-card">
+          <div class="card-header">
+            <div class="consultation-info">
+              <h4 class="consultation-title">
+                <i class="bi bi-chat-dots"></i>
+                {{ consultation.title }}
+              </h4>
+              <span class="consultation-date">
+                <i class="bi bi-calendar"></i>
+                {{ consultation.startTime | date: 'MMM d, yyyy HH:mm' }}
+              </span>
+            </div>
+            <span class="status-badge" [ngClass]="'status-' + consultation.status">
+              {{ consultation.status }}
+            </span>
+          </div>
+
+          <div class="card-body">
+            <div class="info-row" *ngIf="consultation.description">
+              <span class="info-label">Description:</span>
+              <span class="info-value">{{ consultation.description }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Duration:</span>
+              <span class="info-value">
+                {{ consultation.endTime | date: 'HH:mm' }} (1 hour)
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Type:</span>
+              <span class="info-value">
+                <i [ngClass]="consultation.type === 'ONLINE' ? 'bi bi-camera-video' : 'bi bi-person-check'"></i>
+                {{ consultation.type === 'ONLINE' ? 'Online' : 'In-Person' }}
+              </span>
+            </div>
+            <div class="info-row" *ngIf="consultation.meetingLink">
+              <span class="info-label">Meeting Link:</span>
+              <a [href]="consultation.meetingLink" target="_blank" class="info-value">
+                <i class="bi bi-link-45deg"></i> Join Meeting
+              </a>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn btn-outline-primary btn-sm" *ngIf="consultation.meetingLink">
+              <i class="bi bi-play-circle"></i> Start
+            </button>
+            <button class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-eye"></i> View Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="detail-modal" *ngIf="showDetailView && selectedReservation">
+    <div class="modal-backdrop" (click)="closeDetailView()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h3>Reservation Details</h3>
+          <span class="status-badge" [ngClass]="'status-' + selectedReservation.status">
+            {{ getStatusText(selectedReservation.status) }}
+          </span>
+        </div>
+        <button class="btn btn-close" (click)="closeDetailView()"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Patient Information -->
+        <div class="detail-section">
+          <h5>Patient Information</h5>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Name</label>
+              <p>{{ selectedReservation.patientName || 'Patient #' + selectedReservation.patientId }}</p>
+            </div>
+            <div class="detail-item">
+              <label>Created On</label>
+              <p>{{ selectedReservation.createdAt | date: 'MMM d, yyyy - HH:mm' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reservation Details -->
+        <div class="detail-section">
+          <h5>Consultation Details</h5>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Date</label>
+              <p>{{ selectedReservation.reservationDate | date: 'MMMM d, yyyy (EEEE)' }}</p>
+            </div>
+            <div class="detail-item">
+              <label>Time Slot</label>
+              <p class="time-display">
+                {{ selectedReservation.timeSlot }}-{{ (parseInt(selectedReservation.timeSlot.split(':')[0]) + 1).toString().padStart(2, '0') }}:{{ selectedReservation.timeSlot.split(':')[1] }}
+              </p>
+            </div>
+            <div class="detail-item">
+              <label>Type</label>
+              <p>
+                <span class="type-badge" [ngClass]="selectedReservation.consultationType === 'ONLINE' ? 'type-online' : 'type-presential'">
+                  <i [ngClass]="selectedReservation.consultationType === 'ONLINE' ? 'bi bi-camera-video' : 'bi bi-person-check'"></i>
+                  {{ getConsultationTypeDisplay(selectedReservation.consultationType) }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Patient Notes -->
+        <div class="detail-section" *ngIf="selectedReservation.notes">
+          <h5>Patient Notes</h5>
+          <div class="notes-box">
+            {{ selectedReservation.notes }}
+          </div>
+        </div>
+
+        <!-- Consultation Status -->
+        <div class="detail-section" *ngIf="selectedReservation.consultationId">
+          <h5>Consultation Status</h5>
+          <div class="success-alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <div>
+              <strong>Consultation Created</strong>
+              <p>Consultation ID: {{ selectedReservation.consultationId }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="detail-section" *ngIf="selectedReservation.status === 'PENDING'">
+          <h5>Actions</h5>
+          <div class="action-info">
+            <p class="info-text">
+              <i class="bi bi-info-circle"></i>
+              Accepting this reservation will automatically create a consultation.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-success btn-lg" 
+                (click)="acceptReservation(selectedReservation.id!, $event)"
+                [disabled]="loadingAction[selectedReservation.id!] || isActionDisabled(selectedReservation.status)"
+                *ngIf="selectedReservation.status === 'PENDING'">
+          <i class="bi bi-check-circle"></i>
+          Accept Reservation
+        </button>
+
+        <button class="btn btn-danger btn-lg" 
+                (click)="rejectReservation(selectedReservation.id!, $event)"
+                [disabled]="loadingAction[selectedReservation.id!] || isActionDisabled(selectedReservation.status)"
+                *ngIf="selectedReservation.status === 'PENDING'">
+          <i class="bi bi-x-circle"></i>
+          Reject
+        </button>
+
+        <button class="btn btn-outline-secondary btn-lg" (click)="closeDetailView()">
+          <i class="bi bi-x-circle"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

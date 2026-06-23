@@ -1,0 +1,146 @@
+pipeline {
+    agent any
+    triggers {
+        githubPush()
+    }
+    environment {
+        GIT_REPO     = 'https://github.com/saifeddinefrikhi-lab/Esprit-PIDEV-4SAE8-2526-NeuroGuard.git'
+        GIT_BRANCH   = 'main'
+        SONAR_TOKEN  = credentials('sonar-token')
+        DOCKER_IMAGE = "neuroguard/gateway"
+        DOCKER_TAG   = "${env.BUILD_NUMBER}"
+        SERVICE_DIR  = "neuroguard-backend/gateway"
+        MAVEN_OPTS   = "-Xmx1024m"
+    }
+    options { timeout(time: 30, unit: 'MINUTES'); disableConcurrentBuilds() }
+    stages {
+        stage('Code Checkout') {
+            steps {
+                git branch: "${GIT_BRANCH}",
+                    url: "${GIT_REPO}"
+            }
+        }
+        stage('JUnit Tests') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        set +e
+                        for attempt in 1 2 3; do
+                            echo "Attempt $attempt/3: Running JUnit Tests..."
+                            mvn clean test -B -q -DskipITs \
+                                -Dmaven.wagon.http.ssl.insecure=true \
+                                -Dmaven.wagon.httpconnectionManager.ttlSecs=60 \
+                                --fail-at-end
+                            if [ $? -eq 0 ]; then
+                                set -e
+                                exit 0
+                            fi
+                            if [ $attempt -lt 3 ]; then
+                                echo "Tests failed. Waiting 15 seconds before retry..."
+                                sleep 15
+                            fi
+                        done
+                        set -e
+                        echo "All 3 test attempts failed"
+                        exit 1
+                    '''
+                }
+            }
+        }
+        stage('Build ') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        set +e
+                        for attempt in 1 2 3; do
+                            echo "Attempt $attempt/3: Building package..."
+                            mvn clean package -DskipTests -q \
+                                -Dmaven.wagon.http.ssl.insecure=true \
+                                -Dmaven.wagon.httpconnectionManager.ttlSecs=60 \
+                                --fail-at-end
+                            if [ $? -eq 0 ]; then
+                                set -e
+                                exit 0
+                            fi
+                            if [ $attempt -lt 3 ]; then
+                                echo "Build failed. Waiting 15 seconds before retry..."
+                                sleep 15
+                            fi
+                        done
+                        set -e
+                        echo "All 3 build attempts failed"
+                        exit 1
+                    '''
+                }
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    withSonarQubeEnv('SonarQube') {
+                        sh 'mvn sonar:sonar -B -q -Dsonar.projectKey=neuroguard-gateway -Dsonar.projectName="NeuroGuard - Gateway" -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
+                    }
+                }
+            }
+        }
+        stage('Quality Gate') {
+            steps { timeout(time: 5, unit: 'MINUTES') { waitForQualityGate abortPipeline: true } }
+        }
+        stage('Build Docker Image') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                    sh "docker save ${DOCKER_IMAGE}:${DOCKER_TAG} -o docker-image.tar"
+                    stash name: 'docker-image', includes: 'docker-image.tar'
+                }
+            }
+        }
+        stage('Push to DockerHub') {
+    steps {
+        echo '🚀 Pushing image to DockerHub...'
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', 
+                                          usernameVariable: 'DOCKER_USER', 
+                                          passwordVariable: 'DOCKER_PASS')]) {
+            dir("${SERVICE_DIR}") {
+                unstash 'docker-image'
+
+                // Load the image from tarball
+                sh 'docker load -i docker-image.tar'
+
+                // Verify Docker daemon is accessible (fails fast if permission denied)
+                sh 'docker info >/dev/null'
+
+                // Tag the image with the Docker Hub username (ensures push permissions)
+                sh """
+                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_USER}/gateway:${DOCKER_TAG}
+                """
+
+                // Login to Docker Hub
+                sh """
+                    echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+                """
+
+                // Push with retry mechanism (up to 3 attempts, 5s delay)
+                script {
+                    retry(3) {
+                        sh """
+                            echo "=== Pushing image ${DOCKER_USER}/gateway:${DOCKER_TAG} ==="
+                            docker push ${DOCKER_USER}/gateway:${DOCKER_TAG}
+                        """
+                    }
+                }
+
+                // Logout (optional, but good practice)
+                sh 'docker logout'
+
+                // Cleanup local images to save disk space
+                sh """
+                    docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_USER}/gateway:${DOCKER_TAG} || true
+                """
+            }
+        }
+    }
+}
+    }
+    post { always { cleanWs() } }
+}

@@ -1,0 +1,173 @@
+server:
+  port: 8083
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    registry-fetch-interval-seconds: 5
+
+spring:
+  application:
+    name: gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/neuroguard}
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:4200"
+              - "http://127.0.0.1:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: user-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/auth/**
+        - id: user-users
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        - id: medical-provider
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/provider/medical-history,/api/provider/medical-history/**
+        - id: medical-patient
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/patient/medical-history,/api/patient/medical-history/**
+        - id: medical-caregiver
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/caregiver/medical-history,/api/caregiver/medical-history/**
+        - id: medical-statistics
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/api/statistics/**
+        - id: medical-files
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/files/**
+        - id: medical-test
+          uri: lb://medical-history-service
+          predicates:
+            - Path=/test
+        - id: risk-alerts-public
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/alerts/**
+        - id: risk-patient
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/patient/alerts,/api/patient/alerts/**
+        - id: risk-caregiver
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/caregiver/alerts,/api/caregiver/alerts/**
+        - id: risk-provider
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/provider/alerts,/api/provider/alerts/**
+        - id: risk-notifications
+          uri: lb://risk-alert-service
+          predicates:
+            - Path=/api/notifications/**
+        - id: risk-ws
+          uri: lb:ws://risk-alert-service
+          predicates:
+            - Path=/ws/alerts,/ws/alerts/**
+        - id: medical-ws
+          uri: lb:ws://medical-history-service
+          predicates:
+            - Path=/ws/medical-history,/ws/medical-history/**
+        - id: forum-posts
+          uri: lb://forum-service
+          predicates:
+            - Path=/api/posts/**
+        - id: forum-categories
+          uri: lb://forum-service
+          predicates:
+            - Path=/api/categories/**
+        - id: care-plans
+          uri: lb://careplan-service
+          predicates:
+            - Path=/api/care-plans/**
+        - id: prescriptions
+          uri: lb://prescription-service
+          predicates:
+            - Path=/api/prescriptions/**
+        - id: pharmacies
+          uri: lb://pharmacy-service
+          predicates:
+            - Path=/api/pharmacies,/api/pharmacies/**
+        - id: ollama
+          uri: ${OLLAMA_URI:http://localhost:11434}
+          predicates:
+            - Path=/api/ollama/**
+          filters:
+            - RewritePath=/api/ollama(?<segment>/?.*), /api${segment}
+        - id: consultation-service
+          uri: lb://consultation-service
+          predicates:
+            - Path=/api/consultations/**
+        - id: availability-service
+          uri: lb://consultation-service
+          predicates:
+            - Path=/api/availability/**
+        - id: consultation-providers
+          uri: lb://consultation-service
+          predicates:
+            - Path=/api/providers/**
+        - id: consultation-distance
+          uri: lb://consultation-service
+          predicates:
+            - Path=/api/distance/**
+        - id: assurance-service
+          uri: lb://assurance-service
+          predicates:
+            - Path=/api/assurances/**
+        - id: assurance-simulations
+          uri: lb://assurance-service
+          predicates:
+            - Path=/api/simulations/**
+        - id: reservation-service
+          uri: lb://reservation-service
+          predicates:
+            - Path=/api/reservations/**
+        - id: monitoring-service
+          uri: lb://monitoring-service
+          predicates:
+            - Path=/api/monitoring/**
+        - id: wellbeing-service
+          uri: lb://wellbeing-service
+          predicates:
+            - Path=/api/wellbeing/**
+        - id: product-order-service
+          uri: lb://product-order-service
+          predicates:
+            - Path=/products/**, /orders/**, /deliveries/**
+        - id: recommendation-service
+          uri: lb://recommendation-service
+          predicates:
+            - Path=/api/recommendation/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: TRACE

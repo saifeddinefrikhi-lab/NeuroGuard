@@ -1,0 +1,15 @@
+<app-card cardTitle="Mood & Clarity Trends" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    <ng-template #headerOptionsTemplate>
+        <div class="period-selector">
+            <button class="period-btn" [class.active]="activePeriod === '7d'" (click)="setPeriod('7d')">7D</button>
+            <button class="period-btn" [class.active]="activePeriod === '30d'" (click)="setPeriod('30d')">30D</button>
+        </div>
+    </ng-template>
+    <div id="mood-trend-chart">
+        <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
+            [stroke]="chartOptions.stroke!" [dataLabels]="chartOptions.dataLabels!" [yaxis]="chartOptions.yaxis!"
+            [grid]="chartOptions.grid!" [legend]="chartOptions.legend!" [markers]="chartOptions.markers!"
+            [colors]="chartOptions.colors!" [tooltip]="chartOptions.tooltip!">
+        </apx-chart>
+    </div>
+</app-card>

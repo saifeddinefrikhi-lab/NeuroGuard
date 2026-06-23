@@ -1,0 +1,55 @@
+<div class="container-fluid py-4" style="font-family: 'Inter', sans-serif;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold" style="color: #2B3674;">Appointment Requests</h2>
+    <span class="badge bg-primary rounded-pill px-3 py-2">{{ reservations.length }} Total</span>
+  </div>
+
+  <div *ngIf="error" class="alert custom-alert danger">{{ error }}</div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+  <div class="card border-0 shadow-sm" style="border-radius: 16px;" *ngIf="!isLoading && reservations.length > 0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4">Patient Name</th>
+              <th>Date & Time</th>
+              <th>Notes / Reason</th>
+              <th>Status</th>
+              <th class="text-end pe-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let res of reservations">
+              <td class="ps-4 fw-bold text-dark">{{ res.patientName || 'Patient ID: ' + res.patientId }}</td>
+              <td><span class="text-primary fw-bold"><i class="far fa-clock me-1"></i> {{ res.reservationDate | date:'medium' }}</span></td>
+              <td class="text-muted text-truncate" style="max-width: 200px;">{{ res.notes || '-' }}</td>
+              <td><span class="badge {{ getStatusBadgeClass(res.status) }} rounded-pill">{{ res.status }}</span></td>
+              <td class="text-end pe-4">
+                <div class="d-flex justify-content-end gap-2">
+                  <ng-container *ngIf="res.status === 'PENDING'">
+                     <button class="btn btn-sm btn-success rounded-pill fw-bold" (click)="updateStatus(res.id!, 'ACCEPTED')"><i class="fas fa-check me-1"></i> Accept</button>
+                     <button class="btn btn-sm btn-danger rounded-pill fw-bold" (click)="updateStatus(res.id!, 'REJECTED')"><i class="fas fa-times me-1"></i> Reject</button>
+                  </ng-container>
+                  <button class="btn btn-sm btn-outline-secondary rounded-pill" 
+                          [disabled]="res.status === 'DELETED' || res.status === 'COMPLETED'"
+                          (click)="deleteReservation(res.id!)"><i class="fas fa-trash"></i></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && reservations.length === 0" class="text-center py-5 bento-card p-5 mt-4" style="background: white; border-radius: 20px;">
+    <div class="mb-3"><i class="far fa-calendar-check fa-4x text-muted" style="opacity: 0.3;"></i></div>
+    <h4 class="fw-bold text-dark">No upcoming appointments</h4>
+    <p class="text-muted">You have no pending reservation requests at the moment.</p>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+@use '../../../../scss/settings/color-variables.scss' as *;
+
+.auth-main {
+  position: relative;
+  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 55%),
+    radial-gradient(circle at 15% 20%, rgba(14, 165, 233, 0.18), transparent 50%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+
+  .auth-wrapper {
+    height: 100%;
+    .auth-divider p {
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    .btn-auth {
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      .auth-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .auth-card-body {
+        padding: 1.5rem;
+      }
+    }
+  }
+}

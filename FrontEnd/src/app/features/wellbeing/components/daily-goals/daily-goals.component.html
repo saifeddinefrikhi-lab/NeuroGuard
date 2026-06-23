@@ -1,0 +1,17 @@
+<app-card cardTitle="Daily Checklist" [showHeader]="true" [cardClass]="'glass-card animate-fade-in compact-card h-100'">
+    <div class="goals-list mt-2">
+        @for (goal of goals; track goal.id) {
+        <div class="goal-item d-flex align-items-center p-2 mb-2" [class.completed]="goal.done"
+            (click)="toggleGoal(goal)">
+            <div class="goal-icon me-3">
+                <i [class]="goal.icon"></i>
+            </div>
+            <span class="goal-text flex-grow-1">{{ goal.text }}</span>
+            <div class="check-box ms-2">
+                <i class="ti ti-circle-check" *ngIf="goal.done"></i>
+                <i class="ti ti-circle" *ngIf="!goal.done"></i>
+            </div>
+        </div>
+        }
+    </div>
+</app-card>

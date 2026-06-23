@@ -1,0 +1,210 @@
+<div class="row">
+  <!-- User Statistics: wrapped in a clear section -->
+  <section class="col-12 user-stats-section">
+    <header class="user-stats-header">
+      <div class="user-stats-header__text">
+        <h5 class="user-stats-title">User statistics</h5>
+        <p class="user-stats-subtitle">Real-time counts by role</p>
+      </div>
+      <div class="user-stats-header__actions">
+        <span class="user-stats-updated" *ngIf="lastUpdated">{{ lastUpdatedText }}</span>
+        <button type="button" class="btn btn-sm btn-light-primary" (click)="refreshStats()" [disabled]="userStatsLoading">
+          <i antIcon type="reload" theme="outline"></i>
+          <span>{{ userStatsLoading ? 'Refreshing...' : 'Refresh' }}</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Skeleton loaders -->
+    <div class="user-stats-grid" *ngIf="userStatsLoading">
+      <div class="user-stat-skeleton-card" *ngFor="let item of skeletonCounts">
+        <div class="skeleton-line title"></div>
+        <div class="skeleton-line amount"></div>
+        <div class="skeleton-line subtitle"></div>
+      </div>
+    </div>
+
+    <!-- Stats cards (animated counters) -->
+    <div class="user-stats-grid" *ngIf="!userStatsLoading && userStats">
+      <div class="user-stat-card" *ngFor="let card of userStatsCards; let i = index" [attr.data-role]="card.key">
+        <div class="user-stat-card__icon" [ngClass]="card.background">
+          <i antIcon [type]="card.icon" theme="outline"></i>
+        </div>
+        <div class="user-stat-card__body">
+          <p class="user-stat-card__label">{{ card.title }}</p>
+          <p class="user-stat-card__value stat-number">{{ displayAmounts[i] }}</p>
+          <p class="user-stat-card__meta">{{ getCardPercentage(i) }} · {{ getCardSubtitle(i) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="user-stats-error" *ngIf="userStatsError && !userStatsLoading">
+      <div class="alert alert-warning mb-0">{{ userStatsError }}</div>
+    </div>
+
+    <!-- Chart + Insights row -->
+    <div class="user-stats-chart-row" *ngIf="!userStatsLoading && userStats && userStats.total > 0">
+      <div class="user-stats-chart-wrap">
+        <div class="user-stats-chart-card">
+          <h6 class="user-stats-chart-title">Distribution by role</h6>
+          <div class="user-stats-chart-inner">
+            <apx-chart
+              [series]="donutOptions.series"
+              [chart]="$any(donutOptions.chart)"
+              [labels]="donutOptions.labels"
+              [colors]="donutOptions.colors"
+              [dataLabels]="donutOptions.dataLabels"
+              [plotOptions]="donutOptions.plotOptions"
+              [legend]="donutOptions.legend"
+              [tooltip]="donutOptions.tooltip">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+      <div class="user-stats-insights-wrap">
+        <div class="user-stats-insights-card">
+          <h6 class="user-stats-insights-title">Quick insights</h6>
+          <div class="insights-list">
+            <div class="insight-row" *ngIf="largestGroup">
+              <span class="insight-label">Largest group</span>
+              <span class="insight-value">{{ largestGroup.name }} ({{ largestGroup.count }})</span>
+            </div>
+            <div class="insight-row">
+              <span class="insight-label">Patients per provider</span>
+              <span class="insight-value">{{ patientsPerProvider }}</span>
+            </div>
+            <div class="insight-row">
+              <span class="insight-label">Patients per caregiver</span>
+              <span class="insight-value">{{ patientsPerCaregiver }}</span>
+            </div>
+            <div class="insight-row">
+              <span class="insight-label">Total users</span>
+              <span class="insight-value">{{ userStats?.total }} across 4 roles</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Analytics Section -->
+  <div class="col-md-6 col-xl-3" *ngFor="let analytic of AnalyticEcommerce">
+    <app-card [showHeader]="false" blockClass="dashboard-card">
+      <h6 class="mb-2 f-w-400 text-muted">{{ analytic.title }}</h6>
+      <h4 class="mb-3">
+        {{ analytic.amount }}
+        <span class="badge {{ analytic.background }} border {{ analytic.border }} ">
+          <i antIcon type="{{ analytic.icon }}" theme="outline"></i>
+          {{ analytic.percentage }}
+        </span>
+      </h4>
+      <p class="mb-0 text-muted text-sm">
+        You made an extra
+        <span class="{{ analytic.color }}">{{ analytic.number }}</span>
+        this year
+      </p>
+    </app-card>
+  </div>
+
+  <!-- Monthly Bar Chart -->
+  <div class="col-md-12 col-xl-8">
+    <app-monthly-bar-chart />
+  </div>
+
+  <!-- Income Overview Chart -->
+  <div class="col-md-12 col-xl-4">
+    <app-income-overview-chart />
+  </div>
+
+  <!-- Recent Patient Orders Section -->
+  <div class="col-md-12 col-xl-8">
+    <h5 class="mb-3">Recent Patient Orders</h5>
+    <div class="card tbl-card">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>ORDER ID</th>
+              <th>PRODUCT NAME</th>
+              <th>STATUS</th>
+              <th class="text-end">TOTAL QUANTITY</th>
+              <th class="text-end">TOTAL COST</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of recentOrder">
+              <td><a href="javascript:" class="text-muted">{{ order.id }}</a></td>
+              <td>{{ order.name }}</td>
+              <td>
+                <span class="d-block">
+                  <i class="badge-circle {{ order.status_type }} f-10 m-r-5"></i>
+                  {{ order.status }}
+                </span>
+              </td>
+              <td class="text-end">{{ order.quantity }}</td>
+              <td class="text-end">{{ order.amount }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Chart Section -->
+  <div class="col-md-12 col-xl-4">
+    <app-analytics-chart />
+  </div>
+
+  <!-- Sales Report Chart Section -->
+  <div class="col-md-12 col-xl-8">
+    <app-sales-report-chart />
+  </div>
+
+  <!-- Transaction History Section -->
+  <div class="col-md-12 col-xl-4">
+    <h5 class="mb-3">Patient Transaction History</h5>
+    <div class="card">
+      <div class="list-group list-group-flush">
+        <a href="javascript:" class="list-group-item list-group-item-action px-3" *ngFor="let history of transaction">
+          <div class="d-flex">
+            <div class="flex-shrink-0">
+              <div class="avatar avatar-s rounded-circle {{ history.background }}">
+                <i class="f-16" antIcon type="{{ history.icon }}" theme="outline"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h6 class="mb-1">{{ history.title }}</h6>
+              <p class="mb-0 text-muted">{{ history.time }}</p>
+            </div>
+            <div class="flex-shrink-0 text-end">
+              <h6 class="mb-1">{{ history.amount }}</h6>
+              <p class="mb-0 text-muted">{{ history.percentage }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Help & Support Chat Section -->
+    <div class="card">
+      <div class="card-body">
+        <div class="row justify-content-between">
+          <div class="col-auto">
+            <h5>Help & Support Chat</h5>
+            <p class="mb-3">Typical reply within 5 min</p>
+          </div>
+          <div class="col-auto">
+            <div class="user-group mb-3">
+              <img src="assets/images/user/avatar-1.jpg" alt="image" />
+              <img src="assets/images/user/avatar-2.jpg" alt="image" />
+              <img src="assets/images/user/avatar-3.jpg" alt="image" />
+            </div>
+          </div>
+        </div>
+        <div class="d-grid">
+          <div class="btn btn-primary">Need Help?</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

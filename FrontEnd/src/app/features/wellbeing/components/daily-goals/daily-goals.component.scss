@@ -1,0 +1,47 @@
+.goal-item {
+    cursor: pointer;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    backdrop-filter: blur(8px);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.6);
+        transform: translateX(6px) scale(1.01);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    &.completed {
+        background: rgba(var(--bs-success-rgb), 0.1);
+        border-color: rgba(var(--bs-success-rgb), 0.3);
+
+        .goal-text {
+            text-decoration: line-through;
+            opacity: 0.5;
+            color: var(--bs-success);
+        }
+
+        .check-box {
+            color: var(--bs-success);
+        }
+
+        .goal-icon {
+            color: var(--bs-success);
+            transform: scale(0.9);
+        }
+    }
+
+    .goal-icon {
+        font-size: 1.3rem;
+        color: var(--bs-primary);
+        transition: all 0.3s ease;
+    }
+
+    .goal-text {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--pc-heading-color);
+        transition: all 0.3s ease;
+    }
+}

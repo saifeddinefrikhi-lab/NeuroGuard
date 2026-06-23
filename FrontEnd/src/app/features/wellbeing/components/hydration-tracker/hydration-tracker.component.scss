@@ -1,0 +1,68 @@
+.water-percentage {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #4099ff;
+    line-height: 1;
+    text-shadow: 0 4px 10px rgba(64, 153, 255, 0.15);
+}
+
+.water-goal {
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.glasses-container {
+    gap: 12px;
+}
+
+.glass-item {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+
+    .glass-emoji {
+        font-size: 1.8rem;
+        transition: transform 0.3s ease;
+        filter: grayscale(0.6) opacity(0.5);
+    }
+
+    &:hover {
+        transform: translateY(-3px) scale(1.08);
+        box-shadow: 0 6px 15px rgba(64, 153, 255, 0.15);
+    }
+
+    &.filled {
+        background: rgba(64, 153, 255, 0.1);
+        border-color: rgba(64, 153, 255, 0.3);
+        box-shadow: 0 6px 18px rgba(64, 153, 255, 0.2);
+        animation: splash 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        .glass-emoji {
+            filter: none;
+            transform: scale(1.1);
+        }
+    }
+}
+
+@keyframes splash {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}

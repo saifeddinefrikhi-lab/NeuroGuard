@@ -1,0 +1,72 @@
+/* Reuse medical-history-list styles for care plan cards */
+@use '../../provider-medical-history-list/provider-medical-history-list' as *;
+
+:host {
+  ::ng-deep .page-header .page-title i { color: #667eea; }
+  ::ng-deep .info-label i { color: #667eea; }
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  &.priority-low {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+  &.priority-medium {
+    background: #fef3c7;
+    color: #b45309;
+  }
+  &.priority-high {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+}
+
+.section-statuses {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+.section-status-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  &.todo {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.6);
+  }
+  &.done {
+    background: #22c55e;
+    color: white;
+    border: 1px solid #16a34a;
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  &.status-todo {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+  &.status-done {
+    background: #dcfce7;
+    color: #166534;
+  }
+}

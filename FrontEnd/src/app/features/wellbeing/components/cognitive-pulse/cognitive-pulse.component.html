@@ -1,0 +1,12 @@
+<app-card cardTitle="Cognitive Pulse" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    <div id="chart">
+        <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
+            [stroke]="chartOptions.stroke!" [dataLabels]="chartOptions.dataLabels!" [yaxis]="chartOptions.yaxis!"
+            [legend]="chartOptions.legend!" [markers]="chartOptions.markers!" [grid]="chartOptions.grid!"
+            [colors]="chartOptions.colors!"></apx-chart>
+    </div>
+    <div class="m-t-20 text-center">
+        <p class="text-muted"><i class="ti ti-trending-up text-success m-r-5"></i> <strong>+5%
+                Improvement</strong> in memory tasks compared to last week.</p>
+    </div>
+</app-card>

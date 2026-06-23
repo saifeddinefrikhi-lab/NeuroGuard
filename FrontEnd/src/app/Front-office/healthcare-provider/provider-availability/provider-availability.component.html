@@ -1,0 +1,69 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">My Availability</h2>
+      <p class="text-muted small mb-0">Define your consultation time slots</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">+ Add Availability</button>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Loading...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div class="card mb-4" *ngIf="showForm">
+    <div class="card-header">{{ editingId ? 'Edit' : 'Add' }} a time slot</div>
+    <div class="card-body">
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Day</label>
+            <select class="form-select" formControlName="dayOfWeek">
+              <option *ngFor="let d of DAYS" [value]="d">{{ getDayName(d) }}</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Start Time</label>
+            <input type="time" class="form-control" formControlName="startTime">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">End Time</label>
+            <input type="time" class="form-control" formControlName="endTime">
+            <div *ngIf="form.errors?.['endBeforeStart']" class="invalid-feedback d-block">End time must be after start time.</div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success">{{ editingId ? 'Edit' : 'Add' }}</button>
+        <button type="button" class="btn btn-secondary ms-2" (click)="cancel()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">Time Slots</div>
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0" *ngIf="availabilities.length > 0">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let av of availabilities">
+            <td>{{ getDayName(av.dayOfWeek) }}</td>
+            <td>{{ av.startTime?.substring(0, 5) }}</td>
+            <td>{{ av.endTime?.substring(0, 5) }}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1" (click)="openEdit(av)">Edit</button>
+              <button class="btn btn-sm btn-danger" (click)="delete(av.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="availabilities.length === 0" class="p-4 text-center text-muted">
+        No availability defined. Click "Add Availability" to get started.
+      </div>
+    </div>
+  </div>
+</div>

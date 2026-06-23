@@ -1,0 +1,21 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="card-title">Patient Health Profile</h5>
+  </div>
+  <div class="card-body">
+    <apx-chart
+      #chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [colors]="chartOptions.colors"
+      [plotOptions]="chartOptions.plotOptions"
+      [dataLabels]="chartOptions.dataLabels"
+      [xaxis]="chartOptions.xaxis"
+      [yaxis]="chartOptions.yaxis"
+      [grid]="chartOptions.grid"
+      [legend]="chartOptions.legend"
+      [theme]="chartOptions.theme"
+    >
+    </apx-chart>
+  </div>
+</div>

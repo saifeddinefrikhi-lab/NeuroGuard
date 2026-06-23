@@ -1,0 +1,340 @@
+<div class="alerts-container provider">
+  <div class="alerts-header">
+    <div class="header-content">
+      <h1 class="alerts-title">
+        <i class="ti ti-stethoscope"></i>
+        Alert Management
+      </h1>
+      <p class="alerts-subtitle">Create, monitor, and manage patient alerts</p>
+    </div>
+  </div>
+
+  <div class="alerts-body">
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="alert-message success-message">
+      <i class="ti ti-circle-check"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+    <div *ngIf="error" class="alert-message error-message">
+      <i class="ti ti-alert-circle"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <div class="patient-selector-wrapper">
+        <label for="patientSearch" class="selector-label">
+          <i class="ti ti-user-search"></i>
+          Select Patient
+        </label>
+        <div class="patient-selector-container">
+          <input 
+            id="patientSearch"
+            type="text" 
+            class="patient-search-input" 
+            [(ngModel)]="patientSearchQuery"
+            placeholder="Search or select a patient..."
+            (input)="onPatientSearchChange(patientSearchQuery)"
+            (focus)="openPatientDropdown()"
+            (blur)="closePatientDropdown()">
+          <i class="ti ti-search search-icon"></i>
+          
+          <!-- Patient Dropdown -->
+          <div class="patient-dropdown" *ngIf="showPatientDropdown">
+            <div *ngIf="filteredPatients.length > 0" class="dropdown-list">
+              <div *ngFor="let patient of filteredPatients" 
+                   class="dropdown-item"
+                   (click)="selectPatient(patient)"
+                   (mousedown)="$event.preventDefault()">
+                <span class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</span>
+                <span class="patient-email" *ngIf="patient.email">{{ patient.email }}</span>
+              </div>
+            </div>
+            <div *ngIf="filteredPatients.length === 0" class="dropdown-empty">
+              <i class="ti ti-search-off"></i>
+              <span>No patients found</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn-modern primary" (click)="newAlert()" [disabled]="!selectedPatientId">
+          <i class="ti ti-plus"></i>
+          New Alert
+        </button>
+        <button class="btn-modern secondary" (click)="triggerGeneration()">
+          <i class="ti ti-refresh"></i>
+          Auto‑Generate
+        </button>
+        <button class="btn-modern accent" (click)="triggerPredictiveGeneration()">
+          <i class="ti ti-brain"></i>
+          ML Prediction
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert Form -->
+    <div *ngIf="showForm" class="alert-form-card">
+      <div class="form-header">
+        <h3>
+          <i class="ti" [class]="editingAlertId ? 'ti-edit' : 'ti-plus'"></i>
+          {{ editingAlertId ? 'Edit Alert' : 'Create New Alert' }}
+        </h3>
+        <button class="btn-close" (click)="cancelForm()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+      <form [formGroup]="alertForm" (ngSubmit)="onSubmit()" class="modern-form">
+        <!-- Patient Field -->
+        <div class="form-group" [class.field-valid]="alertForm.get('patientId')?.valid && alertForm.get('patientId')?.touched" [class.field-invalid]="alertForm.get('patientId')?.invalid && alertForm.get('patientId')?.touched">
+          <div class="label-wrapper">
+            <label for="patientId">
+              <i class="ti ti-user"></i>
+              Patient
+              <span class="required-indicator">*</span>
+            </label>
+            <span class="field-status" *ngIf="alertForm.get('patientId')?.touched">
+              <i class="ti" [class]="alertForm.get('patientId')?.valid ? 'ti-circle-check' : 'ti-alert-circle'"></i>
+              {{ alertForm.get('patientId')?.valid ? 'Selected' : 'Required' }}
+            </span>
+          </div>
+          <select id="patientId" formControlName="patientId" class="modern-input" 
+                  [class.input-focused]="alertForm.get('patientId')?.touched">
+            <option value="">Select patient...</option>
+            <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+          </select>
+          <span *ngIf="alertForm.get('patientId')?.invalid && alertForm.get('patientId')?.touched" class="error-text">
+            <i class="ti ti-alert-triangle"></i>
+            Patient is required
+          </span>
+          <span *ngIf="alertForm.get('patientId')?.valid && alertForm.get('patientId')?.touched" class="success-text">
+            <i class="ti ti-circle-check"></i>
+            Patient selected successfully
+          </span>
+        </div>
+
+        <!-- Severity Field -->
+        <div class="form-group" [class.field-valid]="alertForm.get('severity')?.valid && alertForm.get('severity')?.touched" [class.field-invalid]="alertForm.get('severity')?.invalid && alertForm.get('severity')?.touched">
+          <div class="label-wrapper">
+            <label for="severity">
+              <i class="ti ti-flag"></i>
+              Severity Level
+              <span class="required-indicator">*</span>
+            </label>
+            <span class="field-status" *ngIf="alertForm.get('severity')?.touched">
+              <i class="ti ti-circle-check"></i>
+              {{ alertForm.get('severity')?.value }}
+            </span>
+          </div>
+          <select id="severity" formControlName="severity" class="modern-input"
+                  [class.input-focused]="alertForm.get('severity')?.touched">
+            <option value="INFO">Info</option>
+            <option value="WARNING">Warning</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </div>
+
+        <!-- Message Field -->
+        <div class="form-group" [class.field-valid]="alertForm.get('message')?.valid && alertForm.get('message')?.touched" [class.field-invalid]="alertForm.get('message')?.invalid && alertForm.get('message')?.touched">
+          <div class="label-wrapper">
+            <label for="message">
+              <i class="ti ti-message"></i>
+              Alert Message
+              <span class="required-indicator">*</span>
+            </label>
+            <span class="char-count" [class.warning]="(alertForm.get('message')?.value?.length || 0) > 400">
+              {{ (alertForm.get('message')?.value?.length || 0) }}/500
+            </span>
+          </div>
+          <div class="textarea-wrapper">
+            <textarea id="message" formControlName="message" class="modern-input" rows="4" 
+                      placeholder="Enter alert message..." 
+                      [class.input-focused]="alertForm.get('message')?.touched"></textarea>
+            <div class="char-indicator" [style.width]="((alertForm.get('message')?.value?.length || 0) / 500 * 100) + '%'"
+                 [class.warning]="(alertForm.get('message')?.value?.length || 0) > 400"></div>
+          </div>
+          <span *ngIf="alertForm.get('message')?.getError('required') && alertForm.get('message')?.touched" class="error-text">
+            <i class="ti ti-alert-triangle"></i>
+            Message is required
+          </span>
+          <span *ngIf="alertForm.get('message')?.getError('maxlength') && alertForm.get('message')?.touched" class="error-text">
+            <i class="ti ti-alert-triangle"></i>
+            Message cannot exceed 500 characters
+          </span>
+          <span *ngIf="alertForm.get('message')?.valid && alertForm.get('message')?.touched" class="success-text">
+            <i class="ti ti-circle-check"></i>
+            Message is valid
+          </span>
+          <p class="helper-text">
+            <i class="ti ti-info-circle"></i>
+            Clear and concise messages help providers understand alerts better
+          </p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-modern primary" [disabled]="alertForm.invalid">
+            <i class="ti" [class]="editingAlertId ? 'ti-device-floppy' : 'ti-plus'"></i>
+            {{ editingAlertId ? 'Update Alert' : 'Create Alert' }}
+          </button>
+          <button type="button" class="btn-modern secondary" (click)="cancelForm()">
+            <i class="ti ti-x"></i>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Alerts Section -->
+    <div class="alerts-section" *ngIf="selectedPatientId">
+      <h2 class="section-title">
+        <i class="ti ti-list-details"></i>
+        Patient Alerts
+      </h2>
+
+      <!-- Search, Filter, Sort Controls -->
+      <div class="controls-panel">
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Search by message or patient name..." 
+                 (input)="onSearchChange($any($event.target).value)" class="search-input">
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="filter-controls">
+          <!-- Severity Filter -->
+          <div class="filter-group">
+            <label for="severityFilter">Severity:</label>
+            <select id="severityFilter" class="filter-select" 
+                    (change)="onSeverityFilterChange($any($event.target).value)">
+              <option value="">All Severities</option>
+              <option value="INFO">Info</option>
+              <option value="WARNING">Warning</option>
+              <option value="CRITICAL">Critical</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="filter-group">
+            <label for="statusFilter">Status:</label>
+            <select id="statusFilter" class="filter-select" 
+                    (change)="onStatusFilterChange($any($event.target).value)">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+
+          <!-- Sort Controls -->
+          <div class="filter-group">
+            <label for="sortBy">Sort By:</label>
+            <select id="sortBy" class="filter-select" 
+                    (change)="onSortChange($any($event.target).value === 'date' ? 'date' : 'severity', sortOrder)">
+              <option [value]="'date'" [selected]="sortBy === 'date'">Date</option>
+              <option [value]="'severity'" [selected]="sortBy === 'severity'">Severity</option>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="filter-group">
+            <label for="sortOrder">Order:</label>
+            <select id="sortOrder" class="filter-select" 
+                    (change)="onSortChange(sortBy, $any($event.target).value === 'asc' ? 'asc' : 'desc')">
+              <option value="desc" [selected]="sortOrder === 'desc'">Newest First</option>
+              <option value="asc" [selected]="sortOrder === 'asc'">Oldest First</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Count -->
+      <div class="results-info" *ngIf="!loading && filteredAlerts.length > 0">
+        <span>Showing {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, alerts.length) }} of {{ alerts.length }} alerts</span>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading alerts...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && alerts.length === 0" class="empty-state">
+        <i class="ti ti-bell-off"></i>
+        <h3>No alerts found</h3>
+        <p>This patient has no active alerts at the moment.</p>
+      </div>
+
+      <!-- No Results State -->
+      <div *ngIf="!loading && alerts.length > 0 && filteredAlerts.length === 0" class="empty-state">
+        <i class="ti ti-search-off"></i>
+        <h3>No alerts match your filters</h3>
+        <p>Try adjusting your search or filter criteria.</p>
+      </div>
+
+      <!-- Alerts Grid -->
+      <div *ngIf="!loading && filteredAlerts.length > 0" class="alerts-grid">
+        <div *ngFor="let alert of filteredAlerts" class="alert-card provider-card" [class.resolved]="alert.resolved">
+          <div class="alert-card-header">
+            <span class="severity-badge" [class]="'severity-' + alert.severity.toLowerCase()">
+              <i class="ti" [class]="getSeverityIcon(alert.severity)"></i>
+              {{ alert.severity }}
+            </span>
+            <span class="alert-status" [class.resolved]="alert.resolved">
+              <i class="ti" [class]="alert.resolved ? 'ti-circle-check' : 'ti-clock'"></i>
+              {{ alert.resolved ? 'Resolved' : 'Pending' }}
+            </span>
+          </div>
+          
+          <div class="alert-card-body">
+            <h3 class="alert-message">{{ alert.message }}</h3>
+            <div class="alert-meta">
+              <span class="meta-item">
+                <i class="ti ti-user"></i>
+                {{ alert.patientName }}
+              </span>
+              <span class="meta-item">
+                <i class="ti ti-calendar"></i>
+                {{ alert.createdAt | date:'MMM d, y' }}
+              </span>
+              <span class="meta-item">
+                <i class="ti ti-clock"></i>
+                {{ alert.createdAt | date:'shortTime' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="alert-card-actions">
+            <button class="action-btn edit" (click)="editAlert(alert)" title="Edit">
+              <i class="ti ti-edit"></i>
+            </button>
+            <button class="action-btn delete" (click)="deleteAlert(alert.id)" title="Delete">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!loading && filteredAlerts.length > 0 && totalPages > 1" class="pagination-container">
+        <button class="page-btn" (click)="goToPreviousPage()" [disabled]="currentPage === 1" title="Previous Page">
+          <i class="ti ti-chevron-left"></i>
+          <span>Previous</span>
+        </button>
+
+        <div class="page-selector">
+          <label for="pageSelect">Page:</label>
+          <select id="pageSelect" class="page-select" [(ngModel)]="currentPage" (ngModelChange)="onPageChange()">
+            <option *ngFor="let page of allPages" [value]="page">{{ page }}</option>
+          </select>
+          <span class="page-total">of {{ totalPages }}</span>
+        </div>
+
+        <button class="page-btn" (click)="goToNextPage()" [disabled]="currentPage === totalPages" title="Next Page">
+          <span>Next</span>
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+# JVM crash logs (never commit these)
+hs_err_pid*.log
+replay_pid*.log
+
+# Maven build output
+target/
+**/target/
+.mvn/wrapper/maven-wrapper.jar
+
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# VS Code
+.vscode/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Angular
+node_modules/
+dist/
+.angular/
+
+# Misc
+test.txt
+*.class
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.env
+.pytest_cache/
+.coverage
+htmlcov/

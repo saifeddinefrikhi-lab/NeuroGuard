@@ -1,0 +1,290 @@
+<div class="container-fluid px-4 mt-0 mb-5">
+  <div class="sticky-action">
+    <button class="btn btn-outline-secondary" (click)="goBack()">
+      <i class="ti ti-arrow-left"></i> Back to Care Plans
+    </button>
+  </div>
+
+  <div class="page-header mb-4">
+    <div class="page-header-content">
+      <h1 class="page-title">
+        <i class="ti ti-brain"></i> ML Care Plan Recommendation
+      </h1>
+      <p class="page-subtitle">Generate a personalized care plan using Artificial Intelligence.</p>
+    </div>
+  </div>
+
+  <!-- Step 1: Select Patient -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light">
+      <h5 class="mb-0"><i class="ti ti-user-search"></i> Select Patient</h5>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label text-muted">Patient</label>
+          <select class="form-select" [(ngModel)]="selectedPatientId" (change)="onPatientChange()">
+            <option [ngValue]="null">-- Select a Patient --</option>
+            <option *ngFor="let p of patients" [ngValue]="p.id">
+              {{ p.firstName }} {{ p.lastName }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-6" *ngIf="fetchingData">
+          <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+          <span class="ms-2">Loading medical history from backend...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger shadow-sm">
+    <i class="ti ti-alert-circle"></i> {{ errorMessage }}
+  </div>
+
+  <!-- ML Result Display -->
+  <div *ngIf="recommendationResult" class="card border-0 shadow-sm mb-4 border-start border-4 border-success">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0"><i class="ti ti-check"></i> Recommendation Generated</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-12 mb-3">
+          <h4 class="text-primary">{{ recommendationResult.carePlan.profile }}</h4>
+          <p class="text-muted">{{ recommendationResult.carePlan.description }}</p>
+          <div class="badge bg-info">ML Confidence: {{ (recommendationResult.confidence * 100) | number:'1.0-1' }}%</div>
+          <div class="badge bg-secondary ms-2">Cluster ID: {{ recommendationResult.cluster }}</div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <div class="p-3 bg-light rounded">
+            <h6><i class="ti ti-stethoscope text-primary"></i> Medical Follow Up</h6>
+            <p class="mb-0">{{ recommendationResult.carePlan.medicalFollowUp }}</p>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="p-3 bg-light rounded">
+            <h6><i class="ti ti-activity text-success"></i> Physical Activity</h6>
+            <p class="mb-0">{{ recommendationResult.carePlan.physicalActivity }}</p>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="p-3 bg-light rounded">
+            <h6><i class="ti ti-apple text-danger"></i> Nutrition</h6>
+            <p class="mb-0">{{ recommendationResult.carePlan.nutrition }}</p>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="p-3 bg-light rounded">
+            <h6><i class="ti ti-pill text-warning"></i> Medication</h6>
+            <p class="mb-0">{{ recommendationResult.carePlan.medication }}</p>
+          </div>
+        </div>
+        
+        <div class="col-12 mt-2">
+          <div class="alert alert-info mb-3">
+            <strong><i class="ti ti-info-circle"></i> Notes:</strong> {{ recommendationResult.carePlan.additionalNotes }}
+          </div>
+          
+          <div class="d-flex align-items-center mt-3 border-top pt-3">
+            <button class="btn btn-primary" (click)="saveCarePlan()" [disabled]="savingCarePlan || saveSuccess">
+              <i class="ti" [ngClass]="savingCarePlan ? 'ti-loader' : (saveSuccess ? 'ti-check' : 'ti-device-floppy')"></i>
+              {{ savingCarePlan ? 'Saving...' : (saveSuccess ? 'Saved to Record' : 'Save to Patient Record') }}
+            </button>
+            <span *ngIf="saveSuccess" class="text-success ms-3 fw-bold">
+              <i class="ti ti-circle-check"></i> Care Plan successfully saved to database!
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Form (pre-filled) -->
+  <div class="card border-0 shadow-sm" *ngIf="selectedPatientId">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="ti ti-list-details"></i> Patient Features (Review & Edit)</h5>
+      <button class="btn btn-primary" (click)="onSubmit()" [disabled]="loading || recommendationForm.invalid">
+        <i class="ti" [ngClass]="loading ? 'ti-loader' : 'ti-brain'"></i>
+        {{ loading ? 'Analyzing...' : 'Generate Care Plan' }}
+      </button>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="recommendationForm">
+        
+        <h6 class="text-primary mt-2 border-bottom pb-2">Demographics & Basics</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label">Age</label>
+            <input type="number" class="form-control" formControlName="Age">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Gender (1=Male, 0=Female)</label>
+            <select class="form-select" formControlName="Gender">
+              <option [ngValue]="1">Male</option>
+              <option [ngValue]="0">Female</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">BMI</label>
+            <input type="number" class="form-control" formControlName="BMI" step="0.1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Education Level (0-3)</label>
+            <input type="number" class="form-control" formControlName="EducationLevel">
+          </div>
+        </div>
+
+        <h6 class="text-primary border-bottom pb-2">Cognitive & Functional (Core)</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label fw-bold text-danger">MMSE Score (0-30)</label>
+            <input type="number" class="form-control" formControlName="MMSE">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold text-danger">ADL Score (0-10)</label>
+            <input type="number" class="form-control" formControlName="ADL">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold text-danger">Functional Assessment</label>
+            <input type="number" class="form-control" formControlName="FunctionalAssessment" step="0.1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Memory Complaints</label>
+            <select class="form-select" formControlName="MemoryComplaints">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Behavioral Problems</label>
+            <select class="form-select" formControlName="BehavioralProblems">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Confusion</label>
+            <select class="form-select" formControlName="Confusion">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Disorientation</label>
+            <select class="form-select" formControlName="Disorientation">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Forgetfulness</label>
+            <select class="form-select" formControlName="Forgetfulness">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+        </div>
+
+        <h6 class="text-primary border-bottom pb-2">Health & Risk Factors</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label">Hypertension</label>
+            <select class="form-select" formControlName="Hypertension">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Diabetes</label>
+            <select class="form-select" formControlName="Diabetes">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cardiovascular Disease</label>
+            <select class="form-select" formControlName="CardiovascularDisease">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Family History Alzheimer's</label>
+            <select class="form-select" formControlName="FamilyHistoryAlzheimers">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Depression</label>
+            <select class="form-select" formControlName="Depression">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Head Injury</label>
+            <select class="form-select" formControlName="HeadInjury">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Smoking</label>
+            <select class="form-select" formControlName="Smoking">
+              <option [ngValue]="1">Yes</option>
+              <option [ngValue]="0">No</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Alcohol Consumption</label>
+            <input type="number" class="form-control" formControlName="AlcoholConsumption" step="0.1">
+          </div>
+        </div>
+
+        <h6 class="text-primary border-bottom pb-2">Vitals & Labs</h6>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Systolic BP</label>
+            <input type="number" class="form-control" formControlName="SystolicBP">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Diastolic BP</label>
+            <input type="number" class="form-control" formControlName="DiastolicBP">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cholesterol Total</label>
+            <input type="number" class="form-control" formControlName="CholesterolTotal">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cholesterol LDL</label>
+            <input type="number" class="form-control" formControlName="CholesterolLDL">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cholesterol HDL</label>
+            <input type="number" class="form-control" formControlName="CholesterolHDL">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cholesterol Triglycerides</label>
+            <input type="number" class="form-control" formControlName="CholesterolTriglycerides">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Physical Activity Score</label>
+            <input type="number" class="form-control" formControlName="PhysicalActivity" step="0.1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Diet Quality Score</label>
+            <input type="number" class="form-control" formControlName="DietQuality" step="0.1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Sleep Quality Score</label>
+            <input type="number" class="form-control" formControlName="SleepQuality" step="0.1">
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>

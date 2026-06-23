@@ -1,0 +1,33 @@
+<app-card cardTitle="Patient Pulse" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    <div class="pulse-status-badge" [ngClass]="statusClass">
+        {{ statusLabel }}
+    </div>
+
+    <div class="pulse-summary mt-3">
+        <div class="pulse-row">
+            <i class="material-icons">sentiment_satisfied</i>
+            <span class="pulse-label">Mood</span>
+            <span class="pulse-value">{{ summary.mood }}</span>
+        </div>
+        <div class="pulse-row">
+            <i class="material-icons">bedtime</i>
+            <span class="pulse-label">Sleep</span>
+            <span class="pulse-value">{{ summary.sleep }}</span>
+        </div>
+        <div class="pulse-row">
+            <i class="material-icons">water_drop</i>
+            <span class="pulse-label">Hydration</span>
+            <span class="pulse-value">{{ summary.hydration }}</span>
+        </div>
+        <div class="pulse-row">
+            <i class="material-icons">groups</i>
+            <span class="pulse-label">Social</span>
+            <span class="pulse-value">{{ summary.social }}</span>
+        </div>
+    </div>
+
+    <div class="pulse-recommendation mt-3">
+        <i class="material-icons">info</i>
+        <span>{{ recommendation }}</span>
+    </div>
+</app-card>

@@ -1,0 +1,48 @@
+.sidenav-container {
+      flex: 1;
+    }
+    .sidenav {
+      width: 260px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+    }
+    .sidenav-header {
+      padding: 24px 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(26,31,87,0.03) 0%, rgba(113,174,254,0.06) 100%);
+    }
+    .user-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .avatar-icon {
+      color: white;
+      font-size: 28px;
+    }
+    .user-name {
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0;
+      font-size: 14px;
+    }
+    .user-role {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin: 4px 0 0;
+    }
+    .active-link {
+      background: rgba(113,174,254,0.1) !important;
+      color: var(--primary) !important;
+    }
+    .main-content {
+      min-height: calc(100vh - 68px);
+      display: flex;
+      flex-direction: column;
+    }

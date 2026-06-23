@@ -1,0 +1,99 @@
+<div class="kanban-wrap">
+  <div
+    class="notification-toast"
+    [ngClass]="{
+      show: showNotification,
+      'notification-added': notificationType === 'added',
+      'notification-updated': notificationType === 'updated',
+      'notification-deleted': notificationType === 'deleted',
+      'notification-error': notificationType === 'error'
+    }"
+  >
+    <div class="toast-content">
+      <i [ngSwitch]="notificationType" class="notification-icon me-2 ms-2 fs-4">
+        <span *ngSwitchCase="'added'" class="ti ti-check-circle text-success"></span>
+        <span *ngSwitchCase="'updated'" class="ti ti-circle-check text-info"></span>
+        <span *ngSwitchCase="'deleted'" class="ti ti-trash text-warning"></span>
+        <span *ngSwitchDefault class="ti ti-alert-circle text-danger"></span>
+      </i>
+      <div class="message">
+        <h4 *ngSwitch="notificationType">
+          <span *ngSwitchCase="'added'">Plan Added</span>
+          <span *ngSwitchCase="'updated'">Plan Updated</span>
+          <span *ngSwitchCase="'deleted'">Plan Deleted</span>
+          <span *ngSwitchDefault>Notification</span>
+        </h4>
+        <p>{{ notificationMessage }}</p>
+      </div>
+      <button class="close-btn" (click)="showNotification = false"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+
+  <header class="kanban-header">
+    <h1 class="kanban-title">
+      <i class="ti ti-heart-rate-monitor"></i>
+      My Care Plans
+    </h1>
+    <p class="kanban-subtitle">Kanban view · To do</p>
+  </header>
+
+  <div *ngIf="loading" class="kanban-loading">
+    <div class="spinner"></div>
+    <p>Loading care plans...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="kanban-error">
+    <i class="ti ti-alert-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && columns.length === 0" class="kanban-empty">
+    <i class="ti ti-clipboard-off"></i>
+    <h3>No Care Plans</h3>
+    <p>Your doctor has not created a care plan for you yet.</p>
+  </div>
+
+  <div class="kanban-board" *ngIf="!loading && !errorMessage && columns.length > 0">
+    <div class="kanban-column" *ngFor="let col of columns">
+      <div class="kanban-column-header">
+        <span class="kanban-column-title">
+          <i class="ti" [ngClass]="col.icon"></i>
+          {{ col.title }}
+        </span>
+      </div>
+      <div class="kanban-column-cards">
+        <div class="kanban-card" *ngFor="let card of col.cards" [ngClass]="['priority-' + (card.priority || 'medium'), 'status-' + card.status.toLowerCase()]">
+          <div class="kanban-card-status" (click)="toggleStatus(card)" role="button" tabindex="0" (keydown.enter)="toggleStatus(card)" title="{{ card.status === 'DONE' ? 'Mark as to do' : 'Mark as completed' }}">
+            <span class="status-dot" [ngClass]="card.status === 'DONE' ? 'status-done' : 'status-todo'">
+              <i class="ti ti-check" *ngIf="card.status === 'DONE'"></i>
+            </span>
+          </div>
+          <div class="kanban-card-body">
+            <div class="kanban-card-head">
+              <span class="kanban-card-title">{{ card.title }}</span>
+              <span class="kanban-priority priority-{{ (card.priority || 'MEDIUM') | lowercase }}">{{ card.priority === 'HIGH' ? 'High' : (card.priority === 'LOW' ? 'Low' : 'Medium') }}</span>
+            </div>
+            <div *ngIf="card.deadline" class="kanban-card-deadline" [class.deadline-overdue]="getDeadlineCountdown(card.deadline).isOverdue">
+              <i class="ti ti-clock"></i>
+              <span>{{ getDeadlineCountdown(card.deadline).text }}</span>
+              <span class="deadline-date small text-muted">({{ formatDeadlineDate(card.deadline) }})</span>
+            </div>
+            <div class="kanban-card-content">{{ card.content }}</div>
+          </div>
+          <div class="kanban-card-actions">
+            <button class="kanban-card-link" type="button" title="Download PDF" (click)="downloadCarePlanPdf(card.planId)">
+              <i class="ti ti-download"></i>
+            </button>
+            <a [routerLink]="['/patient/care-plans/view', card.planId]" class="kanban-card-link" title="View details">
+              <i class="ti ti-eye"></i>
+            </a>
+          </div>
+        </div>
+        <div class="kanban-column-empty" *ngIf="col.cards.length === 0">
+          <i class="ti ti-inbox"></i>
+          <span>No items</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+<div class="dashboard-wrapper animate-fade-in">
+
+    <!-- ========================================= -->
+    <!-- PATIENT VIEW: Simple, action-focused      -->
+    <!-- ========================================= -->
+    @if (isPatient) {
+    <div class="row g-3">
+        <!-- Mood Selector (Full Width) -->
+        <div class="col-12">
+            <app-mood-selector></app-mood-selector>
+        </div>
+
+        <!-- Hydration Tracker -->
+        <div class="col-12">
+            <app-hydration-tracker></app-hydration-tracker>
+        </div>
+
+        <!-- Daily Tasks & Cognitive Games -->
+        <div class="col-md-6">
+            <app-today-tasks></app-today-tasks>
+        </div>
+        <div class="col-md-6">
+            <app-cognitive-games></app-cognitive-games>
+        </div>
+
+    </div>
+    }
+
+    <!-- ========================================= -->
+    <!-- CAREGIVER VIEW: Full analytics dashboard  -->
+    <!-- ========================================= -->
+    @if (isCaregiver) {
+    <!-- Top Summary KPIs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <app-summary-cards [data]="pulseData"></app-summary-cards>
+        </div>
+    </div>
+
+    <!-- Two-Column Layout -->
+    <div class="row g-3">
+        <!-- Left Column: Trends & Data (70%) -->
+        <div class="col-lg-8">
+            <div class="row g-3">
+                <!-- Mood & Clarity Trends -->
+                <div class="col-12">
+                    <app-mood-trend></app-mood-trend>
+                </div>
+
+                <!-- Sleep & Hydration -->
+                <div class="col-md-6">
+                    <app-sleep-monitor></app-sleep-monitor>
+                </div>
+                <div class="col-md-6">
+                    <app-hydration-tracker></app-hydration-tracker>
+                </div>
+
+                <!-- Cognitive Pulse Chart -->
+                <div class="col-12">
+                    <app-cognitive-pulse></app-cognitive-pulse>
+                </div>
+
+                <!-- Social & Interaction Log -->
+                <div class="col-12">
+                    <app-social-pulse></app-social-pulse>
+                </div>
+
+                <!-- Cognitive Games -->
+                <div class="col-12">
+                    <app-cognitive-games></app-cognitive-games>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Insights (30%) -->
+        <div class="col-lg-4">
+            <div class="row g-3">
+                <!-- Patient Pulse -->
+                <div class="col-12">
+                    <app-patient-pulse [pulseData]="pulseData"></app-patient-pulse>
+                </div>
+
+                <!-- Mood Selector (Quick Log) -->
+                <div class="col-12">
+                    <app-mood-selector></app-mood-selector>
+                </div>
+
+                <!-- Today's Tasks -->
+                <div class="col-12">
+                    <app-today-tasks></app-today-tasks>
+                </div>
+
+                <!-- Risk Indicators -->
+                <div class="col-12">
+                    <app-risk-indicator></app-risk-indicator>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+</div>

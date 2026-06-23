@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: gateway
+  config:
+    import:
+      - classpath:gateway-routes.yml
+      - optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+
+server:
+  port: 8083
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5

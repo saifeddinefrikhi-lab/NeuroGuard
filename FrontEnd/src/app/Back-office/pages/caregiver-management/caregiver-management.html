@@ -1,0 +1,129 @@
+<div class="user-management page-content">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center">
+      <h4 class="mb-0">Caregiver Management</h4>
+    </div>
+
+    <div>
+      <!-- Add User button (HTML-driven, opens Bootstrap modal) -->
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" class="me-1" aria-hidden="true">
+          <path fill="currentColor" d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"></path>
+        </svg>
+        Add Caregiver
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of users; track u.id) {
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="avatar-circle me-2">{{ u.name.charAt(0) }}</div>
+                    <div>
+                      <div class="fw-semibold">{{ u.name }}</div>
+                      <div class="text-muted small">{{ u.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.role }}</td>
+                <td>
+                  <span class="badge"
+                        [class.bg-success]="u.status === 'Active'"
+                        [class.text-white]="u.status === 'Active' || u.status === 'Inactive'"
+                        [class.bg-warning]="u.status === 'Pending'"
+                        [class.text-dark]="u.status === 'Pending'"
+                        [class.bg-secondary]="u.status === 'Inactive'">{{ u.status }} </span>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-light me-1" (click)="onEdit(u)" title="Edit">
+                    <!-- pencil svg -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0L15.13 4.9l3.75 3.75 1.83-1.61z"/>
+                    </svg>
+                  </button>
+
+                  <button class="btn btn-sm btn-light text-danger" (click)="onDelete(u)" title="Delete">
+                    <!-- trash svg -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal (only UI, no logic) -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form> <!-- plain form, no submit handler -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="addUserModalLabel">Add User (Demo)</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Full name</label>
+            <input type="text" class="form-control" placeholder="Jane Doe" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" placeholder="jane@example.com" />
+          </div>
+
+          <div class="row g-2">
+            <div class="col">
+              <label class="form-label">Role</label>
+              <select class="form-select">
+                <option>Admin</option>
+                <option>Healthcare Provider</option>
+                <option>CareGiver</option>
+                <option>Patient</option>
+              </select>
+            </div>
+            <div class="col">
+              <label class="form-label">Status</label>
+              <select class="form-select">
+                <option>Active</option>
+                <option>Pending</option>
+                <option>Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <small class="text-muted d-block mt-2">Demo only.</small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <!-- Close modal on click (no form submit) -->
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Add (Demo)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</div>

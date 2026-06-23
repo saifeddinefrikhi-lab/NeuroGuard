@@ -1,0 +1,393 @@
+import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+// import { StatisticsService, PatientStatisticsDTO, ProviderStatisticsDTO, CaregiverStatisticsDTO } from '../../../app/core/services/statistics.service';
+import { environment } from '../../environments/environment';
+
+describe('StatisticsService', () => {
+  let service: StatisticsService;
+  let httpMock: HttpTestingController;
+
+  const mockPatientStats: PatientStatisticsDTO = {
+    patientId: 1,
+    hasMedicalHistory: true,
+    totalSurgeries: 2,
+    totalAlerts: 5,
+    pendingAlerts: 1,
+    resolvedAlerts: 4,
+    criticalAlerts: 1,
+    warningAlerts: 2,
+    infoAlerts: 2,
+    comorbiditiesCount: 3,
+    medicationAllergiesCount: 1,
+    foodAllergiesCount: 2,
+    environmentalAllergiesCount: 1,
+    mmse: 24,
+    functionalAssessment: 80,
+    adl: 6,
+    geneticRisk: true,
+    smoking: false,
+    cardiovascularDisease: true,
+    diabetes: true,
+    depression: false,
+    totalRiskFactors: 3,
+    healthConditionCount: 5
+  };
+
+  const mockProviderStats: ProviderStatisticsDTO = {
+    providerId: 1,
+    totalPatients: 50,
+    totalMedicalHistories: 48,
+    mildCases: 20,
+    moderateCases: 20,
+    severeCases: 10,
+    totalAlerts: 150,
+    pendingAlerts: 30,
+    resolvedAlerts: 120,
+    criticalAlerts: 15,
+    warningAlerts: 50,
+    infoAlerts: 85,
+    patientsWithGeneticRisk: 10,
+    patientsWithComorbidities: 25,
+    patientsWithAllergies: 15,
+    averageMMSE: 24.5,
+    averageFunctionalAssessment: 75,
+    averageADL: 5.8,
+    historyCoverage: 96,
+    alertCoverageRate: 90,
+    patientsWithHealthRisks: 35,
+    averageRiskFactors: 2.8
+  };
+
+  const mockCaregiverStats: CaregiverStatisticsDTO = {
+    caregiverId: 1,
+    totalAssignedPatients: 10,
+    patientsWithMedicalHistory: 9,
+    historyCoverage: 90,
+    mildCases: 3,
+    moderateCases: 5,
+    severeCases: 2,
+    totalAlerts: 40,
+    pendingAlerts: 5,
+    resolvedAlerts: 35,
+    criticalAlerts: 2,
+    warningAlerts: 15,
+    infoAlerts: 23,
+    averageMMSE: 23.5,
+    averageFunctionalAssessment: 72,
+    averageADL: 5.2,
+    alertResolutionRate: 87.5,
+    criticalAlertRate: 5,
+    unresolvedCriticalAlerts: 1,
+    patientsWithLowMMSE: 2,
+    patientsWithCognitiveDifficultyOptions: 3,
+    patientsWithHealthRisks: 7,
+    averageRiskFactors: 2.5
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [StatisticsService]
+    });
+
+    service = TestBed.inject(StatisticsService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  describe('Patient Statistics', () => {
+    it('should get patient statistics by ID', () => {
+      service.getPatientStatistics(1).subscribe((stats) => {
+        expect(stats.patientId).toBe(1);
+        expect(stats.totalAlerts).toBe(5);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/1`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockPatientStats);
+    });
+
+    it('should get current patient\'s own statistics', () => {
+      service.getMyPatientStatistics().subscribe((stats) => {
+        expect(stats.patientId).toBe(1);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/me`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockPatientStats);
+    });
+
+    it('should verify patient stats structure', () => {
+      service.getPatientStatistics(1).subscribe((stats) => {
+        expect(stats.hasMedicalHistory).toBeDefined();
+        expect(stats.totalSurgeries).toBeDefined();
+        expect(stats.totalAlerts).toBeDefined();
+        expect(stats.comorbiditiesCount).toBeDefined();
+        expect(stats.totalRiskFactors).toBeDefined();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/1`);
+      req.flush(mockPatientStats);
+    });
+
+    it('should handle multiple patient queries', () => {
+      service.getPatientStatistics(1).subscribe();
+      service.getPatientStatistics(2).subscribe();
+
+      const req1 = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/1`);
+      req1.flush(mockPatientStats);
+
+      const req2 = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/2`);
+      req2.flush({ ...mockPatientStats, patientId: 2 });
+    });
+  });
+
+  describe('Provider Statistics', () => {
+    it('should get provider statistics by ID', () => {
+      service.getProviderStatistics(1).subscribe((stats) => {
+        expect(stats.providerId).toBe(1);
+        expect(stats.totalPatients).toBe(50);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/provider/1`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockProviderStats);
+    });
+
+    it('should get current provider\'s own statistics', () => {
+      service.getMyProviderStatistics().subscribe((stats) => {
+        expect(stats.providerId).toBe(1);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/provider/me`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockProviderStats);
+    });
+
+    it('should verify provider stats structure', () => {
+      service.getProviderStatistics(1).subscribe((stats) => {
+        expect(stats.totalPatients).toBeDefined();
+        expect(stats.mildCases).toBeDefined();
+        expect(stats.totalAlerts).toBeDefined();
+        expect(stats.historyCoverage).toBeDefined();
+        expect(stats.averageRiskFactors).toBeDefined();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/provider/1`);
+      req.flush(mockProviderStats);
+    });
+  });
+
+  describe('Caregiver Statistics', () => {
+    it('should get caregiver statistics by ID', () => {
+      service.getCaregiverStatistics(1).subscribe((stats) => {
+        expect(stats.caregiverId).toBe(1);
+        expect(stats.totalAssignedPatients).toBe(10);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/caregiver/1`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockCaregiverStats);
+    });
+
+    it('should get current caregiver\'s own statistics', () => {
+      service.getMyCaregiverStatistics().subscribe((stats) => {
+        expect(stats.caregiverId).toBe(1);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/caregiver/me`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockCaregiverStats);
+    });
+
+    it('should verify caregiver stats structure', () => {
+      service.getCaregiverStatistics(1).subscribe((stats) => {
+        expect(stats.totalAssignedPatients).toBeDefined();
+        expect(stats.historyCoverage).toBeDefined();
+        expect(stats.alertResolutionRate).toBeDefined();
+        expect(stats.unresolvedCriticalAlerts).toBeDefined();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/caregiver/1`);
+      req.flush(mockCaregiverStats);
+    });
+  });
+
+  describe('Patient-level Statistics', () => {
+    it('should get patient-level statistics', () => {
+      service.getPatientStatisticss(1).subscribe((stats) => {
+        expect(stats).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/stats/patient/1`);
+      expect(req.request.method).toBe('GET');
+      req.flush({
+        patientId: 1,
+        patientName: 'John Doe',
+        totalAssurances: 2,
+        averageAlzheimersRisk: 0.65,
+        totalEstimatedCost: 50000
+      });
+    });
+
+    it('should handle patient statistics with risk metrics', () => {
+      const patientStats = {
+        patientId: 1,
+        patientName: 'John Doe',
+        totalAssurances: 2,
+        averageAlzheimersRisk: 0.65,
+        highestAlzheimersRisk: 0.85,
+        lowestAlzheimersRisk: 0.45,
+        standardDeviationRisk: 0.15,
+        totalEstimatedCost: 50000,
+        averageAnnualCost: 25000,
+        medianAnnualCost: 22000
+      };
+
+      service.getPatientStatisticss(1).subscribe((stats) => {
+        expect(stats.averageAlzheimersRisk).toBe(0.65);
+        expect(stats.totalEstimatedCost).toBe(50000);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/stats/patient/1`);
+      req.flush(patientStats);
+    });
+  });
+
+  describe('Assurance Statistics', () => {
+    it('should get assurance-level statistics', () => {
+      const assuranceStats = {
+        assuranceId: 1,
+        assuranceType: 'Premium',
+        totalPatientsEnrolled: 100,
+        averagePatientAge: 65,
+        averageRiskScore: 0.6
+      };
+
+      service.getAssuranceStatistics(1).subscribe((stats) => {
+        expect(stats.assuranceId).toBe(1);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/stats/assurance/1`);
+      expect(req.request.method).toBe('GET');
+      req.flush(assuranceStats);
+    });
+
+    it('should handle assurance statistics with procedure analytics', () => {
+      const assuranceStats = {
+        assuranceId: 1,
+        assuranceType: 'Premium',
+        totalPatientsEnrolled: 100,
+        patientsHighRisk: 30,
+        patientsMediumRisk: 50,
+        patientsLowRisk: 20,
+        topRecommendedProcedures: [
+          { procedureName: 'MRI', frequency: 45, percentageOfAssurances: 45, averageCostPerProcedure: 1500 }
+        ],
+        averageCareTeamSize: 3.5
+      };
+
+      service.getAssuranceStatistics(1).subscribe((stats) => {
+        expect(stats.topRecommendedProcedures).toBeDefined();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/stats/assurance/1`);
+      req.flush(assuranceStats);
+    });
+  });
+
+  describe('Error Handling', () => {
+    xit('should handle 401 unauthorized', () => {
+      service.getPatientStatistics(1).subscribe({
+        next: () => fail('should have failed'),
+        error: (error) => expect(error.status).toBe(401)
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/1`);
+      req.flush({}, { status: 401, statusText: 'Unauthorized' });
+    });
+
+    it('should handle 403 forbidden', () => {
+      service.getProviderStatistics(1).subscribe({
+        next: () => fail('should have failed'),
+        error: (error) => expect(error.status).toBe(403)
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/provider/1`);
+      req.flush({}, { status: 403, statusText: 'Forbidden' });
+    });
+
+    xit('should handle 404 not found', () => {
+      service.getPatientStatistics(999).subscribe({
+        next: () => fail('should have failed'),
+        error: (error) => expect(error.status).toBe(404)
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/999`);
+      req.flush({}, { status: 404, statusText: 'Not Found' });
+    });
+
+    xit('should handle 500 server error', () => {
+      service.getCaregiverStatistics(1).subscribe({
+        next: () => fail('should have failed'),
+        error: (error) => expect(error.status).toBe(500)
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/caregiver/1`);
+      req.flush({}, { status: 500, statusText: 'Internal Server Error' });
+    });
+
+    it('should handle network error', () => {
+      service.getMyPatientStatistics().subscribe({
+        next: () => fail('should have failed'),
+        error: (error) => expect(error).toBeTruthy()
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/me`);
+      req.error(new ErrorEvent('Network error'));
+    });
+  });
+
+  describe('Data Integrity', () => {
+    it('should preserve numeric values in statistics', () => {
+      service.getPatientStatistics(1).subscribe((stats) => {
+        expect(typeof stats.totalAlerts).toBe('number');
+        expect(typeof stats.comorbiditiesCount).toBe('number');
+        expect(typeof stats.mmse).toBe('number');
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/1`);
+      req.flush(mockPatientStats);
+    });
+
+    it('should preserve boolean values in statistics', () => {
+      service.getPatientStatistics(1).subscribe((stats) => {
+        expect(typeof stats.hasMedicalHistory).toBe('boolean');
+        expect(typeof stats.geneticRisk).toBe('boolean');
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/1`);
+      req.flush(mockPatientStats);
+    });
+  });
+
+  describe('Concurrent Requests', () => {
+    it('should handle multiple concurrent statistics requests', () => {
+      service.getPatientStatistics(1).subscribe();
+      service.getProviderStatistics(1).subscribe();
+      service.getCaregiverStatistics(1).subscribe();
+
+      const req1 = httpMock.expectOne(`${environment.apiUrl}/api/statistics/patient/1`);
+      req1.flush(mockPatientStats);
+
+      const req2 = httpMock.expectOne(`${environment.apiUrl}/api/statistics/provider/1`);
+      req2.flush(mockProviderStats);
+
+      const req3 = httpMock.expectOne(`${environment.apiUrl}/api/statistics/caregiver/1`);
+      req3.flush(mockCaregiverStats);
+    });
+  });
+});

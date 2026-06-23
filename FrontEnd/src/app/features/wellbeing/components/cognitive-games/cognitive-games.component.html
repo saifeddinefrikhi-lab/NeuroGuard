@@ -1,0 +1,120 @@
+<app-card cardTitle="Cognitive Games" [showHeader]="true" [cardClass]="'glass-card animate-fade-in thin-card'">
+  <div class="cognitive-container">
+    <!-- Intro State: Game Cards -->
+    @if (gameState === 'intro') {
+      <div class="games-grid">
+        @for (game of games; track game.id) {
+          <div class="game-card" (click)="startGame(game.id)">
+            <div class="game-icon" [style.color]="game.color" [style.background]="game.color + '18'">
+              <i [class]="game.icon"></i>
+            </div>
+            <div class="game-info">
+              <span class="game-name">{{ game.name }}</span>
+              <span class="game-score">Last: {{ game.lastScore }}%</span>
+            </div>
+            <div class="game-trend">
+              <i [class]="game.trend === 'up' ? 'ti ti-trending-up' : game.trend === 'down' ? 'ti ti-trending-down' : 'ti ti-minus'"
+                 [style.color]="game.trend === 'up' ? '#2ed8b6' : game.trend === 'down' ? '#ff5370' : '#888'"></i>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Playing State -->
+    @if (gameState === 'playing') {
+      <div class="game-screen animate-fade-in">
+        <div class="game-header">
+          <div class="title-stack">
+            <span class="game-title">{{ activeGameId?.replace('_', ' ') }}</span>
+            @if (activeGameId === 'MEMORY') {
+              <span class="game-subtitle">Misses: <span class="miss-count">{{ wrongMatches }}</span></span>
+            }
+          </div>
+          <button class="btn-close" (click)="closeGame()">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+
+        <div class="game-content">
+          <!-- Memory Match -->
+          @if (activeGameId === 'MEMORY') {
+            <div class="memory-grid">
+              @for (card of memoryCards; track card.id) {
+                <div class="m-card" 
+                     [class.flipped]="card.flipped || card.matched" 
+                     [class.matched]="card.matched"
+                     (click)="flipCard(card)">
+                  <div class="card-face card-front">?</div>
+                  <div class="card-face card-back">{{ card.emoji }}</div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Orientation Check -->
+          @if (activeGameId === 'ORIENTATION') {
+            <div class="orientation-game">
+              <div class="question-box">
+                <span class="q-number">Step {{ currentQuestionIndex + 1 }}/3</span>
+                <p class="question-text">{{ orientationQuestions[currentQuestionIndex].q }}</p>
+              </div>
+              <div class="options-grid">
+                @for (option of orientationQuestions[currentQuestionIndex].options; track option) {
+                  <button class="option-btn" (click)="answerOrientation(option)">{{ option }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Word Recall -->
+          @if (activeGameId === 'WORD_RECALL') {
+            <div class="word-recall-game">
+              @if (recallPhase === 'memorize') {
+                <div class="memorize-phase">
+                  <p class="phase-info">Remember these words: <strong>{{ recallTimeLeft }}s</strong></p>
+                  <div class="words-list">
+                    @for (word of recallWords; track word) {
+                      <span class="word-tag">{{ word }}</span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="recall-phase">
+                  <p class="phase-info">Select the 5 words you saw ({{ selectedRecallWords.length }}/5):</p>
+                  <div class="recall-grid">
+                    @for (option of recallOptions; track option) {
+                      <button class="recall-btn" 
+                             [class.active]="selectedRecallWords.includes(option)"
+                             (click)="toggleRecallWord(option)">
+                        {{ option }}
+                      </button>
+                    }
+                  </div>
+                  <button class="btn-submit mt-3" 
+                          [disabled]="selectedRecallWords.length !== 5"
+                          (click)="submitWordRecall()">
+                    Submit Answers
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Result State -->
+    @if (gameState === 'result') {
+      <div class="result-screen text-center">
+        <div class="result-icon">🎉</div>
+        <h3 class="result-title">Activity Complete!</h3>
+        <p class="result-message mb-4">{{ resultMessage }}</p>
+        <div class="score-circle">
+          <span class="score-num">{{ gameScore }}%</span>
+        </div>
+        <button class="btn-continue" (click)="closeGame()">Continue</button>
+      </div>
+    }
+  </div>
+</app-card>

@@ -1,0 +1,25 @@
+<app-card cardTitle="Patient Pulse" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    <div class="pulse-badge" [ngClass]="status">{{ statusLabel }}</div>
+    <div class="pulse-list mt-3">
+        @for (item of summary; track item.label) {
+        <div class="pulse-row">
+            <i class="material-icons">{{ item.icon }}</i>
+            <span class="pulse-label">{{ item.label }}</span>
+            <span class="pulse-value">{{ item.value }}</span>
+        </div>
+        }
+    </div>
+    <div class="pulse-recommendation mt-3">
+        <i class="material-icons">info</i>
+        <span>{{ recommendation }}</span>
+    </div>
+
+    <div class="pulse-actions mt-4">
+        <button class="btn-report" 
+                [disabled]="status !== 'attention' || reportLoading || reportSent"
+                (click)="sendDoctorReport()">
+            <i class="material-icons">{{ reportSent ? 'check_circle' : 'mail' }}</i>
+            {{ reportLoading ? 'Generating...' : (reportSent ? 'Report Sent!' : 'Send Escalation Report') }}
+        </button>
+    </div>
+</app-card>

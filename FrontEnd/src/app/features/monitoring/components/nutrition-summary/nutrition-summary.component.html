@@ -1,0 +1,123 @@
+<app-card cardTitle="Nutrition" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    <div class="row g-3" *ngIf="nutritionData; else loading">
+        <!-- Calories & Macros -->
+        <div class="col-md-6">
+            <div class="nutrition-stat">
+                <div class="stat-header">
+                    <i class="material-icons">bolt</i>
+                    <span class="stat-label">Daily Calories</span>
+                </div>
+                <div class="calorie-display">
+                    <span class="cal-value">{{ nutritionData.dailyCalories }}</span>
+                    <span class="cal-target">/ {{ nutritionData.targetCalories }} kcal</span>
+                </div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" [style.width.%]="caloriePercent"></div>
+                </div>
+            </div>
+
+            <div class="macros-grid mt-3">
+                <div class="macro-item">
+                    <span class="macro-value" style="color: #4099ff">{{ nutritionData.protein }}g</span>
+                    <span class="macro-label">Protein</span>
+                </div>
+                <div class="macro-item">
+                    <span class="macro-value" style="color: #2ed8b6">{{ nutritionData.carbs }}g</span>
+                    <span class="macro-label">Carbs</span>
+                </div>
+                <div class="macro-item">
+                    <span class="macro-value" style="color: #ffb64d">{{ nutritionData.fats }}g</span>
+                    <span class="macro-label">Fats</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary mt-3 btn-sm w-100" (click)="toggleAddMealForm()">
+                {{ showAddMealForm ? 'Cancel' : '+ Log New Meal' }}
+            </button>
+        </div>
+
+        <!-- Meals Log & Form -->
+        <div class="col-md-6">
+
+            <div *ngIf="showAddMealForm" class="add-meal-form fade-in">
+                <h6>Log a Meal</h6>
+                <select class="form-select mb-2" [(ngModel)]="selectedMealType">
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Snack">Snack</option>
+                </select>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" placeholder="Search food..." [(ngModel)]="searchQuery"
+                        (keyup.enter)="searchFood()">
+                    <button class="btn btn-outline-secondary" (click)="searchFood()" [disabled]="isSearching">
+                        <i class="material-icons">{{ isSearching ? 'hourglass_empty' : 'search' }}</i>
+                    </button>
+                </div>
+
+                <div class="search-feedback mt-2" *ngIf="searchPerformed && !isSearching">
+                    <div class="text-danger small" *ngIf="searchError">
+                        <i class="material-icons" style="font-size: 14px; vertical-align: middle;">error_outline</i>
+                        {{ searchError }}
+                    </div>
+                </div>
+
+                <div class="search-results list-group" *ngIf="searchResults.length > 0">
+                    <button *ngFor="let result of searchResults" type="button"
+                        class="list-group-item list-group-item-action" (click)="selectAndAddFood(result)">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ result.name }}</h6>
+                            <small>~{{ result.calories | number:'1.0-0' }} kcal</small>
+                        </div>
+                        <small class="text-muted">{{ result.brand }}</small>
+                    </button>
+                </div>
+            </div>
+
+            <div class="meals-list" *ngIf="!showAddMealForm">
+                <div *ngIf="groupedMeals.length === 0" class="text-muted small text-center mt-3">No meals logged today.
+                </div>
+
+                <div class="meal-group mb-3" *ngFor="let group of groupedMeals">
+                    <div class="group-header d-flex justify-content-between align-items-center mb-1">
+                        <span class="group-title">
+                            <span class="meal-icon">{{ getMealIcon(group.type) }}</span>
+                            <strong>{{ group.type }}</strong>
+                        </span>
+                        <span class="group-total text-muted small">{{ group.totalCalories }} kcal</span>
+                    </div>
+
+                    <div class="meal-item-mini logged mb-1 p-2 d-flex align-items-center justify-content-between"
+                        *ngFor="let meal of group.items">
+                        <div class="d-flex align-items-center overflow-hidden">
+                            <div class="meal-info-mini ml-2">
+                                <div class="meal-name-mini text-truncate">{{ meal.name }}</div>
+                                <div class="meal-cals-mini text-muted small">{{ meal.calories }} kcal</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="material-icons mr-2" style="color: #2ed8b6; font-size: 16px;">check_circle</i>
+                            <button class="btn btn-link btn-sm p-0 text-danger delete-btn"
+                                (click)="deleteMeal(meal.id)">
+                                <i class="material-icons" style="font-size: 18px;">delete_outline</i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error View -->
+    <div class="text-center py-4 text-danger fade-in" *ngIf="hasError">
+        <i class="material-icons text-danger mb-2" style="font-size: 2rem;">error_outline</i>
+        <div>Failed to connect to monitoring service. Is the backend running?</div>
+    </div>
+</app-card>
+
+<ng-template #loading>
+    <div class="text-center py-4 text-muted fade-in" *ngIf="!hasError">
+        <div class="spinner-border text-primary mb-2" role="status"></div>
+        <div>Loading Nutrition Data...</div>
+    </div>
+</ng-template>

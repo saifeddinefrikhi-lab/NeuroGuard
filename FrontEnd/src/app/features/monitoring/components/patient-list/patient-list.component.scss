@@ -1,0 +1,169 @@
+.patient-list-container {
+  padding: 2rem 0;
+
+  .welcome-text {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+
+    span {
+      color: #3b82f6;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+    max-width: 600px;
+  }
+}
+
+.patient-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+
+    .card-wave-bg {
+      height: 100px;
+      opacity: 0.2;
+    }
+
+    .btn-monitor {
+      background: #3b82f6;
+      color: white;
+      
+      i {
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  .card-wave-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    opacity: 0.1;
+    transition: all 0.4s ease;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0% 100%);
+  }
+
+  .patient-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    margin: 40px auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    border: 3px solid #fff;
+  }
+
+  .patient-info {
+    padding: 0 24px 24px;
+    flex-grow: 1;
+
+    .patient-name {
+      color: #1e293b;
+      font-weight: 700;
+    }
+
+    .patient-role {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+  }
+
+  .patient-metrics {
+    gap: 12px;
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+
+      i {
+        font-size: 1.2rem;
+      }
+
+      span {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #64748b;
+      }
+    }
+  }
+
+  .card-footer {
+    padding: 16px 24px 24px;
+    
+    .btn-monitor {
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      background: transparent;
+      padding: 10px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #475569;
+      transition: all 0.3s ease;
+
+      i {
+        font-size: 1.1rem;
+        transition: transform 0.3s ease;
+      }
+    }
+  }
+}
+
+.loading-state, .error-state, .empty-state {
+  background: white;
+  border-radius: 30px;
+  border: 1px dashed #e2e8f0;
+
+  i {
+    font-size: 4rem;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+  }
+
+  &.error-state i {
+    color: #f43f5e;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}

@@ -1,0 +1,127 @@
+{
+  "realm": "neuroguard",
+  "enabled": true,
+  "displayName": "NeuroGuard",
+  "registrationAllowed": true,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      { "name": "ADMIN" },
+      { "name": "PATIENT" },
+      { "name": "PROVIDER" },
+      { "name": "CAREGIVER" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "neuroguard-web",
+      "name": "NeuroGuard Web",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://localhost:8083/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://localhost:8083"
+      ],
+      "protocolMappers": [
+        {
+          "name": "userId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "userId",
+            "claim.name": "userId",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "multivalued": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "NeuroGuard",
+      "email": "admin@neuroguard.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ADMIN"],
+      "attributes": {
+        "userId": ["1"]
+      }
+    },
+    {
+      "username": "provider",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Provider",
+      "lastName": "NeuroGuard",
+      "email": "provider@neuroguard.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "provider123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["PROVIDER"],
+      "attributes": {
+        "userId": ["2"]
+      }
+    },
+    {
+      "username": "caregiver",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Caregiver",
+      "lastName": "NeuroGuard",
+      "email": "caregiver@neuroguard.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "caregiver123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CAREGIVER"],
+      "attributes": {
+        "userId": ["3"]
+      }
+    },
+    {
+      "username": "patient",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Patient",
+      "lastName": "NeuroGuard",
+      "email": "patient@neuroguard.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "patient123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["PATIENT"],
+      "attributes": {
+        "userId": ["4"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+.mood-container {
+    gap: 15px;
+}
+
+.mood-item {
+    cursor: pointer;
+    border-radius: 18px;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    width: 100%;
+    max-width: 100px;
+    backdrop-filter: blur(8px);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.45);
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    &.selected {
+        background: rgba(var(--bs-primary-rgb), 1);
+        border-color: var(--bs-primary);
+        color: #fff;
+        transform: scale(1.08);
+        box-shadow: 0 12px 25px -5px rgba(var(--bs-primary-rgb), 0.4);
+
+        .mood-label {
+            font-weight: 700;
+        }
+
+        .emoji {
+            transform: scale(1.1);
+        }
+    }
+
+    .emoji {
+        font-size: 2.2rem;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+}

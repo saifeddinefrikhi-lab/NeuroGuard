@@ -1,0 +1,138 @@
+<div class="container-fluid px-4 mt-0 mb-5">
+  <!-- Notification Toast -->
+  <div class="notification-toast" [class.show]="showNotification" [class]="'notification-' + notificationType">
+    <div class="toast-content">
+      <i [ngSwitch]="notificationType" class="notification-icon me-2 ms-2 fs-4">
+        <span *ngSwitchCase="'added'" class="ti ti-check-circle text-success"></span>
+        <span *ngSwitchCase="'updated'" class="ti ti-circle-check text-info"></span>
+        <span *ngSwitchCase="'deleted'" class="ti ti-trash text-warning"></span>
+        <span *ngSwitchDefault class="ti ti-alert-circle text-danger"></span>
+      </i>
+      <div class="message">
+        <h4 *ngSwitch="notificationType">
+          <span *ngSwitchCase="'added'">Prescription Added</span>
+          <span *ngSwitchCase="'updated'">Prescription Updated</span>
+          <span *ngSwitchCase="'deleted'">Prescription Deleted</span>
+          <span *ngSwitchDefault>Notification</span>
+        </h4>
+        <p>{{ notificationMessage }}</p>
+      </div>
+      <button class="close-btn" (click)="showNotification = false"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+
+  <div class="sticky-action" *ngIf="canCreate">
+    <button class="btn-modern btn-add" (click)="onAdd()">
+      <i class="ti ti-plus"></i>
+      <span>New Prescription</span>
+    </button>
+  </div>
+
+  <div class="page-header mb-5">
+    <div class="page-header-content d-flex justify-content-between align-items-start">
+      <div>
+        <h1 class="page-title">
+          <i class="ti ti-pill"></i> Prescriptions
+        </h1>
+        <p class="page-subtitle">Manage patient prescriptions</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading prescriptions...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>
+    <strong>Error:</strong> {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="!loading && prescriptions.length === 0" class="empty-state-container">
+    <div class="empty-state">
+      <i class="ti ti-file-prescription"></i>
+      <h4>No prescriptions</h4>
+      <p>No medical prescriptions to display.</p>
+      <button *ngIf="canCreate" class="btn-modern btn-add" (click)="onAdd()">
+        <i class="ti ti-plus"></i>
+        <span>Create the first prescription</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && prescriptions.length > 0" class="advanced-search mb-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light d-flex align-items-center">
+        <i class="ti ti-filter me-2"></i>
+        <span>Search</span>
+        <button *ngIf="hasActiveFilters" type="button" class="btn btn-sm btn-outline-primary ms-auto" (click)="resetFilters()">
+          <i class="ti ti-x me-1"></i> All
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label small text-muted">Patient name</label>
+            <input type="text" class="form-control" [(ngModel)]="searchPatient" placeholder="Patient name or ID"
+              (ngModelChange)="onFilterChange()" />
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label small text-muted">Doctor name</label>
+            <input type="text" class="form-control" [(ngModel)]="searchProvider" placeholder="Doctor name or ID"
+              (ngModelChange)="onFilterChange()" />
+          </div>
+        </div>
+        <p *ngIf="hasActiveFilters" class="small text-muted mt-2 mb-0">
+          <i class="ti ti-info-circle me-1"></i> {{ filteredPrescriptions.length }} prescription(s) out of {{ prescriptions.length }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && prescriptions.length > 0 && filteredPrescriptions.length === 0" class="alert alert-info">
+    <i class="ti ti-search-off me-2"></i>
+    No prescriptions match the criteria.
+  </div>
+
+  <div class="histories-grid" *ngIf="!loading && prescriptions.length > 0 && filteredPrescriptions.length > 0">
+    <div class="history-card" *ngFor="let p of filteredPrescriptions">
+      <div class="history-card-header">
+        <div class="patient-section">
+          <h3 class="patient-name">{{ p.patientName || 'Patient #' + p.patientId }}</h3>
+          <p class="patient-id">
+            <i class="ti ti-hash"></i> Prescription #{{ p.id }} · Dr {{ p.providerName || 'N/A' }}
+          </p>
+          <div class="contenu-preview">
+            {{ (p.contenu || '').slice(0, 120) }}{{ (p.contenu || '').length > 120 ? '...' : '' }}
+          </div>
+        </div>
+      </div>
+      <div class="history-card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label"><i class="ti ti-calendar"></i> Updated</span>
+            <span class="info-value">{{ p.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="history-card-footer">
+        <button class="btn-modern btn-view" (click)="onView(p.id)">
+          <i class="ti ti-eye"></i>
+          <span>View</span>
+        </button>
+        <button *ngIf="canEdit" class="btn-modern btn-edit" (click)="onEdit(p.id)">
+          <i class="ti ti-edit"></i>
+          <span>Edit</span>
+        </button>
+        <button *ngIf="canDelete" class="btn-modern btn-delete" (click)="onDelete(p)">
+          <i class="ti ti-trash"></i>
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

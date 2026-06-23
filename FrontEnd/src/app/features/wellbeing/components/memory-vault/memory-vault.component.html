@@ -1,0 +1,88 @@
+<app-card cardTitle="Memory Vault" [showHeader]="true"
+    [cardClass]="'glass-card animate-fade-in premium-card h-100'">
+    
+    <div class="card-tabs mb-4">
+        <button class="tab-btn" [class.active]="activeTab === 'timeline'" (click)="switchTab('timeline')">
+            <i class="ti ti-history"></i> Timeline
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'family'" (click)="switchTab('family')">
+            <i class="ti ti-users"></i> Family
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'media'" (click)="switchTab('media')">
+            <i class="ti ti-music"></i> Audio
+        </button>
+    </div>
+
+    <div class="vault-content scroll-y">
+        <!-- Timeline View -->
+        @if (activeTab === 'timeline') {
+            <div class="timeline-container animate-fade-in">
+                @for (memory of memories; track memory.id) {
+                    <div class="memory-card">
+                        <div class="memory-year">{{ memory.year }}</div>
+                        <div class="memory-image-container">
+                            <img [src]="memory.imageUrl" [alt]="memory.title" class="memory-image">
+                            <div class="category-badge">{{ memory.category }}</div>
+                        </div>
+                        <div class="memory-details">
+                            <h4 class="memory-title">{{ memory.title }}</h4>
+                            <p class="memory-desc">{{ memory.description }}</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Family View -->
+        @if (activeTab === 'family') {
+            <div class="family-tree animate-slide-up">
+                @for (member of family; track member.name) {
+                    <div class="family-member">
+                        <div class="member-avatar">
+                            <img [src]="member.image" [alt]="member.name">
+                        </div>
+                        <div class="member-info">
+                            <h4 class="member-name">{{ member.name }}</h4>
+                            <span class="member-relation">{{ member.relation }}</span>
+                            <p class="member-bio">{{ member.bio }}</p>
+                        </div>
+                        <button class="btn-voice-note">
+                            <i class="ti ti-microphone"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Media View -->
+        @if (activeTab === 'media') {
+            <div class="media-hub animate-fade-in">
+                <div class="music-section">
+                    <h5 class="section-label mb-3">Favorite Sounds & Songs</h5>
+                    @for (item of media; track item.id) {
+                        <div class="media-item" [class.playing]="item.isPlaying">
+                            <div class="media-icon" [class.voice]="item.type === 'voice'">
+                                <i [class]="item.type === 'voice' ? 'ti ti-microphone' : 'ti ti-music'"></i>
+                            </div>
+                            <div class="media-info">
+                                <div class="media-title">{{ item.title }}</div>
+                                <div class="media-artist">{{ item.artist }}</div>
+                            </div>
+                            <div class="media-actions">
+                                <span class="duration">{{ item.duration }}</span>
+                                <button class="btn-play-toggle" (click)="togglePlay(item)">
+                                    <i [class]="item.isPlaying ? 'ti ti-player-pause-filled' : 'ti ti-player-play-filled'"></i>
+                                </button>
+                            </div>
+                            @if (item.isPlaying) {
+                                <div class="wave-animation">
+                                    <span></span><span></span><span></span><span></span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</app-card>

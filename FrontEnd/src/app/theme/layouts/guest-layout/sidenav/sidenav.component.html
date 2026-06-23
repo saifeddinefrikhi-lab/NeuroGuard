@@ -1,0 +1,47 @@
+<mat-sidenav-container class="sidenav-container">
+      <mat-sidenav
+        #sidenav
+        [mode]="isMobile ? 'over' : 'side'"
+        [opened]="auth.isLoggedIn && !isMobile"
+        class="sidenav"
+        *ngIf="auth.isLoggedIn">
+        <div class="sidenav-header">
+          <div class="user-avatar">
+            <mat-icon class="avatar-icon">person</mat-icon>
+          </div>
+          <p class="user-name">{{ auth.currentUser?.name }}</p>
+          <p class="user-role">{{ auth.currentUser?.role | titlecase }}</p>
+        </div>
+        <mat-nav-list>
+          <a mat-list-item routerLink="/" routerLinkActive="active-link"
+             [routerLinkActiveOptions]="{exact: true}" (click)="closeMobile()">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Dashboard</span>
+          </a>
+          <a mat-list-item routerLink="/" (click)="closeMobile()">
+            <mat-icon matListItemIcon>people</mat-icon>
+            <span matListItemTitle>Patients</span>
+          </a>
+          <a mat-list-item routerLink="/" (click)="closeMobile()">
+            <mat-icon matListItemIcon>monitor_heart</mat-icon>
+            <span matListItemTitle>Monitoring</span>
+          </a>
+          <a mat-list-item routerLink="/" (click)="closeMobile()">
+            <mat-icon matListItemIcon>calendar_month</mat-icon>
+            <span matListItemTitle>Appointments</span>
+          </a>
+          <a mat-list-item routerLink="/" (click)="closeMobile()">
+            <mat-icon matListItemIcon>analytics</mat-icon>
+            <span matListItemTitle>Reports</span>
+          </a>
+          <a mat-list-item routerLink="/" (click)="closeMobile()">
+            <mat-icon matListItemIcon>settings</mat-icon>
+            <span matListItemTitle>Settings</span>
+          </a>
+        </mat-nav-list>
+      </mat-sidenav>
+
+      <mat-sidenav-content class="main-content">
+        <router-outlet></router-outlet>
+      </mat-sidenav-content>
+    </mat-sidenav-container>

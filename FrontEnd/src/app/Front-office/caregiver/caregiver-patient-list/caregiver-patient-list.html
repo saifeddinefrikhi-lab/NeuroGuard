@@ -1,0 +1,150 @@
+<div class="patients-container caregiver">
+  <!-- Header -->
+  <div class="patients-header">
+    <div class="header-content">
+      <h1 class="patients-title">
+        <i class="ti ti-users-group"></i>
+        My Assigned Patients
+      </h1>
+      <p class="patients-subtitle">Manage and view medical history for your assigned patients</p>
+    </div>
+  </div>
+
+  <div class="patients-body">
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert-message error-message">
+      <i class="ti ti-alert-circle"></i>
+      <strong>Error:</strong> {{ errorMessage }}
+      <button class="btn-close-alert" (click)="errorMessage = ''" aria-label="Close">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <!-- Search, Filter, Sort Controls -->
+    <div class="controls-panel" *ngIf="!loading && patients.length > 0">
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <i class="ti ti-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search by name, email, or username..." 
+          [(ngModel)]="searchQuery"
+          (input)="onSearchChange(searchQuery)" 
+          class="search-input">
+      </div>
+
+      <!-- Filter & Sort Controls -->
+      <div class="filter-controls">
+        <!-- Sort By -->
+        <div class="filter-group">
+          <label for="sortBy">Sort By:</label>
+          <select 
+            id="sortBy" 
+            class="filter-select" 
+            [(ngModel)]="sortBy"
+            (change)="onSortChange(sortBy, sortOrder)">
+            <option value="name">Patient Name</option>
+            <option value="email">Email</option>
+          </select>
+        </div>
+
+        <!-- Sort Order -->
+        <div class="filter-group">
+          <label for="sortOrder">Order:</label>
+          <select 
+            id="sortOrder" 
+            class="filter-select" 
+            [(ngModel)]="sortOrder"
+            (change)="onSortChange(sortBy, sortOrder)">
+            <option value="asc">A to Z</option>
+            <option value="desc">Z to A</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Count -->
+    <div class="results-info" *ngIf="!loading && filteredPatients.length > 0">
+      <span>Showing {{ filteredPatients.length }} of {{ patients.length }} patients</span>
+    </div>
+
+    <!-- Results Count -->
+    <div class="results-info" *ngIf="!loading && filteredPatients.length > 0">
+      <span>Showing {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, filteredPatients.length) }} of {{ filteredPatients.length }} patients</span>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading assigned patients...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && patients.length === 0" class="empty-state">
+      <i class="ti ti-inbox"></i>
+      <h3>No Patients Assigned</h3>
+      <p>You don't have any patients assigned to you yet. Check back later!</p>
+    </div>
+
+    <!-- No Results State -->
+    <div *ngIf="!loading && patients.length > 0 && filteredPatients.length === 0" class="empty-state">
+      <i class="ti ti-search-off"></i>
+      <h3>No patients match your search</h3>
+      <p>Try adjusting your search criteria.</p>
+    </div>
+
+    <!-- Patients Grid -->
+    <div class="patients-grid" *ngIf="!loading && paginatedPatients.length > 0">
+      <div class="patient-card" *ngFor="let patient of paginatedPatients">
+      <div class="patient-card-header">
+        <div class="patient-avatar">
+          <i class="ti ti-user"></i>
+        </div>
+        <div class="patient-info-header">
+          <h3 class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</h3>
+          <p class="patient-username" *ngIf="patient.username">@{{ patient.username }}</p>
+          <p class="patient-username" *ngIf="!patient.username">No username available</p>
+        </div>
+      </div>
+      
+      <div class="patient-card-body">
+        <div class="info-row">
+          <span class="info-label">
+            <i class="ti ti-mail"></i> Email
+          </span>
+          <span class="info-value" *ngIf="patient.email">{{ patient.email }}</span>
+          <span class="info-value text-muted" *ngIf="!patient.email">No email available</span>
+        </div>
+      </div>
+
+      <div class="patient-card-footer">
+        <button class="btn-modern btn-view" (click)="viewHistory(patient.id)">
+          <i class="ti ti-file-medical"></i>
+          <span>View History</span>
+        </button>
+      </div>
+    </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && paginatedPatients.length > 0 && totalPages > 1" class="pagination-container">
+      <button class="page-btn" (click)="goToPreviousPage()" [disabled]="currentPage === 1" title="Previous Page">
+        <i class="ti ti-chevron-left"></i>
+        <span>Previous</span>
+      </button>
+
+      <div class="page-selector">
+        <label for="pageSelect">Page:</label>
+        <select id="pageSelect" class="page-select" [(ngModel)]="currentPage" (ngModelChange)="onPageChange()">
+          <option *ngFor="let page of allPages" [value]="page">{{ page }}</option>
+        </select>
+        <span class="page-total">of {{ totalPages }}</span>
+      </div>
+
+      <button class="page-btn" (click)="goToNextPage()" [disabled]="currentPage === totalPages" title="Next Page">
+        <span>Next</span>
+        <i class="ti ti-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>

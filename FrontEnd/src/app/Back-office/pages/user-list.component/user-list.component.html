@@ -1,0 +1,226 @@
+<div class="user-page">
+  <div class="page-header">
+    <div>
+      <h2>User Management</h2>
+      <p class="subtitle">Manage platform users, roles, and profile information</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="exportPdf()" [disabled]="exportPdfLoading">
+        {{ exportPdfLoading ? 'Exporting...' : 'Export PDF' }}
+      </button>
+      <button class="primary-btn" (click)="openCreateForm()" [disabled]="isSubmitting">+ Add User</button>
+    </div>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div class="search-filter-section">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" placeholder="Search by username, email, or name..." [(ngModel)]="searchQuery" (input)="onSearchChange()" class="search-input">
+    </div>
+    <div class="filter-controls">
+      <select [(ngModel)]="selectedRole" (change)="onRoleFilterChange()" class="filter-select">
+        <option value="">All Roles</option>
+        <option value="ADMIN">Admin</option>
+        <option value="PATIENT">Patient</option>
+        <option value="PROVIDER">Provider</option>
+        <option value="CAREGIVER">Caregiver</option>
+      </select>
+      <button *ngIf="searchQuery || selectedRole" (click)="clearFilters()" class="clear-btn">Clear Filters</button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card__head">
+      <h3>Users</h3>
+      <span class="count-pill">{{ filteredUsers.length }} of {{ users.length }} total</span>
+    </div>
+    <div class="table-wrap" *ngIf="filteredUsers.length; else emptyState">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td class="fw-medium">
+              <span class="status-dot" [ngClass]="user.connected ? 'online' : 'offline'" title="{{ user.connected ? 'Online' : 'Offline' }}"></span>
+              {{ user.username }}
+            </td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.firstName }}</td>
+            <td>{{ user.lastName }}</td>
+            <td><span class="role-badge" [ngClass]="user.role.toLowerCase()">{{ user.role }}</span></td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusBadgeClass(user.status)">
+                {{ user.status || 'ACTIVE' }}
+                <span *ngIf="user.status === 'BANNED'" class="ban-time">{{ getBanStatus(user) }}</span>
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="action-btn edit" (click)="openEditForm(user)" title="Edit user information">Edit</button>
+                <button class="action-btn delete" (click)="deleteUser(user.id)" title="Delete user">Delete</button>
+                <div class="status-actions">
+                  <button *ngIf="user.status !== 'BANNED'" class="action-btn ban" (click)="openStatusModal(user, 'BAN')" title="Ban this user">Ban</button>
+                  <button *ngIf="user.status !== 'ACTIVE'" class="action-btn activate" (click)="openStatusModal(user, 'ACTIVATE')" title="Activate user">Activate</button>
+                  <button *ngIf="user.status !== 'DISABLED'" class="action-btn disable" (click)="openStatusModal(user, 'DISABLE')" title="Disable user">Disable</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <h4 *ngIf="users.length === 0">No users yet</h4>
+        <h4 *ngIf="users.length > 0 && filteredUsers.length === 0">No users match your filters</h4>
+        <p *ngIf="users.length === 0">Start by adding your first user account.</p>
+        <button *ngIf="users.length > 0 && filteredUsers.length === 0" (click)="clearFilters()" class="ghost-btn">Clear Filters</button>
+      </div>
+    </ng-template>
+  </div>
+
+  <div *ngIf="showForm" class="modal" (click)="closeForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditing ? 'Edit User' : 'Create User' }}</h3>
+        <button type="button" class="close-btn" (click)="closeForm()">×</button>
+      </div>
+      <form (ngSubmit)="saveUser(form)" #form="ngForm" class="form-grid" novalidate>
+        <label>
+          <span>First Name <span class="required">*</span></span>
+          <input #firstNameCtrl="ngModel" [(ngModel)]="formData.firstName" name="firstName" required minlength="2" maxlength="50" [disabled]="isSubmitting" class="form-input">
+          <small class="error" *ngIf="(formSubmitted && firstNameCtrl.invalid) || fieldErrors['firstName']">{{ fieldErrors['firstName'] || (firstNameCtrl.errors?.['required'] ? 'First name is required' : 'First name must be 2–50 characters') }}</small>
+        </label>
+        <label>
+          <span>Last Name <span class="required">*</span></span>
+          <input #lastNameCtrl="ngModel" [(ngModel)]="formData.lastName" name="lastName" required minlength="2" maxlength="50" [disabled]="isSubmitting" class="form-input">
+          <small class="error" *ngIf="(formSubmitted && lastNameCtrl.invalid) || fieldErrors['lastName']">{{ fieldErrors['lastName'] || (lastNameCtrl.errors?.['required'] ? 'Last name is required' : 'Last name must be 2–50 characters') }}</small>
+        </label>
+        <label>
+          <span>Username <span class="required">*</span></span>
+          <input #usernameCtrl="ngModel" [(ngModel)]="formData.username" name="username" required minlength="3" maxlength="50" pattern="^[a-zA-Z0-9_]+$" [disabled]="isSubmitting" class="form-input">
+          <small class="error" *ngIf="(formSubmitted && usernameCtrl.invalid) || fieldErrors['username']">{{ fieldErrors['username'] || (usernameCtrl.errors?.['required'] ? 'Username is required' : usernameCtrl.errors?.['pattern'] ? 'Only letters, numbers, and underscores' : 'Username must be 3–50 characters') }}</small>
+        </label>
+        <label>
+          <span>Email <span class="required">*</span></span>
+          <input #emailCtrl="ngModel" type="email" [(ngModel)]="formData.email" name="email" required maxlength="100" [disabled]="isSubmitting" class="form-input">
+          <small class="error" *ngIf="(formSubmitted && emailCtrl.invalid) || fieldErrors['email']">{{ fieldErrors['email'] || 'Valid email is required' }}</small>
+        </label>
+        <label>
+          <span>Phone</span>
+          <input #phoneCtrl="ngModel" [(ngModel)]="formData.phoneNumber" name="phoneNumber" maxlength="20" pattern="^[0-9+ \-()]*$" [disabled]="isSubmitting" class="form-input" placeholder="e.g. +1 234 567-8900">
+          <small class="error" *ngIf="(formSubmitted && phoneCtrl.invalid && (phoneCtrl.value !== null && phoneCtrl.value !== undefined && phoneCtrl.value !== '')) || fieldErrors['phoneNumber']">{{ fieldErrors['phoneNumber'] || 'Only digits, spaces, +, -, ( ) allowed (max 20 characters)' }}</small>
+        </label>
+        <label>
+          <span>Gender <span class="required">*</span></span>
+          <select #genderCtrl="ngModel" [(ngModel)]="formData.gender" name="gender" required [disabled]="isSubmitting" class="form-input">
+            <option value="">--Select--</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="O">Other</option>
+          </select>
+          <small class="error" *ngIf="(formSubmitted && genderCtrl.invalid) || fieldErrors['gender']">{{ fieldErrors['gender'] || 'Gender is required' }}</small>
+        </label>
+        <label>
+          <span>Age</span>
+          <input #ageCtrl="ngModel" type="number" [(ngModel)]="formData.age" name="age" min="0" max="150" [disabled]="isSubmitting" class="form-input" placeholder="0–150">
+          <small class="error" *ngIf="(formSubmitted && ageCtrl.invalid) || fieldErrors['age']">{{ fieldErrors['age'] || 'Age must be between 0 and 150' }}</small>
+        </label>
+        <label>
+          <span>Role <span class="required">*</span></span>
+          <select #roleCtrl="ngModel" [(ngModel)]="formData.role" name="role" required [disabled]="isSubmitting" class="form-input">
+            <option value="">--Select Role--</option>
+            <option value="ADMIN">Admin</option>
+            <option value="PATIENT">Patient</option>
+            <option value="PROVIDER">Provider</option>
+            <option value="CAREGIVER">Caregiver</option>
+          </select>
+          <small class="error" *ngIf="(formSubmitted && roleCtrl.invalid) || fieldErrors['role']">{{ fieldErrors['role'] || 'Role is required' }}</small>
+        </label>
+        <label class="full-width">
+          <span>Password <span class="required" *ngIf="!isEditing">*</span></span>
+          <input #passwordCtrl="ngModel" type="password" [(ngModel)]="formData.password" name="password" [required]="!isEditing" minlength="8" maxlength="100" [disabled]="isSubmitting" class="form-input" [placeholder]="isEditing ? 'Leave empty to keep current password' : 'Min 8 characters'">
+          <small class="error" *ngIf="(formSubmitted && passwordCtrl.invalid) || fieldErrors['password']">{{ fieldErrors['password'] || (!isEditing && passwordCtrl.errors?.['required'] ? 'Password is required' : (passwordCtrl.errors?.['minlength'] ? 'Password must be at least 8 characters' : 'Password is invalid')) }}</small>
+          <small class="hint" *ngIf="isEditing">Leave empty to keep the current password</small>
+        </label>
+        <div class="form-actions full-width">
+          <button type="button" class="ghost-btn" (click)="closeForm()" [disabled]="isSubmitting">Cancel</button>
+          <button type="submit" class="primary-btn" [disabled]="isSubmitting">{{ isSubmitting ? 'Saving...' : 'Save' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- User Status Modal -->
+  <div *ngIf="showStatusModal" class="modal" (click)="closeStatusModal()">
+    <div class="modal-content status-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ statusAction === 'BAN' ? 'Ban User' : statusAction === 'ACTIVATE' ? 'Activate User' : 'Disable User' }}</h3>
+        <button type="button" class="close-btn" (click)="closeStatusModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="user-info">
+          <p><strong>User:</strong> {{ statusModalUser?.username }} ({{ statusModalUser?.email }})</p>
+          <p><strong>Current Status:</strong> <span [ngClass]="getStatusBadgeClass(statusModalUser?.status)">{{ statusModalUser?.status }}</span></p>
+        </div>
+
+        <div *ngIf="statusAction === 'BAN'" class="form-group">
+          <label>
+            <span>Ban Duration <span class="required">*</span></span>
+            <div class="duration-inputs">
+              <div>
+                <input type="number" [(ngModel)]="banDurationHours" min="1" max="8760" class="form-input" placeholder="Hours">
+                <small>hours</small>
+              </div>
+              <small class="hint">Leave blank or 0 for permanent ban</small>
+            </div>
+          </label>
+        </div>
+
+        <div *ngIf="statusAction === 'ACTIVATE'" class="warning-message">
+          <strong>Activate User?</strong>
+          <p>User {{ statusModalUser?.username }} will be reactivated and able to log in immediately.</p>
+        </div>
+
+        <div *ngIf="statusAction === 'DISABLE'" class="warning-message">
+          <strong>Disable User?</strong>
+          <p>User {{ statusModalUser?.username }} will be disabled and won't be able to log in.</p>
+        </div>
+
+        <div *ngIf="statusAction === 'BAN'" class="info-message">
+          <strong>Ban Information:</strong>
+          <ul>
+            <li>User will not be able to log in during ban period</li>
+            <li>All active sessions will be invalidated immediately</li>
+            <li>Ban will auto-expire after the specified duration</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" (click)="closeStatusModal()" [disabled]="statusSubmitting">Cancel</button>
+        <button type="button"
+                class="primary-btn danger-btn"
+                (click)="submitStatusChange()"
+                [disabled]="statusSubmitting">
+          {{ statusSubmitting ? 'Processing...' : (statusAction === 'BAN' ? 'Ban User' : statusAction === 'ACTIVATE' ? 'Activate User' : 'Disable User') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

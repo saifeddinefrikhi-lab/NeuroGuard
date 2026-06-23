@@ -1,0 +1,64 @@
+<app-card cardTitle="My Tasks" [showHeader]="true"
+    [cardClass]="'glass-card task-center-theme animate-fade-in thin-card'">
+    <ng-template #headerOptionsTemplate>
+        <span class="task-badge">{{ completedCount }}/{{ tasks.length }} Completed</span>
+    </ng-template>
+
+    <div class="progress-wrapper mb-4">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
+    </div>
+
+    <!-- Improved Add Task Form -->
+    <div class="add-task-form mb-4 p-3 shadow-none">
+        <div class="row g-2 align-items-center">
+            <div class="col-sm-7">
+                <div class="input-with-icon">
+                    <i class="material-icons text-muted">add_task</i>
+                    <input type="text" class="form-control form-control-sm" placeholder="Add a quick reminder..."
+                        [(ngModel)]="newTaskText">
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <select class="form-select form-select-sm" [(ngModel)]="newTaskPriority">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">Urgent</option>
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <button class="btn btn-sm btn-primary w-100 py-2" (click)="addTask()"
+                    [disabled]="!newTaskText.trim() || isProcessing">
+                    <i class="material-icons" style="font-size: 16px;">add</i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Task List -->
+    <div class="tasks-list">
+        @for (task of tasks; track task.id) {
+        <div class="task-item" [class.completed]="task.done" (click)="toggleTask(task)">
+            <div class="task-priority" [style.background]="getPriorityColor(task.priority)"></div>
+            <div class="status-indicator">
+                <i class="material-icons" [style.color]="task.done ? '#2ed8b6' : '#dfe6e9'">
+                    {{ task.done ? 'check_circle' : 'radio_button_unchecked' }}
+                </i>
+            </div>
+            <div class="task-info flex-grow-1">
+                <span class="task-text">{{ task.text }}</span>
+                <span class="task-time"><i class="material-icons" style="font-size: 12px;">access_time</i> {{ task.time
+                    }}</span>
+            </div>
+            <button class="btn btn-sm btn-link text-danger p-1 ms-2 delete-btn" (click)="deleteTask(task, $event)"
+                title="Delete Task">
+                <i class="material-icons" style="font-size: 18px;">delete_outline</i>
+            </button>
+        </div>
+        } @empty {
+        <div class="text-center py-4 text-muted">
+            <i class="material-icons d-block mb-2" style="font-size: 32px; opacity: 0.3;">task_alt</i>
+            <p class="small mb-0">No caregiver tasks today</p>
+        </div>
+        }
+    </div>
+</app-card>

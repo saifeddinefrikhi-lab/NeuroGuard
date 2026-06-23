@@ -1,0 +1,28 @@
+<app-card cardTitle="Today's Tasks" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    <ng-template #headerOptionsTemplate>
+        <span class="task-progress-badge">{{ completedCount }}/{{ tasks.length }}</span>
+    </ng-template>
+
+    <div class="progress-bar-wrapper mb-3">
+        <div class="progress-bar-fill" [style.width.%]="progressPercent"></div>
+    </div>
+
+    <div class="tasks-list">
+        @for (task of tasks; track task.id) {
+        <div class="task-item" [class.completed]="task.done" (click)="toggleTask(task)">
+            <div class="task-check">
+                <i class="material-icons">{{ task.done ? 'check_circle' : 'radio_button_unchecked' }}</i>
+            </div>
+            <div class="task-info">
+                <span class="task-text">{{ task.text }}</span>
+                <span class="task-time">{{ task.time }}</span>
+            </div>
+        </div>
+        } @empty {
+        <div class="text-center py-3 text-muted">
+            <i class="material-icons" style="font-size: 2rem; opacity: 0.4;">event_available</i>
+            <p class="small mt-1 mb-0">No tasks assigned for today</p>
+        </div>
+        }
+    </div>
+</app-card>

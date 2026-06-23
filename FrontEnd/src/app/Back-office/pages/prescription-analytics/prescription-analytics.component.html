@@ -1,0 +1,383 @@
+<div class="container-fluid p-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="mb-2">
+        <i class="ti ti-chart-bar me-2 text-primary"></i>
+        Advanced Prescription Analytics
+      </h1>
+      <p class="text-muted">Dose and frequency calculations and analysis for prescriptions</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="alert alert-info">
+    <i class="ti ti-loader me-2"></i> Loading analytics...
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="alert alert-danger">
+    <i class="ti ti-alert-circle me-2"></i> {{ error }}
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && analytics">
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-gradient-blue">
+          <div class="card-body text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <p class="card-text small mb-1">Total Prescriptions</p>
+                <h3 class="mb-0">{{ analytics.totalPrescriptions }}</h3>
+              </div>
+              <div class="text-white-50">
+                <i class="ti ti-prescription fs-1 opacity-50"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-gradient-green">
+          <div class="card-body text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <p class="card-text small mb-1">Patients</p>
+                <h3 class="mb-0">{{ analytics.totalPatients }}</h3>
+              </div>
+              <div class="text-white-50">
+                <i class="ti ti-users fs-1 opacity-50"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-gradient-purple">
+          <div class="card-body text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <p class="card-text small mb-1">Providers</p>
+                <h3 class="mb-0">{{ analytics.totalProviders }}</h3>
+              </div>
+              <div class="text-white-50">
+                <i class="ti ti-stethoscope fs-1 opacity-50"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm bg-gradient-orange">
+          <div class="card-body text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <p class="card-text small mb-1">Needs Review</p>
+                <h3 class="mb-0">{{ analytics.prescriptionsRequiringReview }}</h3>
+                <small class="opacity-75">risky doses/frequencies</small>
+              </div>
+              <div class="text-white-50">
+                <i class="ti ti-alert-triangle fs-1 opacity-50"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Complexity Metrics -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-capsule me-2 text-info"></i>
+              Dosage Complexity
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <p class="text-muted mb-2">Average complexity score</p>
+                <h4 class="mb-0">{{ analytics.averageDosageComplexity.toFixed(2) }} / 5.0</h4>
+              </div>
+              <div class="progress" style="width: 150px; height: 40px;">
+                <div
+                  class="progress-bar bg-info"
+                  role="progressbar"
+                  [style.width.%]="(analytics.averageDosageComplexity / 5) * 100"
+                  attr.aria-valuenow="{{ analytics.averageDosageComplexity }}"
+                  aria-valuemin="0"
+                  aria-valuemax="5"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-clock me-2 text-success"></i>
+              Frequency Complexity
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <p class="text-muted mb-2">Average complexity score</p>
+                <h4 class="mb-0">{{ analytics.averageFrequencyComplexity.toFixed(2) }} / 3.0</h4>
+              </div>
+              <div class="progress" style="width: 150px; height: 40px;">
+                <div
+                  class="progress-bar bg-success"
+                  role="progressbar"
+                  [style.width.%]="(analytics.averageFrequencyComplexity / 3) * 100"
+                  attr.aria-valuenow="{{ analytics.averageFrequencyComplexity }}"
+                  aria-valuemin="0"
+                  aria-valuemax="3"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dosage Analysis Chart -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-chart-bar me-2 text-danger"></i>
+              Dosage Analysis
+            </h5>
+          </div>
+          <div class="card-body">
+            <apx-chart #dosageChart [options]="dosageChartOptions"></apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dosage Risk Table -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-list-details me-2 text-warning"></i>
+              Dosage Details
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Dosage</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                    <th>Risk Level</th>
+                    <th>Recommendation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let dosage of analytics.dosageAnalysis; let i = index">
+                    <td><strong>{{ dosage.dosage }}</strong></td>
+                    <td>{{ dosage.count }}</td>
+                    <td>
+                      <div class="progress" style="height: 20px;">
+                        <div
+                          class="progress-bar bg-info"
+                          role="progressbar"
+                          [style.width.%]="dosage.percentage"
+                          attr.aria-valuenow="{{ dosage.percentage }}"
+                          aria-valuemin="0"
+                          aria-valuemax="100"
+                        >
+                          {{ dosage.percentage.toFixed(1) }}%
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span [ngClass]="getRiskBadgeClass(dosage.riskLevel)">
+                        {{ dosage.riskLevel }}
+                      </span>
+                    </td>
+                    <td>
+                      <small class="text-muted">{{ dosage.recommendation }}</small>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frequency Analysis Chart -->
+    <div class="row mb-4">
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-chart-donut me-2 text-success"></i>
+              Frequency Distribution
+            </h5>
+          </div>
+          <div class="card-body">
+            <apx-chart #frequencyChart [options]="frequencyChartOptions"></apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compliance Risk Chart -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-scatter me-2 text-info"></i>
+              Compliance Risk
+            </h5>
+          </div>
+          <div class="card-body">
+            <apx-chart #complianceChart [options]="complianceChartOptions"></apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frequency Details Table -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-calendar-time me-2 text-primary"></i>
+              Frequency Details
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Frequency</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                    <th>Doses/Month</th>
+                    <th>Compliance Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let freq of analytics.frequencyAnalysis; let i = index">
+                    <td><strong>{{ freq.frequency }}</strong></td>
+                    <td>{{ freq.count }}</td>
+                    <td>
+                      <div class="progress" style="height: 20px;">
+                        <div
+                          class="progress-bar bg-info"
+                          role="progressbar"
+                          [style.width.%]="freq.percentage"
+                          attr.aria-valuenow="{{ freq.percentage }}"
+                          aria-valuemin="0"
+                          aria-valuemax="100"
+                        >
+                          {{ freq.percentage.toFixed(1) }}%
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-secondary">{{ freq.totalDosesPerMonth }}/mois</span>
+                    </td>
+                    <td>
+                      <span [ngClass]="getRiskBadgeClass(freq.complianceRisk)">
+                        {{ freq.complianceRisk }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="ti ti-lightbulb me-2 text-warning"></i>
+              Recommendations
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              <a
+                *ngFor="let rec of analytics.recommendations"
+                href="#"
+                class="list-group-item list-group-item-action px-0 py-3 border-bottom"
+              >
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1">{{ rec }}</h6>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <p class="text-muted mb-2">High Risk Dosages</p>
+            <h4 class="mb-0 text-danger">
+              <i class="ti ti-alert-triangle me-2"></i>
+              {{ analytics.highRiskDosageCount }}
+            </h4>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <p class="text-muted mb-2">High Risk Compliance</p>
+            <h4 class="mb-0 text-warning">
+              <i class="ti ti-alert-circle me-2"></i>
+              {{ analytics.highComplianceRiskCount }}
+            </h4>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <p class="text-muted mb-2">Prescriptions per Patient</p>
+            <h4 class="mb-0 text-info">
+              <i class="ti ti-calc me-2"></i>
+              {{ analytics.averagePrescriptionsPerPatient.toFixed(1) }}
+            </h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

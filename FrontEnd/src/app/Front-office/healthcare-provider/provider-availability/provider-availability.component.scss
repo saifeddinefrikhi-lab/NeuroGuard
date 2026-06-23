@@ -1,0 +1,8 @@
+:host { display: block; }
+.container { max-width: 900px; margin: 0 auto; }
+.card { border-radius: 12px; box-shadow: 0 8px 30px rgba(2,6,23,0.06); border: none; }
+.card-header {
+  background: linear-gradient(90deg, #4f46e5 0%, #06b6d4 100%);
+  color: #fff; font-weight: 600; padding: 1rem 1.25rem;
+  border-top-left-radius: 12px; border-top-right-radius: 12px;
+}

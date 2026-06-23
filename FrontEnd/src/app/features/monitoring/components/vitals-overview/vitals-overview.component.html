@@ -1,0 +1,27 @@
+<div class="row g-3">
+    @if (loading) {
+    <div class="col-12 text-center p-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Loading vitals...</p>
+    </div>
+    } @else {
+    @for (card of vitalCards; track card.title) {
+    <div class="col-6 col-lg-3">
+        <div class="vital-card" [style.--accent-color]="card.color" [style.--accent-bg]="card.bgColor">
+            <div class="vital-icon">
+                <i class="material-icons">{{ card.icon }}</i>
+            </div>
+            <div class="vital-body">
+                <span class="vital-label">{{ card.title }}</span>
+                <span class="vital-value">{{ card.value }}</span>
+                <div class="vital-meta">
+                    <span class="vital-badge" [ngClass]="getStatusClass(card.status)">{{ card.status }}</span>
+                    <i class="material-icons trend-icon">{{ getTrendIcon(card.trend) }}</i>
+                </div>
+                <span class="vital-range">{{ card.range }}</span>
+            </div>
+        </div>
+    </div>
+    }
+    }
+</div>

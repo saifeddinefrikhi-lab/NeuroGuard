@@ -1,0 +1,21 @@
+<app-card cardTitle="Sleep Quality" [showHeader]="true" [cardClass]="'glass-card animate-fade-in playful-pulse'">
+    <div id="chart" class="text-center">
+        <apx-chart [series]="chartOptions.series!" [chart]="chartOptions.chart!"
+            [plotOptions]="chartOptions.plotOptions!" [labels]="chartOptions.labels!" [fill]="chartOptions.fill!"
+            [stroke]="chartOptions.stroke!"></apx-chart>
+    </div>
+    <div class="m-t-20 d-flex justify-content-between">
+        <div class="text-center">
+            <h4 class="m-b-0">{{ sleepDuration }}h</h4>
+            <small class="text-muted">Last Night</small>
+        </div>
+        <div class="text-center">
+            <h4 class="m-b-0">{{ sleepQuality }}</h4>
+            <small class="text-muted">Quality</small>
+        </div>
+        <div class="text-center">
+            <h4 class="m-b-0">08:00</h4>
+            <small class="text-muted">Goal (hrs)</small>
+        </div>
+    </div>
+</app-card>

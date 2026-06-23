@@ -1,0 +1,192 @@
+<div class="medical-history-container provider">
+  <div class="medical-history-header">
+    <div class="header-content">
+      <h1 class="medical-history-title">
+        <i class="ti ti-file-medical"></i>
+        Medical History Management
+      </h1>
+      <p class="medical-history-subtitle">Manage and track patient medical records and histories</p>
+    </div>
+  </div>
+
+  <div class="medical-history-body">
+    <!-- Error State -->
+    <div *ngIf="errorMessage" class="alert-message error-message">
+      <i class="ti ti-alert-circle"></i>
+      <strong>Error:</strong> {{ errorMessage }}
+      <button class="btn-close-alert" (click)="errorMessage = ''" aria-label="Close">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <button class="btn-modern primary btn-add" (click)="onAdd()">
+        <i class="ti ti-plus"></i>
+        <span>Add New History</span>
+      </button>
+    </div>
+
+    <!-- Search, Filter, Sort Controls -->
+    <div class="controls-panel" *ngIf="!loading && histories.length > 0">
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <i class="ti ti-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search by patient name, diagnosis, or ID..." 
+          [(ngModel)]="searchQuery"
+          (input)="onSearchChange(searchQuery)" 
+          class="search-input">
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <!-- Stage Filter -->
+        <div class="filter-group">
+          <label for="stageFilter">Stage:</label>
+          <select 
+            id="stageFilter" 
+            class="filter-select" 
+            [(ngModel)]="stageFilter"
+            (change)="onStageFilterChange(stageFilter)">
+            <option value="">All Stages</option>
+            <option value="mild">Mild</option>
+            <option value="moderate">Moderate</option>
+            <option value="severe">Severe</option>
+          </select>
+        </div>
+
+        <!-- Sort Controls -->
+        <div class="filter-group">
+          <label for="sortBy">Sort By:</label>
+          <select 
+            id="sortBy" 
+            class="filter-select" 
+            [(ngModel)]="sortBy"
+            (change)="onSortChange(sortBy, sortOrder)">
+            <option value="date">Date</option>
+            <option value="patient">Patient Name</option>
+            <option value="stage">Stage</option>
+          </select>
+        </div>
+
+        <!-- Sort Order -->
+        <div class="filter-group">
+          <label for="sortOrder">Order:</label>
+          <select 
+            id="sortOrder" 
+            class="filter-select" 
+            [(ngModel)]="sortOrder"
+            (change)="onSortChange(sortBy, sortOrder)">
+            <option value="desc">Newest First</option>
+            <option value="asc">Oldest First</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Count -->
+    <div class="results-info" *ngIf="!loading && filteredHistories.length > 0">
+      <span>Showing page {{ currentPage }} of {{ totalPages }} ({{ filteredHistories.length }} total records)</span>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading medical histories...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && histories.length === 0" class="empty-state">
+      <i class="ti ti-inbox"></i>
+      <h3>No Medical Histories Found</h3>
+      <p>Start by creating a new medical history record for your patients</p>
+      <button class="btn-modern primary" (click)="onAdd()">
+        <i class="ti ti-plus"></i>
+        <span>Create First History</span>
+      </button>
+    </div>
+
+    <!-- No Results State -->
+    <div *ngIf="!loading && histories.length > 0 && filteredHistories.length === 0" class="empty-state">
+      <i class="ti ti-search-off"></i>
+      <h3>No histories match your filters</h3>
+      <p>Try adjusting your search or filter criteria.</p>
+    </div>
+
+    <!-- Histories Grid -->
+    <div class="histories-grid" *ngIf="!loading && paginatedHistories.length > 0">
+      <div class="history-card" *ngFor="let h of paginatedHistories">
+        <!-- Card Header with Patient Name -->
+        <div class="history-card-header">
+          <div class="patient-section">
+            <h3 class="patient-name">{{ h.patientName }}</h3>
+            <p class="patient-id">
+              <i class="ti ti-hash"></i> ID: {{ h.patientId }}
+            </p>
+          </div>
+          <div class="stage-badge" [ngClass]="'stage-' + (h.progressionStage || 'unknown') | lowercase">
+            {{ h.progressionStage || 'Unknown' }}
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="history-card-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">
+                <i class="ti ti-stethoscope"></i> Diagnosis
+              </span>
+              <span class="info-value">{{ h.diagnosis || 'Not specified' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">
+                <i class="ti ti-calendar"></i> Last Updated
+              </span>
+              <span class="info-value">{{ h.updatedAt | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer - Actions -->
+        <div class="history-card-footer">
+          <button class="btn-modern btn-view" title="View" (click)="onView(h.patientId)">
+            <i class="ti ti-eye"></i>
+            <span>View</span>
+          </button>
+          <button class="btn-modern btn-edit" title="Edit" (click)="onUpdate(h.patientId)">
+            <i class="ti ti-edit"></i>
+            <span>Edit</span>
+          </button>
+          <button class="btn-modern btn-delete" title="Delete" (click)="onDelete(h.patientId)">
+            <i class="ti ti-trash"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && paginatedHistories.length > 0 && totalPages > 1" class="pagination-container">
+      <button class="page-btn" (click)="goToPreviousPage()" [disabled]="currentPage === 1">
+        <i class="ti ti-chevron-left"></i>
+        <span>Previous</span>
+      </button>
+
+      <div class="page-selector">
+        <label for="pageSelect">Page:</label>
+        <select id="pageSelect" class="page-select" [(ngModel)]="currentPage" (ngModelChange)="onPageChange()">
+          <option *ngFor="let page of allPages" [value]="page">{{ page }}</option>
+        </select>
+        <span class="page-total">of {{ totalPages }}</span>
+      </div>
+
+      <button class="page-btn" (click)="goToNextPage()" [disabled]="currentPage === totalPages">
+        <i class="ti ti-chevron-right"></i>
+        <span>Next</span>
+      </button>
+    </div>
+  </div>
+</div>

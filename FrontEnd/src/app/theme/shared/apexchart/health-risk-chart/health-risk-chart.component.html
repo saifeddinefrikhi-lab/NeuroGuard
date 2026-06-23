@@ -1,0 +1,20 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="card-title">Health Risk Distribution</h5>
+  </div>
+  <div class="card-body">
+    <apx-chart
+      #chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [colors]="chartOptions.colors"
+      [xaxis]="chartOptions.xaxis"
+      [yaxis]="chartOptions.yaxis"
+      [dataLabels]="chartOptions.dataLabels"
+      [grid]="chartOptions.grid"
+      [plotOptions]="chartOptions.plotOptions"
+      [theme]="chartOptions.theme"
+    >
+    </apx-chart>
+  </div>
+</div>

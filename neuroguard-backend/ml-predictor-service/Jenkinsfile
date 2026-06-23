@@ -1,0 +1,159 @@
+pipeline {
+    agent any
+
+    triggers {
+        githubPush()
+    }
+
+    environment {
+        GIT_REPO = 'https://github.com/saifeddinefrikhi-lab/Esprit-PIDEV-4SAE8-2526-NeuroGuard.git'
+        GIT_BRANCH = 'main'
+        PYTHON_BIN = 'python3'
+        DOCKER_IMAGE = 'neuroguard/ml-predictor-service'
+        DOCKER_TAG = "${env.BUILD_NUMBER}"
+        SERVICE_DIR = 'neuroguard-backend/ml-predictor-service'
+        APP_PORT = '5000'
+    }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Code Checkout') {
+            steps {
+                git branch: "${GIT_BRANCH}", url: "${GIT_REPO}"
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        ${PYTHON_BIN} -m venv .venv
+                        . .venv/bin/activate
+                        python -m pip install --upgrade pip
+                        pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Code Validation') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . .venv/bin/activate
+                        python -m compileall .
+                    '''
+                }
+            }
+        }
+
+        stage('API Smoke Test') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . .venv/bin/activate
+
+                        if [ ! -f hospitalisation_model.pkl ] || [ ! -f feature_names.pkl ]; then
+                            python create_mock_model.py
+                        fi
+
+                        python app.py > app.log 2>&1 &
+                        APP_PID=$!
+
+                        for i in 1 2 3 4 5 6 7 8 9 10; do
+                            if curl -fsS "http://localhost:${APP_PORT}/health" > /dev/null; then
+                                echo "Health check passed"
+                                kill ${APP_PID}
+                                wait ${APP_PID} || true
+                                exit 0
+                            fi
+                            sleep 2
+                        done
+
+                        echo "Health check failed. Last logs:"
+                        tail -n 100 app.log || true
+                        kill ${APP_PID} || true
+                        wait ${APP_PID} || true
+                        exit 1
+                    '''
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    withSonarQubeEnv('SonarQube') {
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            sh '''
+                                if command -v sonar-scanner >/dev/null 2>&1; then
+                                    sonar-scanner \
+                                      -Dsonar.projectKey=neuroguard-ml-predictor-service \
+                                      -Dsonar.projectName="NeuroGuard - ML Predictor Service" \
+                                      -Dsonar.sources=. \
+                                      -Dsonar.python.version=3.10 \
+                                      -Dsonar.token=${SONAR_TOKEN}
+                                else
+                                    echo "sonar-scanner not found on this Jenkins agent, skipping SonarQube analysis."
+                                fi
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            when {
+                expression { fileExists("${env.SERVICE_DIR}/.scannerwork/report-task.txt") }
+            }
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                    sh "docker save ${DOCKER_IMAGE}:${DOCKER_TAG} -o docker-image.tar"
+                    stash name: 'docker-image', includes: 'docker-image.tar'
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    dir("${SERVICE_DIR}") {
+                        unstash 'docker-image'
+                        sh 'docker load -i docker-image.tar'
+                        sh "docker image inspect ${DOCKER_IMAGE}:${DOCKER_TAG} >/dev/null"
+                        sh '''
+                            echo "=== Login to DockerHub ==="
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                            echo "=== Pushing image tag ${DOCKER_TAG} ==="
+                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+
+                            echo "=== Logout from DockerHub ==="
+                            docker logout
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

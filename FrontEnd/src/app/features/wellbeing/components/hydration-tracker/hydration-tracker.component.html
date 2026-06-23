@@ -1,0 +1,25 @@
+<app-card cardTitle="Hydration Tracker" [showHeader]="true" [cardClass]="'glass-card animate-fade-in playful-pulse'">
+    <div class="text-center">
+        <div class="hydration-status m-b-20">
+            <div class="water-percentage">{{ (currentGlasses / targetGlasses * 100) | number:'1.0-0' }}%</div>
+            <div class="water-goal">Goal: {{ currentGlasses }} / {{ targetGlasses }} glasses</div>
+        </div>
+
+        <div class="glasses-container d-flex flex-wrap justify-content-center">
+            @for (filled of glasses; track $index) {
+            <div class="glass-item m-2" [class.filled]="filled" (click)="addGlass($event)">
+                <span class="glass-emoji">{{ filled ? '💧' : '+' }}</span>
+            </div>
+            }
+        </div>
+
+        <div class="m-t-20">
+            <button class="btn btn-outline-primary btn-sm m-r-10" (click)="addGlass($event)"
+                [disabled]="currentGlasses >= targetGlasses || isProcessing">
+                <i class="material-icons" style="font-size: 14px; vertical-align: middle;">add</i>
+                {{ isProcessing ? 'Saving...' : 'Add Glass' }}
+            </button>
+            <button class="btn btn-link btn-sm text-muted" (click)="reset()">Reset</button>
+        </div>
+    </div>
+</app-card>

@@ -1,0 +1,52 @@
+.dashboard-wrapper {
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    h2 {
+        font-weight: 800;
+        color: #2b3481;
+        letter-spacing: -0.5px;
+    }
+}
+
+.section-divider {
+    border-bottom: 2px solid rgba(108, 92, 231, 0.1);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    
+    .section-label {
+        font-weight: 750;
+        color: #636e72;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+
+        i {
+            color: #6c5ce7;
+            font-size: 1.2rem;
+        }
+    }
+}
+
+.btn-outline-primary {
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-weight: 600;
+    border-color: #6c5ce7;
+    color: #6c5ce7;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: #6c5ce7;
+        color: #fff;
+        transform: translateX(-4px);
+    }
+}

@@ -1,0 +1,252 @@
+:host {
+  display: block;
+  background-color: #F4F7FE; // Light modern premium background
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+// Variables
+$primary: #4318FF;
+$secondary: #A3AED0;
+$dark: #2B3674;
+$white: #FFFFFF;
+$light-bg: #F4F7FE;
+$border-radius: 20px;
+$shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
+
+.modern-healthcare-container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+// Headers
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: rgba($primary, 0.1);
+  color: $primary;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.section-header h1 {
+  color: $dark;
+  letter-spacing: -1px;
+}
+
+// Custom Alerts
+.custom-alert {
+  border-radius: 14px;
+  padding: 16px 20px;
+  .alert-icon {
+    width: 35px; height: 35px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+  }
+  &.success { background: #e6f9ed; color: #058240; .alert-icon { background: #fff; color: #058240; } }
+  &.danger { background: #feebeb; color: #e92323; .alert-icon { background: #fff; color: #e92323; } }
+  &.warning { background: #fff8e6; color: #b88600; .alert-icon { background: #fff; color: #b88600; } }
+}
+
+// Bento Cards
+.bento-card {
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: $shadow;
+  border: none;
+}
+
+.settings-card h5 i {
+  color: $primary;
+  background-color: rgba($primary, 0.1) !important;
+}
+
+.letter-spacing { letter-spacing: 0.5px; }
+
+// Forms
+.modern-select-box {
+  background: $light-bg;
+  border-radius: 12px;
+  padding: 4px;
+  position: relative;
+  
+  .form-select {
+    color: $dark;
+    font-weight: 600;
+    padding-right: 40px;
+    &:focus { outline: none; box-shadow: none; }
+  }
+  
+  .select-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $secondary;
+    pointer-events: none;
+  }
+}
+
+.modern-range {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 10px;
+  background: #E0E5F2;
+  outline: none;
+  
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: $primary;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba($primary, 0.4);
+    transition: transform 0.2s ease;
+  }
+  &::-webkit-slider-thumb:hover { transform: scale(1.15); }
+}
+
+.modern-btn {
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  
+  &.btn-light {
+    background: #E0E5F2;
+    color: $dark;
+    border: none;
+    &:hover { background: #d2dbe8; }
+  }
+  
+  &.btn-primary {
+    background: $primary;
+    color: $white;
+    border: none;
+    &.shadow-primary { box-shadow: 0 6px 15px rgba($primary, 0.35); }
+    &:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba($primary, 0.4); }
+  }
+}
+
+// Layout Blocks
+.layout-row {
+  height: 75vh;
+  min-height: 600px;
+  @media (max-width: 991px) { height: auto; }
+}
+
+.list-container {
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+}
+
+// Doctor Cards
+.doctor-card {
+  background: $white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  }
+  
+  &.active {
+    border-color: $primary;
+    background: rgba($primary, 0.02);
+  }
+  
+  &.is-closest {
+    background: linear-gradient(145deg, $white, #fff9eb);
+    border-color: #FFB547;
+    
+    .doctor-avatar { background: #FFB547; color: $white; }
+  }
+  
+  .doctor-avatar {
+    width: 48px;
+    height: 48px;
+    background: rgba($primary, 0.1);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: $primary;
+    font-size: 1.2rem;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    
+    .stat-box {
+      background: #F8F9FA;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// Map
+.map-card {
+  .map-inner-wrapper {
+    background: #e2e8f0;
+  }
+  
+  .map-placeholder {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.9);
+    z-index: 5;
+    
+    .radar-animation {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba($primary, 0.1);
+      position: relative;
+      &::before {
+        content: '';
+        position: absolute; inset: 0;
+        border-radius: 50%;
+        border: 2px solid $primary;
+        animation: radar 2s linear infinite;
+      }
+    }
+  }
+}
+
+@keyframes radar {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+// Helper Animations
+.animate-fade-in { animation: fadeIn 0.5s ease forwards; opacity: 0; }
+.animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; transform: translateY(20px); }
+.animate-fade-in-left { animation: fadeInLeft 0.5s ease forwards; opacity: 0; transform: translateX(-20px); }
+.animate-fade-in-right { animation: fadeInRight 0.5s ease forwards; opacity: 0; transform: translateX(20px); }
+.delay-1 { animation-delay: 0.1s; }
+
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInLeft { to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeInRight { to { opacity: 1; transform: translateX(0); } }
+
+.empty-icon { width: 70px; height: 70px; }

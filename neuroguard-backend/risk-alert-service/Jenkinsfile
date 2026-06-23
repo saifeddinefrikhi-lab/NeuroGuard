@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+    triggers {
+        githubPush()
+    }
+    environment {
+        GIT_REPO     = 'https://github.com/saifeddinefrikhi-lab/Esprit-PIDEV-4SAE8-2526-NeuroGuard.git'
+        GIT_BRANCH   = 'main'
+        DOCKER_IMAGE = 'neuroguard/risk-alert-service'
+        DOCKER_TAG   = "${env.BUILD_NUMBER}"
+        SERVICE_DIR  = 'neuroguard-backend/risk-alert-service'
+    }
+    options { timeout(time: 20, unit: 'MINUTES'); disableConcurrentBuilds() }
+    stages {
+        stage('Code Checkout') {
+            steps {
+                git branch: "${GIT_BRANCH}", url: "${GIT_REPO}"
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh 'npm install'
+                }
+            }
+        }
+        stage('Node Tests') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh 'npm test'
+                }
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                }
+            }
+        }
+    }
+    post { always { cleanWs() } }
+}

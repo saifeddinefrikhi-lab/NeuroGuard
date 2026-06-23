@@ -1,0 +1,59 @@
+<div class="dashboard-wrapper animate-fade-in">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Patient Monitoring</h2>
+            <p class="text-muted mb-0">Real-time health insights and management</p>
+        </div>
+        <button class="btn btn-outline-primary d-flex align-items-center gap-2" routerLink="..">
+            <i class="material-icons">arrow_back</i>
+            <span>Back to Patients</span>
+        </button>
+    </div>
+
+    <!-- ===== Row 1: KPI Summary ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <app-vitals-overview></app-vitals-overview>
+        </div>
+        <div class="col-12">
+            <app-nutrition-summary></app-nutrition-summary>
+        </div>
+    </div>
+
+    <!-- ===== Row 2: Status & Pulsations ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-4">
+            <app-monitoring-pulse></app-monitoring-pulse>
+        </div>
+        <div class="col-lg-8">
+            <app-cognitive-assessments></app-cognitive-assessments>
+        </div>
+    </div>
+
+    <!-- ===== Row 3: Sleep Hub ===== -->
+    <div class="section-divider mb-3">
+        <h5 class="section-label"><i class="material-icons">bedtime</i> Sleep Management</h5>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <app-sleep-activity-trends></app-sleep-activity-trends>
+        </div>
+        <div class="col-lg-4">
+            <app-sleep-log-form></app-sleep-log-form>
+        </div>
+    </div>
+
+    <!-- ===== Row 4: Task Center ===== -->
+    <div class="section-divider mb-3">
+        <h5 class="section-label"><i class="material-icons">assignment</i> Task Center</h5>
+    </div>
+    <div class="row g-3 mb-5">
+        <div class="col-lg-6">
+            <app-monitoring-tasks></app-monitoring-tasks>
+        </div>
+        <div class="col-lg-6">
+            <app-patient-task-assignment></app-patient-task-assignment>
+        </div>
+    </div>
+</div>

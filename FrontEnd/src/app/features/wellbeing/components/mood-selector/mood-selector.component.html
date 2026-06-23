@@ -1,0 +1,12 @@
+<app-card cardTitle="How are you feeling today?" [showHeader]="true"
+    [cardClass]="'glass-card animate-fade-in playful-pulse'">
+    <div class="mood-container d-flex justify-content-around align-items-center">
+        @for (mood of moods; track mood.label) {
+        <div class="mood-item text-center p-3" [class.selected]="selectedMood === mood.label"
+            [class.disabled]="isProcessing" (click)="selectMood(mood, $event)" [style.--mood-color]="mood.color">
+            <span class="emoji">{{ mood.emoji }}</span>
+            <p class="m-t-10 m-b-0">{{ mood.label }}</p>
+        </div>
+        }
+    </div>
+</app-card>

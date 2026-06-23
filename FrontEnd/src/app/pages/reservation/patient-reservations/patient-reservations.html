@@ -1,0 +1,124 @@
+<div class="container-fluid py-4" style="font-family: 'Inter', sans-serif;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold" style="color: #2B3674;">
+       {{ currentView === 'LIST' ? 'My Appointments' : 'Book an Appointment' }}
+    </h2>
+    <div>
+       <button *ngIf="currentView === 'LIST'" class="btn btn-primary rounded-pill fw-bold" (click)="switchView('CREATE')">
+         <i class="fas fa-plus me-2"></i> New Appointment
+       </button>
+       <button *ngIf="currentView === 'CREATE'" class="btn btn-outline-secondary rounded-pill fw-bold" (click)="switchView('LIST')">
+         <i class="fas fa-arrow-left me-2"></i> Back to list
+       </button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+  <!-- LIST VIEW -->
+  <ng-container *ngIf="currentView === 'LIST'">
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <div class="row g-4" *ngIf="!isLoading && reservations.length > 0">
+      <div class="col-md-6 col-lg-4" *ngFor="let res of reservations">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 16px;">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+               <h5 class="fw-bold mb-0 text-dark">{{ res.providerName || 'Doctor ID: ' + res.providerId }}</h5>
+               <span class="badge {{ getStatusBadgeClass(res.status) }} rounded-pill">{{ res.status }}</span>
+            </div>
+            <div class="mb-3 text-muted" style="font-size: 14px;">
+              <div class="mb-2"><i class="far fa-calendar-alt me-2 text-primary"></i> <span class="fw-bold">{{ res.reservationDate | date:'medium' }}</span></div>
+              <div><i class="far fa-comment-alt me-2 text-primary"></i> {{ res.notes || 'No external notes' }}</div>
+            </div>
+            <div class="mt-auto pt-3 border-top" *ngIf="res.status === 'PENDING'">
+              <button class="btn btn-sm btn-outline-danger w-100 rounded-pill fw-bold" (click)="cancelReservation(res.id!)">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && reservations.length === 0" class="text-center py-5 bg-white shadow-sm" style="border-radius: 16px;">
+      <div class="mb-3"><i class="far fa-calendar-times fa-3x text-muted"></i></div>
+      <h5 class="fw-bold text-dark">No appointments yet</h5>
+      <p class="text-muted mb-4">Click below to book your first appointment.</p>
+      <button class="btn btn-primary rounded-pill px-4" (click)="switchView('CREATE')">New Appointment</button>
+    </div>
+  </ng-container>
+
+  <!-- CREATE NEW RESERVATION VIEW -->
+  <ng-container *ngIf="currentView === 'CREATE'">
+     <div class="row g-4">
+       <!-- Step 1: Select Provider -->
+       <div class="col-lg-5">
+         <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+           <div class="card-body p-4" style="max-height: 500px; overflow-y: auto;">
+             <h5 class="fw-bold mb-3">1. Select a Doctor</h5>
+             <div *ngIf="providers.length === 0" class="text-muted text-center py-3">No doctors available.</div>
+             <div class="list-group list-group-flush">
+               <button *ngFor="let provider of providers" 
+                       class="list-group-item list-group-item-action d-flex align-items-center py-3 border-0 rounded mb-2"
+                       [class.bg-primary]="selectedProvider?.id === provider.id"
+                       [class.text-white]="selectedProvider?.id === provider.id"
+                       [class.bg-light]="selectedProvider?.id !== provider.id"
+                       (click)="selectProviderForBooking(provider)">
+                 <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">
+                   {{ provider.firstName?.charAt(0) }}{{ provider.lastName?.charAt(0) }}
+                 </div>
+                 <div>
+                   <h6 class="mb-0 fw-bold" [class.text-white]="selectedProvider?.id === provider.id">Dr. {{ provider.firstName }} {{ provider.lastName }}</h6>
+                   <small [class.text-white-50]="selectedProvider?.id === provider.id" [class.text-muted]="selectedProvider?.id !== provider.id">General Practitioner</small>
+                 </div>
+               </button>
+             </div>
+           </div>
+         </div>
+       </div>
+
+       <!-- Step 2: Form -->
+       <div class="col-lg-7">
+         <div class="card border-0 shadow-sm" style="border-radius: 16px;" [style.opacity]="selectedProvider ? 1 : 0.5" [style.pointer-events]="selectedProvider ? 'auto' : 'none'">
+           <div class="card-body p-4">
+              <h5 class="fw-bold mb-4">2. Appointment Details</h5>
+              
+              <div *ngIf="!selectedProvider" class="alert alert-light text-center py-4 text-muted">
+                <i class="fas fa-hand-point-left fa-2x mb-2"></i><br>
+                Please select a doctor from the list first.
+              </div>
+
+              <div *ngIf="selectedProvider">
+                <div class="mb-4 p-3 bg-light rounded d-flex align-items-center">
+                   <div class="me-3"><i class="fas fa-user-md fa-2x text-primary"></i></div>
+                   <div>
+                     <div class="small text-muted text-uppercase fw-bold">Selected Doctor</div>
+                     <h6 class="m-0 fw-bold">Dr. {{ selectedProvider.firstName }} {{ selectedProvider.lastName }}</h6>
+                   </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label text-muted fw-bold">Date & Time <span class="text-danger">*</span></label>
+                  <input type="datetime-local" class="form-control form-control-lg bg-light border-0" [(ngModel)]="bookingDate">
+                </div>
+                <div class="mb-4">
+                  <label class="form-label text-muted fw-bold">Reason for Visit / Notes</label>
+                  <textarea class="form-control bg-light border-0" rows="4" [(ngModel)]="bookingNotes" placeholder="Write any specific symptoms or requests..."></textarea>
+                </div>
+                
+                <div class="d-grid mt-4">
+                  <button class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm" (click)="confirmBooking()" [disabled]="isBooking || !bookingDate">
+                    <i class="fas fa-spinner fa-spin me-2" *ngIf="isBooking"></i> 
+                    Confirm Appointment
+                  </button>
+                </div>
+              </div>
+           </div>
+         </div>
+       </div>
+     </div>
+  </ng-container>
+
+</div>

@@ -1,0 +1,69 @@
+<div class="chatbox-widget">
+  <button
+    type="button"
+    class="chatbox-toggle"
+    (click)="toggle()"
+    [class.open]="isOpen"
+    title="NeuroGuard Assistant"
+    aria-label="Open NeuroGuard assistant"
+  >
+    <i class="ti ti-robot"></i>
+  </button>
+
+  <div class="chatbox-panel" *ngIf="isOpen">
+    <div class="chatbox-header">
+      <span class="chatbox-title"><i class="ti ti-robot"></i> NeuroGuard Assistant</span>
+      <div class="chatbox-actions">
+        <button type="button" class="chatbox-btn-icon" (click)="clear()" title="Clear history">
+          <i class="ti ti-trash"></i>
+        </button>
+        <button type="button" class="chatbox-btn-icon" (click)="close()" title="Close">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="chatbox-messages" #messagesEl>
+      <div *ngIf="messages.length === 0 && !loading" class="chatbox-empty">
+        <p>Ask a question about <strong>NeuroGuard</strong> or your <strong>care plans</strong>. I only answer about that topic.</p>
+      </div>
+      <div
+        *ngFor="let msg of messages"
+        class="chatbox-msg"
+        [class.chatbox-msg-user]="msg.role === 'user'"
+        [class.chatbox-msg-assistant]="msg.role === 'assistant'"
+      >
+        <span class="chatbox-msg-role">{{ msg.role === 'user' ? 'You' : 'NeuroGuard' }}</span>
+        <div class="chatbox-msg-content">{{ msg.content }}</div>
+      </div>
+      <div *ngIf="loading" class="chatbox-msg chatbox-msg-assistant chatbox-msg-loading">
+        <span class="chatbox-msg-role">NeuroGuard</span>
+        <div class="chatbox-msg-content"><span class="typing-dots">...</span></div>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="chatbox-error">
+      <i class="ti ti-alert-circle"></i> {{ errorMessage }}
+    </div>
+
+    <div class="chatbox-input-wrap">
+      <textarea
+        class="chatbox-input"
+        [(ngModel)]="inputText"
+        (keydown.enter)="$event.preventDefault(); send()"
+        placeholder="Ask about NeuroGuard or my care plans..."
+        rows="2"
+        [disabled]="loading"
+      ></textarea>
+      <button
+        type="button"
+        class="chatbox-send"
+        (click)="send()"
+        [disabled]="loading || !inputText?.trim()"
+        title="Send"
+      >
+        <i class="ti ti-send"></i>
+      </button>
+    </div>
+  </div>
+</div>

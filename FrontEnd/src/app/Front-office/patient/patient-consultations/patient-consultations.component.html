@@ -1,0 +1,71 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">My Consultations</h2>
+      <p class="text-muted small mb-0">History of your medical appointments</p>
+    </div>
+    <button class="btn btn-primary" (click)="refresh()">
+      <span class="me-1">↻</span> Refresh
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Loading...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">Consultation List</div>
+    <div class="card-body p-0">
+      <table class="table table-striped modern-table mb-0" *ngIf="consultations.length > 0">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Start Date</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of consultations">
+            <td>{{ c.title }}</td>
+            <td>{{ formatDateTime(c.startTime) }}</td>
+            <td>{{ c.type === 'ONLINE' ? 'Online' : 'In-Person' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="{
+                'scheduled': c.status === 'SCHEDULED',
+                'ongoing': c.status === 'ONGOING',
+                'completed': c.status === 'COMPLETED',
+                'cancelled': c.status === 'CANCELLED'
+              }">{{ c.status }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info" *ngIf="c.type === 'ONLINE'" (click)="joinOnlineConsultation(c)">
+                Join Consultation
+              </button>
+              <span *ngIf="c.type !== 'ONLINE'" class="text-muted small">In-Person</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="consultations.length === 0" class="p-4 text-center text-muted">
+        No consultations found.
+      </div>
+    </div>
+  </div>
+
+  <!-- Online consultation modal (Jitsi Meet) -->
+  <div class="modal-overlay" *ngIf="showMeetingModal" (click)="closeMeetingModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ meetingTitle }}</h5>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMeetingInNewTab()">Open in new tab</button>
+          <button type="button" class="btn-close" (click)="closeMeetingModal()" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0">
+        <iframe *ngIf="meetingUrl" [src]="meetingUrl" class="meeting-iframe" allow="camera; microphone; fullscreen"></iframe>
+      </div>
+    </div>
+  </div>
+</div>

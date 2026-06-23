@@ -1,0 +1,335 @@
+<div class="container-fluid px-3 px-md-4 mt-4 mb-5">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <button class="btn btn-outline-secondary btn-sm mb-3" (click)="goBack()">
+        <i class="ti ti-arrow-left me-2"></i> Retour
+      </button>
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <h1 class="mb-1">
+            <i class="ti ti-prescription me-2"></i>
+            {{ isEditMode ? 'Edit prescription' : 'Create prescription' }}
+          </h1>
+          <p class="text-muted mb-0">Fill in the patient's medical information</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="text-muted mt-3">Loading...</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-4">
+    <div class="d-flex align-items-center">
+      <i class="ti ti-alert-circle me-3"></i>
+      <div>
+        <strong>Error:</strong> {{ errorMessage }}
+      </div>
+    </div>
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- Main Form -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="!loading" class="row g-4">
+    
+    <!-- Left Column: Form Inputs -->
+    <div class="col-lg-8">
+      
+      <!-- Patient Selection Card -->
+      <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-light border-0 py-3">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="ti ti-user-check text-primary me-2"></i> Patient Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Patient <span class="text-danger">*</span>
+            </label>
+            <select class="form-select" formControlName="patientId"
+              [class.is-invalid]="form.get('patientId')?.invalid && form.get('patientId')?.touched">
+              <option [ngValue]="null" disabled selected>
+                ★ Select a patient
+              </option>
+              <option *ngFor="let p of patients" [ngValue]="p.id">
+                {{ p.firstName }} {{ p.lastName }} • {{ p.email }}
+              </option>
+            </select>
+            <div *ngIf="form.get('patientId')?.invalid && form.get('patientId')?.touched"
+              class="invalid-feedback d-block">
+              <i class="ti ti-alert me-1"></i> Please select a patient
+            </div>
+          </div>
+
+          <!-- Provider Selection for Admin -->
+          <div class="mb-0" *ngIf="isAdmin && providers.length">
+            <label class="form-label fw-semibold">
+              Prescribing Doctor
+            </label>
+            <select class="form-select" formControlName="providerId">
+              <option [ngValue]="null">
+                → Your profile (current user)
+              </option>
+              <option *ngFor="let p of providers" [ngValue]="p.id">
+                Dr. {{ p.firstName }} {{ p.lastName }}
+              </option>
+            </select>
+            <small class="text-muted d-block mt-2">
+              <i class="ti ti-info-circle"></i> Select another doctor if needed
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medication Details Card -->
+      <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-light border-0 py-3">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="ti ti-pill text-success me-2"></i> Treatment Details
+          </h5>
+        </div>
+        <div class="card-body">
+          
+          <!-- Medication Content -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Prescription template
+            </label>
+            <select class="form-select mb-3" (change)="onTemplateSelect($event)">
+              <option value="">Select a template</option>
+              <option *ngFor="let option of medicationTemplates" [value]="option.text">
+                {{ option.label }}
+              </option>
+            </select>
+
+            <label class="form-label fw-semibold">
+              Medications & Dosage <span class="text-danger">*</span>
+            </label>
+            <div class="position-relative">
+              <textarea class="form-control form-control-lg" formControlName="contenu" 
+                rows="6" 
+                placeholder="Example:&#10;1. Amoxicillin 500mg - 3 times a day for 7 days&#10;2. Paracetamol 500mg - As needed (max 6 times/day)&#10;3. Vitamin C 1000mg - Once a day"
+                [attr.maxlength]="contenuMaxLength"
+                [class.is-invalid]="form.get('contenu')?.invalid && (form.get('contenu')?.touched || form.get('contenu')?.dirty)">
+              </textarea>
+              <small class="text-muted d-block mt-2">
+                <i class="ti ti-info-circle"></i> 
+                List the medications, dosages, and intake frequencies
+              </small>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="text-muted small">
+                <strong>{{ charCount('contenu') }}</strong> / {{ contenuMaxLength }} caractères
+              </span>
+                <div *ngIf="form.get('contenu')?.invalid && (form.get('contenu')?.touched || form.get('contenu')?.dirty)"
+                class="badge bg-danger">
+                <i class="ti ti-alert"></i> Min. {{ contenuMinLength }} characters required
+              </div>
+            </div>
+          </div>
+
+          <!-- Frequency and Dosage Row -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Day/Period <span class="text-muted small">(optional)</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="ti ti-calendar"></i>
+                </span>
+                <select class="form-select" formControlName="jour" (change)="onFrequencySelect($event)">
+                  <option value="">Select a period</option>
+                  <option *ngFor="let option of treatmentPeriodOptions" [value]="option">
+                    {{ option }}
+                  </option>
+                </select>
+              </div>
+              <small class="text-muted d-block mt-2">Choose a standard treatment period or enter a custom value.</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Treatment Duration <span class="text-muted small">(optional)</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="ti ti-hourglass"></i>
+                </span>
+                <select class="form-select" formControlName="dosage" (change)="onDurationSelect($event)">
+                  <option value="">Select a duration</option>
+                  <option *ngFor="let option of dosageOptions" [value]="option">
+                    {{ option }}
+                  </option>
+                </select>
+              </div>
+              <small class="text-muted d-block mt-2">Select a common frequency for the dosage.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Notes Card -->
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-light border-0 py-3">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="ti ti-note text-info me-2"></i> Additional Notes
+          </h5>
+        </div>
+        <div class="card-body">
+          <textarea class="form-control" formControlName="notes" 
+            rows="3"
+            placeholder="E.g. Take with meals, avoid sun exposure, follow-up recommended after 1 week...">
+          </textarea>
+          <small class="text-muted d-block mt-2">
+            <i class="ti ti-info-circle"></i> 
+            Specific guidance for the patient or pharmacy
+          </small>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Preview & Actions -->
+    <div class="col-lg-4">
+      
+      <!-- Preview Card -->
+      <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+        <div class="card-header bg-primary text-white border-0 py-3">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="ti ti-eye me-2"></i> Preview
+          </h5>
+        </div>
+        <div class="card-body">
+          
+          <!-- Patient Info Preview -->
+          <div class="mb-3 pb-3 border-bottom">
+            <small class="text-muted d-block mb-1">PATIENT</small>
+            <div class="fw-semibold text-truncate">
+              {{ getSelectedPatientName() || '—' }}
+            </div>
+            <small class="text-muted" *ngIf="getSelectedPatientName()">
+              {{ getSelectedPatientEmail() }}
+            </small>
+          </div>
+
+          <!-- Medication Preview -->
+          <div class="mb-3 pb-3 border-bottom">
+            <small class="text-muted d-block mb-1">TRAITEMENT</small>
+            <div *ngIf="form.get('contenu')?.value; else noMedication" class="small">
+              <div class="text-truncate" 
+                [title]="form.get('contenu')?.value"
+                style="max-height: 60px; overflow: hidden;">
+                {{ form.get('contenu')?.value.substring(0, 100) }}
+                <span *ngIf="form.get('contenu')?.value.length > 100">...</span>
+              </div>
+            </div>
+            <ng-template #noMedication>
+              <span class="text-muted small">Entrez les informations de traitement</span>
+            </ng-template>
+          </div>
+
+          <!-- Duration Preview -->
+          <div class="mb-4 pb-3 border-bottom">
+            <small class="text-muted d-block mb-1">DURÉE</small>
+            <div class="small">
+              <span *ngIf="form.get('dosage')?.value; else noDuration">
+                <i class="ti ti-hourglass text-warning me-1"></i>
+                {{ form.get('dosage')?.value }}
+              </span>
+              <ng-template #noDuration>
+                <span class="text-muted">Non spécifiée</span>
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- Validation Status -->
+          <div class="alert mb-3" 
+            [ngClass]="form.valid ? 'alert-success' : 'alert-warning'"
+            role="alert">
+            <div class="d-flex align-items-start">
+              <i class="ti me-2" 
+                [ngClass]="form.valid ? 'ti-check-circle' : 'ti-alert'"></i>
+              <div class="small">
+                <strong>{{ form.valid ? 'Formulaire complet' : 'Formulaire incomplet' }}</strong>
+                <div class="mt-1" *ngIf="!form.valid">
+                  <small class="d-block" *ngIf="form.get('patientId')?.invalid">
+                    • Patient requis
+                  </small>
+                  <small class="d-block" *ngIf="form.get('contenu')?.invalid">
+                    • Contenu du traitement requis (min. {{ contenuMinLength }} caractères)
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg" 
+              [disabled]="form.invalid || submitting">
+              <i class="ti me-2"
+                [ngClass]="submitting ? 'ti-loader-3 animate-spin' : (isEditMode ? 'ti-pencil' : 'ti-plus')"></i>
+              {{ submitting ? 'Traitement...' : (isEditMode ? 'Mettre à jour' : 'Créer') }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary" 
+              (click)="goBack()"
+              [disabled]="submitting">
+              <i class="ti ti-x me-2"></i> Annuler
+            </button>
+          </div>
+
+          <!-- Medical Info Box -->
+          <div class="alert alert-light mt-3 mb-0 border-1">
+            <small class="text-muted d-block">
+              <i class="ti ti-info-circle me-1"></i> 
+              <strong>Conseil:</strong> Soyez aussi détaillé et précis que possible. 
+              Les informations complètes aident le patient et le pharmacien.
+            </small>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </form>
+</div>
+
+<style>
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  }
+
+  .card {
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .form-label {
+    font-size: 0.95rem;
+  }
+
+  .text-truncate {
+    white-space: normal;
+    word-break: break-word;
+  }
+</style>

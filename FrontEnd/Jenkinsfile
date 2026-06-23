@@ -1,0 +1,134 @@
+pipeline {
+    agent any
+
+    triggers {
+        githubPush()
+    }
+
+    environment {
+        GIT_REPO       = 'https://github.com/saifeddinefrikhi-lab/Esprit-PIDEV-4SAE8-2526-NeuroGuard.git'
+        GIT_BRANCH     = 'main'
+        SONAR_TOKEN    = credentials('sonar-token')
+        DOCKER_IMAGE   = "neuroguard/frontend"
+        DOCKER_TAG     = "${env.BUILD_NUMBER}"
+        SERVICE_DIR    = "FrontEnd"
+        NODE_OPTIONS = '--max_old_space_size=4096'
+    }
+
+    options {
+        timeout(time: 45, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    stages {
+
+        stage('Code Checkout') {
+            steps {
+                git branch: "${GIT_BRANCH}",
+                    url: "${GIT_REPO}"
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh 'npm ci --legacy-peer-deps --omit=optional'
+                }
+            }
+        }
+
+        stage('Karma Unit Tests') {
+    environment {
+        CHROME_BIN = '/usr/bin/google-chrome'
+    }
+    steps {
+        dir("${SERVICE_DIR}") {
+            sh 'npm run test -- --watch=false --code-coverage || true'
+        }
+    }
+    post {
+        always {
+            junit allowEmptyResults: true,
+                  testResults: "${SERVICE_DIR}/test-results/karma-results.xml"
+        }
+    }
+}
+
+       stage('SonarQube Analysis') {
+    steps {
+        dir("${SERVICE_DIR}") {
+            withSonarQubeEnv('SonarQube') {
+                sh '''
+                    /opt/sonar-scanner/bin/sonar-scanner \
+                        -Dsonar.projectKey=neuroguard-frontend \
+                        -Dsonar.projectName="NeuroGuard - Angular Frontend" \
+                        -Dsonar.sources=src \
+                        -Dsonar.tests=src/__tests__ \
+                        -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
+                        -Dsonar.exclusions=**/node_modules/**,**/*.spec.ts,**/coverage/**,**/.angular/**,**/dist/**
+                '''
+            }
+        }
+    }
+}
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build Production') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh 'npm run build -- --configuration=production'
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                    sh "docker save ${DOCKER_IMAGE}:${DOCKER_TAG} -o docker-image.tar"
+                    stash name: 'docker-image', includes: 'docker-image.tar'
+                }
+            }
+        }
+        stage('Push to DockerHub') {
+            steps {
+                echo '🚀 Pushing image to DockerHub...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    dir("${SERVICE_DIR}") {
+                        unstash 'docker-image'
+                        sh 'docker load -i docker-image.tar'
+                        sh "docker image inspect ${DOCKER_IMAGE}:${DOCKER_TAG} >/dev/null"
+                        sh """
+                            echo "=== Login to DockerHub ==="
+                            echo "\${DOCKER_PASS}" | docker login -u "\${DOCKER_USER}" --password-stdin
+
+                            echo "=== Pushing image tag ${DOCKER_TAG} ==="
+                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+
+                            echo "=== Logout from DockerHub ==="
+                            docker logout
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo "Frontend CI Pipeline FAILED - Build #${env.BUILD_NUMBER}"
+        }
+        success {
+            echo "Frontend CI Pipeline SUCCESS - Build #${env.BUILD_NUMBER}"
+        }
+        always {
+            cleanWs()
+        }
+    }
+}

@@ -1,0 +1,28 @@
+<app-card cardTitle="Cognitive Assessments" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    @if (loading) {
+    <div class="text-center p-4">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    } @else {
+    <!-- Mini-Game Scores -->
+    <h6 class="section-title">Mini-Game Scores</h6>
+    <div class="assessment-list">
+        @for (game of miniGames; track game.testName) {
+        <div class="assessment-row">
+            <div class="assess-name">
+                <i class="material-icons">bolt</i>
+                <span>{{ game.testName }}</span>
+            </div>
+            <div class="assess-score">
+                <div class="score-bar-wrapper">
+                    <div class="score-bar-fill" [style.width.%]="getScorePercent(game)"
+                        [style.background]="getTrendColor(game.trend)"></div>
+                </div>
+                <span class="score-text">{{ game.score }}%</span>
+            </div>
+            <i class="material-icons" [style.color]="getTrendColor(game.trend)">{{ getTrendIcon(game.trend) }}</i>
+        </div>
+        }
+    </div>
+    }
+</app-card>

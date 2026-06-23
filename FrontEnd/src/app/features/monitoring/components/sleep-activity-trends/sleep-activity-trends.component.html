@@ -1,0 +1,29 @@
+<app-card cardTitle="Sleep & Activity Trends" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    @if (loading) {
+    <div class="text-center p-4">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    } @else if (chartOptions) {
+    <div class="sleep-stats-row mb-3">
+        <div class="stat-item">
+            <span class="stat-label">Weekly Avg</span>
+            <span class="stat-value">{{ weeklyAvg }}h</span>
+            <span class="quality-badge" [ngClass]="getQualityClass()">{{ getQualityBadge() }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Avg Disturbances</span>
+            <span class="stat-value">{{ avgDisturbances }}/night</span>
+        </div>
+    </div>
+    <apx-chart [series]="chartOptions.series" [chart]="chartOptions.chart" [plotOptions]="chartOptions.plotOptions"
+        [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
+        [colors]="chartOptions.colors" [grid]="chartOptions.grid" [dataLabels]="chartOptions.dataLabels"
+        [legend]="chartOptions.legend" [tooltip]="chartOptions.tooltip">
+    </apx-chart>
+    } @else {
+    <div class="text-center p-4 text-muted mt-2">
+        <i class="material-icons mb-2" style="font-size: 2rem; opacity: 0.5;">bedtime_off</i>
+        <div>No sleep data available.</div>
+    </div>
+    }
+</app-card>

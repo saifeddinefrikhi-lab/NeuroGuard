@@ -1,0 +1,20 @@
+<app-card cardTitle="Risk Indicators" [showHeader]="true" [cardClass]="'glass-card animate-fade-in'">
+    <div class="alert-list">
+        @for (alert of alerts; track alert.label) {
+        <div class="alert-item">
+            <div class="alert-icon" [style.background]="getLevelBg(alert.level)"
+                [style.color]="getLevelColor(alert.level)">
+                <i class="material-icons">{{ alert.icon }}</i>
+            </div>
+            <div class="alert-info">
+                <span class="alert-label">{{ alert.label }}</span>
+                <span class="alert-detail">{{ alert.detail }}</span>
+            </div>
+            <span class="alert-badge" [style.background]="getLevelBg(alert.level)"
+                [style.color]="getLevelColor(alert.level)">
+                {{ getLevelLabel(alert.level) }}
+            </span>
+        </div>
+        }
+    </div>
+</app-card>

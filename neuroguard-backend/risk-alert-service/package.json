@@ -1,0 +1,20 @@
+{
+  "name": "risk-alert-service",
+  "version": "1.0.0",
+  "description": "NeuroGuard risk alert service implemented with Node.js and Express",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "amqplib": "^2.0.1",
+    "cors": "^2.8.5",
+    "eureka-js-client": "^4.5.0",
+    "express": "^4.19.2",
+    "mongoose": "^9.7.1",
+    "ws": "^8.18.0"
+  }
+}

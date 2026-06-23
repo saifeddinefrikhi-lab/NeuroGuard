@@ -1,0 +1,168 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">Consultation History</h2>
+      <p class="text-muted small mb-0">View the history of all your consultations</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <input type="search" class="form-control form-control-sm header-search" placeholder="Search by title or ID" (input)="onSearch($event)">
+      <a routerLink="/provider/consultations" class="btn btn-outline-primary">Manage Consultations</a>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Loading...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Stats Section -->
+  <div class="row g-4 mb-4" *ngIf="!loading && !error && providerStats">
+    <!-- Chart Overview -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 f-w-700 text-primary">Consultation Analysis</h5>
+          <span class="badge bg-light-primary text-primary rounded-pill px-3">Real-time</span>
+        </div>
+        <div class="card-body p-4">
+          <app-monthly-bar-chart [chartData]="chartData" [chartCategories]="chartLabels" seriesName="My Consultations" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Breakdown -->
+    <div class="col-md-4">
+      <div class="row g-3">
+        <div class="col-6 col-md-12">
+          <div class="stats-card stats-total">
+            <div class="stats-value">{{ providerStats.total }}</div>
+            <div class="stats-label">Total</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-12">
+          <div class="stats-card stats-completed">
+            <div class="stats-value">{{ providerStats.byStatus['COMPLETED'] || 0 }}</div>
+            <div class="stats-label">Completed</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Top Patients (Jointure section) -->
+      <div class="card border-0 shadow-sm mt-4" *ngIf="providerStats.topPatients && providerStats.topPatients.length > 0">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <h6 class="mb-0 f-w-700 text-primary">Most Followed Patients (Join)</h6>
+        </div>
+        <div class="card-body p-4">
+          <div class="list-group list-group-flush border-0">
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0 mb-3" *ngFor="let tp of providerStats.topPatients">
+              <div class="d-flex align-items-center">
+                <div class="avatar avatar-s bg-light-primary text-primary rounded-circle me-3 f-w-700">
+                  {{ tp.name.charAt(0) }}
+                </div>
+                <span class="small f-w-600">{{ tp.name }}</span>
+              </div>
+              <span class="badge bg-primary text-white rounded-pill px-2">{{ tp.count }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm" *ngIf="!loading && !error">
+    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 f-w-700 text-primary">Consultation History</h5>
+      <div class="d-flex gap-2">
+        <span class="badge bg-light-info text-info rounded-pill px-3">Total: {{ filteredConsultations().length }}</span>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table modern-table mb-0" *ngIf="filteredConsultations().length > 0">
+          <thead>
+            <tr>
+              <th>Consultation</th>
+              <th>Patient</th>
+              <th>Caregiver</th>
+              <th>Date & Time</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filteredConsultations()">
+              <td>
+                <div class="f-w-600 text-dark">{{ c.title }}</div>
+                <div class="small text-muted">ID: {{ c.id }}</div>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar avatar-s bg-light-primary text-primary rounded-circle me-3 f-w-700">
+                    {{ getPatientName(c.patientId).charAt(0) }}
+                  </div>
+                  <div>
+                    <div class="f-w-600">{{ getPatientName(c.patientId) }}</div>
+                    <div class="small text-muted">#{{ c.patientId }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar avatar-s bg-light-secondary text-secondary rounded-circle me-3 f-w-700">
+                    {{ (c.caregiverId ? getCaregiverName(c.caregiverId) : 'S').charAt(0) }}
+                  </div>
+                  <div>
+                    <div class="f-w-600">{{ c.caregiverId ? getCaregiverName(c.caregiverId) : 'Unassigned' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="f-w-600">{{ formatDateTime(c.startTime).split(',')[0] }}</div>
+                <div class="small text-muted">{{ formatDateTime(c.startTime).split(',')[1] }}</div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="c.type === 'ONLINE' ? 'bg-light-info text-info' : 'bg-light-warning text-warning'">
+                  {{ c.type === 'ONLINE' ? 'Online' : 'In-Person' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="{
+                  'scheduled': c.status === 'SCHEDULED',
+                  'ongoing': c.status === 'ONGOING',
+                  'completed': c.status === 'COMPLETED',
+                  'cancelled': c.status === 'CANCELLED'
+                }">{{ c.status }}</span>
+              </td>
+              <td class="text-end">
+                <button class="join-btn btn-sm" *ngIf="c.type === 'ONLINE'" (click)="joinOnlineConsultation(c)">
+                  Join
+                </button>
+                <span *ngIf="c.type !== 'ONLINE'" class="text-muted fw-light">In office</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="filteredConsultations().length === 0" class="p-5 text-center">
+        <div class="py-4">
+          <i antIcon type="file-text" theme="outline" class="text-muted" style="font-size: 48px;"></i>
+          <p class="mt-3 text-muted">No consultations found in your history.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showMeetingModal" (click)="closeMeetingModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">{{ meetingTitle }}</h5>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMeetingInNewTab()">Open in new tab</button>
+        <button type="button" class="btn-close" (click)="closeMeetingModal()" aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="modal-body p-0">
+      <iframe *ngIf="meetingUrl" [src]="meetingUrl" class="meeting-iframe" allow="camera; microphone; fullscreen"></iframe>
+    </div>
+  </div>
+</div>

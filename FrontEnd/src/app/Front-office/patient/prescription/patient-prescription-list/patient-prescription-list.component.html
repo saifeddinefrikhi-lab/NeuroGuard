@@ -1,0 +1,164 @@
+<div class="prescription-wrap">
+
+  <!-- Notification Toast -->
+  <div
+    class="notification-toast"
+    [ngClass]="{
+      show: showNotification,
+      'notification-added': notificationType === 'added',
+      'notification-updated': notificationType === 'updated',
+      'notification-deleted': notificationType === 'deleted',
+      'notification-error': notificationType === 'error'
+    }"
+  >
+    <div class="toast-content">
+      <i [ngSwitch]="notificationType" class="notification-icon me-2 ms-2 fs-4">
+        <span *ngSwitchCase="'added'" class="ti ti-check-circle text-success"></span>
+        <span *ngSwitchCase="'updated'" class="ti ti-circle-check text-info"></span>
+        <span *ngSwitchCase="'deleted'" class="ti ti-trash text-warning"></span>
+        <span *ngSwitchDefault class="ti ti-alert-circle text-danger"></span>
+      </i>
+      <div class="message">
+        <h4 *ngSwitch="notificationType">
+          <span *ngSwitchCase="'added'">Prescription Added</span>
+          <span *ngSwitchCase="'updated'">Prescription Updated</span>
+          <span *ngSwitchCase="'deleted'">Prescription Deleted</span>
+          <span *ngSwitchDefault>Notification</span>
+        </h4>
+        <p>{{ notificationMessage }}</p>
+      </div>
+      <button class="close-btn" (click)="showNotification = false"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+
+  <header class="prescription-header">
+    <h1 class="prescription-title">
+      <i class="ti ti-pill"></i>
+      My Prescriptions
+    </h1>
+    <p class="prescription-subtitle">View your prescriptions in real time</p>
+  </header>
+
+  <!-- Search, Sort, Filter Controls -->
+  <div class="prescription-controls" *ngIf="!loading && prescriptions.length > 0">
+    <div class="row g-3 align-items-end">
+      <!-- Search Input -->
+      <div class="col-md-4">
+        <label class="form-label fw-bold">🔍 Search</label>
+        <div class="input-group">
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Search by content..." 
+            [(ngModel)]="searchQuery"
+            (keyup)="onSearch()"
+          >
+          <button class="btn btn-outline-secondary" type="button" (click)="onSearch()">
+            <i class="ti ti-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sort Dropdown -->
+      <div class="col-md-4">
+        <label class="form-label fw-bold">↕️ Sort by</label>
+        <select class="form-select" [value]="sortBy" (change)="onSortChange($event)">
+          <option value="date-desc">Newest</option>
+          <option value="date-asc">Oldest</option>
+          <option value="name">Name (A-Z)</option>
+        </select>
+      </div>
+
+      <!-- Filter Dropdown -->
+      <div class="col-md-4">
+        <label class="form-label fw-bold">🎯 Filter</label>
+        <select class="form-select" [value]="filterStatus" (change)="onFilterChange($event)">
+          <option value="all">All</option>
+          <option value="recent">Last 30 days</option>
+          <option value="old">Older than 30 days</option>
+        </select>
+      </div>
+    </div>
+    <div class="mt-2 text-muted small">
+      <i class="ti ti-info-circle"></i>
+      {{ filteredPrescriptions.length }} prescription(s) shown
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="prescription-loading">
+    <div class="spinner"></div>
+    <p>Loading your prescriptions...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="prescription-error">
+    <i class="ti ti-alert-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && prescriptions.length === 0" class="prescription-empty">
+    <i class="ti ti-file-prescription"></i>
+    <h3>No Prescriptions</h3>
+    <p>You do not have any saved prescriptions yet.</p>
+  </div>
+
+  <div class="prescription-board" *ngIf="!loading && !errorMessage && filteredPrescriptions.length > 0">
+    <div class="prescription-card" *ngFor="let p of filteredPrescriptions">
+      <div class="prescription-card-header">
+        <div class="prescription-card-title-box">
+          <i class="ti ti-file-certificate fs-3 col-primary me-2"></i>
+          <div>
+            <h4 class="m-0 mb-1 fw-bold text-dark">Prescription #{{ p.id }}</h4>
+            <span class="text-muted small"><i class="ti ti-calendar me-1"></i>{{ p.createdAt | date:'longDate' }}</span>
+          </div>
+        </div>
+        <div class="prescription-card-actions">
+          <span class="prescription-status-pill" [ngClass]="isPrescriptionCompleted(p) ? 'completed' : 'active'">
+            <i class="ti me-1" [ngClass]="getPrescriptionStatusIcon(p)"></i>
+            {{ getPrescriptionStatusLabel(p) }}
+          </span>
+          <div class="prescription-doctor-badge">
+            Dr. {{ p.providerName || 'Inconnu' }}
+          </div>
+        </div>
+      </div>
+      <div class="prescription-card-body">
+
+        <div class="row mb-3" *ngIf="p.jour || p.dosage">
+          <div class="col-6" *ngIf="p.jour">
+            <label class="section-label"><i class="ti ti-calendar-event me-1"></i> Day</label>
+            <div class="fw-medium text-dark">{{ p.jour }}</div>
+          </div>
+          <div class="col-6" *ngIf="p.dosage">
+            <label class="section-label"><i class="ti ti-flask me-1"></i> Dosage</label>
+            <div class="fw-medium text-dark">{{ p.dosage }}</div>
+          </div>
+        </div>
+
+        <label class="section-label"><i class="ti ti-notes me-1"></i> Prescription content</label>
+        <div class="content-box">
+          {{ p.contenu }}
+        </div>
+
+        <div *ngIf="p.notes" class="mt-3">
+          <label class="section-label"><i class="ti ti-info-circle me-1"></i> Additional notes</label>
+          <div class="notes-box">
+            {{ p.notes }}
+          </div>
+        </div>
+      </div>
+      <div class="prescription-card-footer mt-auto">
+        <button class="pdf-download-btn" type="button" (click)="downloadPrescriptionPdf(p.id)">
+          <i class="ti ti-download me-1"></i>
+          PDF
+        </button>
+        <span class="update-text"><i class="ti ti-reload"></i> Last updated: {{ p.updatedAt | date:'short' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && prescriptions.length > 0 && filteredPrescriptions.length === 0" class="prescription-empty">
+    <i class="ti ti-search"></i>
+    <h3>No Results</h3>
+    <p>No prescription matches your search or filter criteria.</p>
+  </div>
+</div>

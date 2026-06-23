@@ -1,0 +1,167 @@
+<div class="container-fluid px-4 mt-3 mb-5">
+  <button class="btn btn-outline-secondary btn-sm mb-4" (click)="goBack()">
+    <i class="ti ti-arrow-left"></i> Back to List
+  </button>
+
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>{{ errorMessage }}
+  </div>
+
+  <div *ngIf="plan && !loading" class="modern-card">
+    <div class="card-header-modern">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h2 class="patient-name">{{ plan.patientName || 'Patient #' + plan.patientId }}</h2>
+          <p class="patient-id">
+            Plan #{{ plan.id }} · Provider: {{ plan.providerName || 'N/A' }}
+            <span class="priority-badge priority-{{ (plan.priority || 'MEDIUM') | lowercase }}">
+              Priority: {{ (plan.priority || 'MEDIUM') === 'HIGH' ? 'High' : ((plan.priority || 'MEDIUM') === 'LOW' ? 'Low' : 'Medium') }}
+            </span>
+          </p>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <button *ngIf="canEdit" class="btn-modern btn-edit" (click)="onEdit()">
+            <i class="ti ti-edit"></i> Edit
+          </button>
+          <button *ngIf="canDelete" class="btn-modern btn-delete" (click)="onDelete()">
+            <i class="ti ti-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body-modern">
+      <div class="section mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 class="section-title mb-0"><i class="ti ti-apple"></i> Nutrition Plan</h5>
+          <span class="d-flex align-items-center gap-2">
+            <span class="status-badge status-{{ (plan.nutritionStatus || 'TODO') | lowercase }}">{{ (plan.nutritionStatus || 'TODO') === 'DONE' ? 'Done' : 'To do' }}</span>
+            <button *ngIf="canToggleStatus" type="button" class="btn-modern btn-status btn-sm" (click)="toggleSectionStatus('nutrition')" [disabled]="updatingStatus">
+              <i class="ti" [ngClass]="getSectionStatus('nutrition') === 'DONE' ? 'ti-circle-dashed' : 'ti-circle-check'"></i>
+              {{ getSectionStatus('nutrition') === 'DONE' ? 'To do' : 'Done' }}
+            </button>
+          </span>
+        </div>
+        <div *ngIf="getSectionDeadline('nutrition')" class="section-deadline mb-2" [class.deadline-overdue]="getDeadlineCountdown(getSectionDeadline('nutrition')).isOverdue">
+          <i class="ti ti-clock"></i>
+          <span>{{ getDeadlineCountdown(getSectionDeadline('nutrition')).text }}</span>
+          <span class="text-muted small"> — {{ formatDeadlineDate(getSectionDeadline('nutrition')) }}</span>
+        </div>
+        <div class="plan-content">{{ plan.nutritionPlan || 'Not specified' }}</div>
+      </div>
+      <div class="section mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 class="section-title mb-0"><i class="ti ti-moon"></i> Sleep Plan</h5>
+          <span class="d-flex align-items-center gap-2">
+            <span class="status-badge status-{{ (plan.sleepStatus || 'TODO') | lowercase }}">{{ (plan.sleepStatus || 'TODO') === 'DONE' ? 'Done' : 'To do' }}</span>
+            <button *ngIf="canToggleStatus" type="button" class="btn-modern btn-status btn-sm" (click)="toggleSectionStatus('sleep')" [disabled]="updatingStatus">
+              <i class="ti" [ngClass]="getSectionStatus('sleep') === 'DONE' ? 'ti-circle-dashed' : 'ti-circle-check'"></i>
+              {{ getSectionStatus('sleep') === 'DONE' ? 'To do' : 'Done' }}
+            </button>
+          </span>
+        </div>
+        <div *ngIf="getSectionDeadline('sleep')" class="section-deadline mb-2" [class.deadline-overdue]="getDeadlineCountdown(getSectionDeadline('sleep')).isOverdue">
+          <i class="ti ti-clock"></i>
+          <span>{{ getDeadlineCountdown(getSectionDeadline('sleep')).text }}</span>
+          <span class="text-muted small"> — {{ formatDeadlineDate(getSectionDeadline('sleep')) }}</span>
+        </div>
+        <div class="plan-content">{{ plan.sleepPlan || 'Not specified' }}</div>
+      </div>
+      <div class="section mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 class="section-title mb-0"><i class="ti ti-run"></i> Activity Plan</h5>
+          <span class="d-flex align-items-center gap-2">
+            <span class="status-badge status-{{ (plan.activityStatus || 'TODO') | lowercase }}">{{ (plan.activityStatus || 'TODO') === 'DONE' ? 'Done' : 'To do' }}</span>
+            <button *ngIf="canToggleStatus" type="button" class="btn-modern btn-status btn-sm" (click)="toggleSectionStatus('activity')" [disabled]="updatingStatus">
+              <i class="ti" [ngClass]="getSectionStatus('activity') === 'DONE' ? 'ti-circle-dashed' : 'ti-circle-check'"></i>
+              {{ getSectionStatus('activity') === 'DONE' ? 'To do' : 'Done' }}
+            </button>
+          </span>
+        </div>
+        <div *ngIf="getSectionDeadline('activity')" class="section-deadline mb-2" [class.deadline-overdue]="getDeadlineCountdown(getSectionDeadline('activity')).isOverdue">
+          <i class="ti ti-clock"></i>
+          <span>{{ getDeadlineCountdown(getSectionDeadline('activity')).text }}</span>
+          <span class="text-muted small"> — {{ formatDeadlineDate(getSectionDeadline('activity')) }}</span>
+        </div>
+        <div class="plan-content">{{ plan.activityPlan || 'Not specified' }}</div>
+      </div>
+      <div class="section mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 class="section-title mb-0"><i class="ti ti-pill"></i> Medication Plan</h5>
+          <span class="d-flex align-items-center gap-2">
+            <span class="status-badge status-{{ (plan.medicationStatus || 'TODO') | lowercase }}">{{ (plan.medicationStatus || 'TODO') === 'DONE' ? 'Done' : 'To do' }}</span>
+            <button *ngIf="canToggleStatus" type="button" class="btn-modern btn-status btn-sm" (click)="toggleSectionStatus('medication')" [disabled]="updatingStatus">
+              <i class="ti" [ngClass]="getSectionStatus('medication') === 'DONE' ? 'ti-circle-dashed' : 'ti-circle-check'"></i>
+              {{ getSectionStatus('medication') === 'DONE' ? 'To do' : 'Done' }}
+            </button>
+          </span>
+        </div>
+        <div *ngIf="getSectionDeadline('medication')" class="section-deadline mb-2" [class.deadline-overdue]="getDeadlineCountdown(getSectionDeadline('medication')).isOverdue">
+          <i class="ti ti-clock"></i>
+          <span>{{ getDeadlineCountdown(getSectionDeadline('medication')).text }}</span>
+          <span class="text-muted small"> — {{ formatDeadlineDate(getSectionDeadline('medication')) }}</span>
+        </div>
+        <div class="plan-content">{{ plan.medicationPlan || 'Not specified' }}</div>
+      </div>
+      <div class="record-metadata">
+        <div class="metadata-item">
+          <span class="metadata-label">Created</span>
+          <span class="metadata-value">{{ plan.createdAt | date:'medium' }}</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Last Updated</span>
+          <span class="metadata-value">{{ plan.updatedAt | date:'medium' }}</span>
+        </div>
+      </div>
+
+      <!-- Doctor / patient chat -->
+      <div class="care-plan-chat section mt-4">
+        <h5 class="section-title mb-3"><i class="ti ti-message-circle"></i> Doctor - patient discussion</h5>
+        <div *ngIf="chatLoading" class="chat-loading text-muted small">Loading messages...</div>
+        <div *ngIf="chatError" class="chat-error mb-2">{{ chatError }}</div>
+        <div class="chat-messages" #chatMessagesEl>
+          <div *ngIf="!chatLoading && messages.length === 0" class="chat-empty text-muted small">
+            No messages yet. Only the doctor and the patient can send messages.
+          </div>
+          <div
+            *ngFor="let msg of messages"
+            class="chat-msg"
+            [class.chat-msg-mine]="isMyMessage(msg)"
+            [class.chat-msg-other]="!isMyMessage(msg)"
+          >
+            <span class="chat-msg-sender">{{ msg.senderName || 'Utilisateur' }}</span>
+            <span class="chat-msg-time">{{ msg.createdAt | date:'short' }}</span>
+            <div class="chat-msg-content">{{ msg.content }}</div>
+          </div>
+        </div>
+        <div *ngIf="canSendChat" class="chat-input-wrap">
+          <textarea
+            class="chat-input"
+            [(ngModel)]="chatInput"
+            (keydown.enter)="$event.preventDefault(); sendChatMessage()"
+            placeholder="Write a message..."
+            rows="2"
+            [disabled]="sendingMessage"
+          ></textarea>
+          <button
+            type="button"
+            class="chat-send-btn"
+            (click)="sendChatMessage()"
+            [disabled]="sendingMessage || !chatInput?.trim()"
+            title="Send"
+          >
+            <i class="ti ti-send"></i> Send
+          </button>
+        </div>
+        <p *ngIf="!canSendChat && !chatLoading" class="chat-readonly small text-muted mt-2 mb-0">
+          You can view the discussion. Only the doctor or the patient can send messages.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

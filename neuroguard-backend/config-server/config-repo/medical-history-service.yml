@@ -1,0 +1,12 @@
+user-service:
+  url: ${USER_SERVICE_URL:http://localhost:8081}
+
+alert-service:
+  url: ${ALERT_SERVICE_URL:http://localhost:8084}
+
+upload:
+  dir: uploads/medical-history/
+
+azure:
+  storage:
+    enabled: false

@@ -1,0 +1,35 @@
+:host { display: block; }
+.container { max-width: 1200px; margin: 0 auto; }
+
+.stats-card {
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  margin-bottom: 0.75rem;
+}
+.stats-value { font-size: 1.75rem; font-weight: 700; line-height: 1.2; }
+.stats-label { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
+.stats-total { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; }
+.stats-online { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: #fff; }
+.stats-presential { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; }
+.stats-scheduled { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; }
+.stats-completed { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff; }
+.stats-cancelled { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #fff; }
+.card { border-radius: 12px; box-shadow: 0 8px 30px rgba(2,6,23,0.06); border: none; }
+.card-header {
+  background: linear-gradient(90deg, #4f46e5 0%, #06b6d4 100%);
+  color: #fff; font-weight: 600; padding: 1rem 1.25rem;
+  border-top-left-radius: 12px; border-top-right-radius: 12px;
+}
+.modern-table { border-radius: 10px; overflow: hidden; }
+.modern-table thead { background: #f8fafc; }
+.modern-table tbody tr:hover { background: #fbfdff; }
+.status-badge {
+  display: inline-block; padding: 0.28rem 0.6rem; border-radius: 999px;
+  font-weight: 600; font-size: 0.78rem;
+}
+.status-badge.scheduled { background: #fff7ed; color: #92400e; }
+.status-badge.ongoing { background: #ecfeff; color: #035f5f; }
+.status-badge.completed { background: #ecfdf5; color: #065f46; }
+.status-badge.cancelled { background: #fff1f2; color: #9f1239; }

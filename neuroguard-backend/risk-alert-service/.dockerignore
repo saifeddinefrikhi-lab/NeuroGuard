@@ -1,0 +1,7 @@
+node_modules
+data/alerts.json
+target
+src/main
+src/test
+.git
+.idea

@@ -1,0 +1,459 @@
+<div class="pharmacy-locator-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>🏥 Health Locator</h1>
+    <p class="subtitle">Find the nearest pharmacies and clinics around you</p>
+  </div>
+
+  <div class="mode-switch">
+    <button class="mode-btn" [class.active]="mode === 'pharmacy'" (click)="setMode('pharmacy')">💊 Pharmacies</button>
+    <button class="mode-btn" [class.active]="mode === 'clinic'" (click)="setMode('clinic')">🩺 Clinics</button>
+  </div>
+
+  <!-- Location Section -->
+  <div class="location-section">
+    <div class="location-card">
+      <div class="location-content">
+        <i class="icon-location"></i>
+        <div class="location-text">
+          <h3>Your location</h3>
+          <p *ngIf="userLocation">
+            📍 Latitude: {{ userLocation.latitude.toFixed(4) }} | Longitude: {{ userLocation.longitude.toFixed(4) }}
+          </p>
+          <p *ngIf="!userLocation && locationError" class="error-text">{{ locationError }}</p>
+          <p *ngIf="!userLocation && !locationError">Waiting for location...</p>
+        </div>
+      </div>
+      <button class="btn-refresh" (click)="getCurrentUserLocation()" [disabled]="loading">
+        <i class="icon-refresh"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="live-map-section" *ngIf="userLocation">
+    <div class="live-map-header">
+      <h3>🗺️ Map location</h3>
+      <button class="btn-search" type="button" (click)="openLiveMapInGoogleMaps()">
+        Open in Google Maps
+      </button>
+    </div>
+    <p class="live-map-subtitle">{{ getLiveMapTitle() }}</p>
+    <div #mapDiv class="live-map-frame"></div>
+  </div>
+
+  <!-- Search & Filter Section -->
+  <div class="search-filter-section">
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <form [formGroup]="searchForm" (ngSubmit)="mode === 'clinic' ? searchClinics() : searchPharmacies()">
+        <div class="search-input">
+          <input 
+            type="text" 
+            formControlName="searchName"
+            [placeholder]="mode === 'clinic' ? 'Search a clinic by name...' : 'Search a pharmacy by name...'">
+          <button type="submit" class="btn-search" [disabled]="!searchForm.valid || loading">
+            <i class="icon-search"></i> Search
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Radius Filter for Nearby -->
+    <div class="radius-filter" *ngIf="(mode === 'pharmacy' && filterType === 'nearby') || (mode === 'clinic' && clinicFilterType === 'nearby')">
+      <label for="radiusInput">Search radius (km):</label>
+      <input 
+        id="radiusInput"
+        type="range" 
+        min="1" 
+        max="50" 
+        [(ngModel)]="radiusKm"
+        (change)="mode === 'clinic' ? findNearbyClinics() : findNearbyPharmacies()">
+      <span class="radius-value">{{ radiusKm }} km</span>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="filter-buttons" *ngIf="mode === 'pharmacy'">
+      <button 
+        class="filter-btn"
+        [class.active]="filterType === 'nearby'"
+        (click)="onFilterChange('nearby')">
+        📍 Nearby
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="filterType === 'open'"
+        (click)="onFilterChange('open')">
+        🟢 Open
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="filterType === 'delivery'"
+        (click)="onFilterChange('delivery')">
+        🚚 Delivery
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="filterType === '24h'"
+        (click)="onFilterChange('24h')">
+        🌙 24/7
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="filterType === 'all'"
+        (click)="onFilterChange('all')">
+        📋 All
+      </button>
+    </div>
+
+    <div class="filter-buttons" *ngIf="mode === 'clinic'">
+      <button 
+        class="filter-btn"
+        [class.active]="clinicFilterType === 'nearby'"
+        (click)="onClinicFilterChange('nearby')">
+        📍 Nearby
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="clinicFilterType === 'open'"
+        (click)="onClinicFilterChange('open')">
+        🟢 Open
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="clinicFilterType === 'emergency'"
+        (click)="onClinicFilterChange('emergency')">
+        🚨 Emergency
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="clinicFilterType === 'insurance'"
+        (click)="onClinicFilterChange('insurance')">
+        🧾 Insurance
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="clinicFilterType === 'all'"
+        (click)="onClinicFilterChange('all')">
+        📋 All
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading pharmacies...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && !loading">
+    <i class="icon-error"></i>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="findNearbyPharmacies()">Retry</button>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification" *ngIf="displayNotification" [class]="'notification-' + notificationType">
+    {{ notificationMessage }}
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" *ngIf="!loading && !error && mode === 'pharmacy'">
+    <!-- Pharmacies List -->
+    <div class="pharmacies-list">
+      <h2>Pharmacies found ({{ filteredPharmacies.length }})</h2>
+      
+      <div *ngIf="filteredPharmacies.length === 0" class="empty-state">
+        <i class="icon-empty"></i>
+        <p>No pharmacies found</p>
+      </div>
+
+      <div class="pharmacy-items">
+        <div 
+          class="pharmacy-card"
+          *ngFor="let pharmacy of filteredPharmacies"
+          (click)="selectPharmacy(pharmacy)"
+          [class.selected]="selectedPharmacy?.id === pharmacy.id">
+          
+          <!-- Pharmacy Image -->
+          <div class="pharmacy-image" *ngIf="pharmacy.imageUrl">
+            <img [src]="pharmacy.imageUrl" [alt]="pharmacy.name">
+          </div>
+          <div class="pharmacy-image" *ngIf="!pharmacy.imageUrl">
+            <div class="image-placeholder">🏥</div>
+          </div>
+
+          <!-- Pharmacy Info -->
+          <div class="pharmacy-info">
+            <div class="pharmacy-header">
+              <h3>{{ pharmacy.name }}</h3>
+              <span class="status-badge" [class]="getStatusClass(pharmacy)">
+                {{ getStatusText(pharmacy) }}
+              </span>
+            </div>
+
+            <p class="address">📍 {{ pharmacy.address }}</p>
+            
+            <div class="pharmacy-details">
+              <span class="detail" *ngIf="pharmacy.distance">
+                <i class="icon-distance"></i> {{ getDistanceText(pharmacy) }}
+              </span>
+              <span class="detail" *ngIf="pharmacy.phoneNumber">
+                <i class="icon-phone"></i> {{ pharmacy.phoneNumber }}
+              </span>
+              <span class="detail" *ngIf="pharmacy.hasDelivery">
+                <i class="icon-delivery"></i> Delivery
+              </span>
+              <span class="detail" *ngIf="pharmacy.accepts24h">
+                <i class="icon-24h"></i> 24/7
+              </span>
+            </div>
+
+            <p class="description" *ngIf="pharmacy.description">
+              {{ pharmacy.description | slice:0:80 }}{{ pharmacy.description!.length > 80 ? '...' : '' }}
+            </p>
+
+            <!-- Hours -->
+            <div class="hours" *ngIf="pharmacy.openingTime && pharmacy.closingTime">
+              <small>🕐 {{ pharmacy.openingTime }} - {{ pharmacy.closingTime }}</small>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pharmacy-actions">
+            <button class="btn-action" (click)="callPharmacy(pharmacy.phoneNumber); $event.stopPropagation()" title="Appeler">
+              <i class="icon-call"></i>
+            </button>
+            <button class="btn-action" (click)="openInMaps(pharmacy); $event.stopPropagation()" title="Ouvrir dans Maps">
+              <i class="icon-map"></i>
+            </button>
+            <button class="btn-action" *ngIf="pharmacy.email" (click)="emailPharmacy(pharmacy.email); $event.stopPropagation()" title="Envoyer un email">
+              <i class="icon-email"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pharmacy Detail Panel (Right Side) -->
+    <div class="pharmacy-detail-panel" *ngIf="selectedPharmacy">
+      <div class="detail-header">
+        <h2>Pharmacy Details</h2>
+        <button class="btn-close" (click)="closePharmacyDetail()">×</button>
+      </div>
+
+      <div class="detail-content">
+        <!-- Image -->
+        <div class="detail-image" *ngIf="selectedPharmacy.imageUrl">
+          <img [src]="selectedPharmacy.imageUrl" [alt]="selectedPharmacy.name">
+        </div>
+        <div class="detail-image" *ngIf="!selectedPharmacy.imageUrl">
+          <div class="image-placeholder">🏥</div>
+        </div>
+
+        <!-- Name & Status -->
+        <h3>{{ selectedPharmacy.name }}</h3>
+        <span class="status-badge" [class]="getStatusClass(selectedPharmacy)">
+          {{ getStatusText(selectedPharmacy) }}
+        </span>
+
+        <!-- Information Grid -->
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Address</label>
+            <p>{{ selectedPharmacy.address }}</p>
+          </div>
+
+          <div class="info-item">
+            <label>Distance</label>
+            <p>{{ getDistanceText(selectedPharmacy) }}</p>
+          </div>
+
+          <div class="info-item">
+            <label>Phone</label>
+            <p>
+              <a [href]="'tel:' + selectedPharmacy.phoneNumber">
+                {{ selectedPharmacy.phoneNumber }}
+              </a>
+            </p>
+          </div>
+
+          <div class="info-item" *ngIf="selectedPharmacy.email">
+            <label>Email</label>
+            <p>
+              <a [href]="'mailto:' + selectedPharmacy.email">
+                {{ selectedPharmacy.email }}
+              </a>
+            </p>
+          </div>
+
+          <div class="info-item" *ngIf="selectedPharmacy.openingTime && selectedPharmacy.closingTime">
+            <label>Hours</label>
+            <p>{{ selectedPharmacy.openingTime }} - {{ selectedPharmacy.closingTime }}</p>
+          </div>
+
+          <div class="info-item" *ngIf="selectedPharmacy.specialities">
+            <label>Specialities</label>
+            <p>{{ selectedPharmacy.specialities }}</p>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+          <div class="feature" *ngIf="selectedPharmacy.hasDelivery">
+            <i class="icon-delivery"></i> Livraison disponible
+          </div>
+          <div class="feature" *ngIf="selectedPharmacy.accepts24h">
+            <i class="icon-24h"></i> Ouverte 24h/24
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="description-section" *ngIf="selectedPharmacy.description">
+          <label>Description</label>
+          <p>{{ selectedPharmacy.description }}</p>
+        </div>
+
+        <div class="map-section">
+          <label>Carte</label>
+          <iframe
+            class="map-frame"
+            [src]="getMapEmbedUrl(selectedPharmacy.latitude, selectedPharmacy.longitude)"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn-primary" (click)="callPharmacy(selectedPharmacy.phoneNumber)">
+            <i class="icon-call"></i> Call
+          </button>
+          <button class="btn-primary" (click)="openInMaps(selectedPharmacy)">
+            <i class="icon-map"></i> Directions
+          </button>
+          <button class="btn-primary" *ngIf="selectedPharmacy.email" (click)="emailPharmacy(selectedPharmacy.email)">
+            <i class="icon-email"></i> Email
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content" *ngIf="!loading && !error && mode === 'clinic'">
+    <div class="pharmacies-list">
+      <h2>Clinics found ({{ filteredClinics.length }})</h2>
+
+      <div *ngIf="filteredClinics.length === 0" class="empty-state">
+        <i class="icon-empty"></i>
+        <p>No clinics found</p>
+      </div>
+
+      <div class="pharmacy-items">
+        <div
+          class="pharmacy-card"
+          *ngFor="let clinic of filteredClinics"
+          (click)="selectClinic(clinic)"
+          [class.selected]="selectedClinic?.id === clinic.id">
+
+          <div class="pharmacy-image" *ngIf="clinic.imageUrl">
+            <img [src]="clinic.imageUrl" [alt]="clinic.name">
+          </div>
+          <div class="pharmacy-image" *ngIf="!clinic.imageUrl">
+            <div class="image-placeholder">🩺</div>
+          </div>
+
+          <div class="pharmacy-info">
+            <div class="pharmacy-header">
+              <h3>{{ clinic.name }}</h3>
+              <span class="status-badge" [class]="getClinicStatusClass(clinic)">
+                {{ getClinicStatusText(clinic) }}
+              </span>
+            </div>
+
+            <p class="address">📍 {{ clinic.address }}</p>
+
+            <div class="pharmacy-details">
+              <span class="detail" *ngIf="clinic.distance">
+                <i class="icon-distance"></i> {{ getClinicDistanceText(clinic) }}
+              </span>
+              <span class="detail" *ngIf="clinic.phoneNumber">
+                <i class="icon-phone"></i> {{ clinic.phoneNumber }}
+              </span>
+              <span class="detail" *ngIf="clinic.emergencyService">
+                🚨 Emergency
+              </span>
+              <span class="detail" *ngIf="clinic.acceptsInsurance">
+                🧾 Insurance
+              </span>
+            </div>
+          </div>
+
+          <div class="pharmacy-actions">
+            <button class="btn-action" (click)="callPharmacy(clinic.phoneNumber); $event.stopPropagation()" title="Call">
+              <i class="icon-call"></i>
+            </button>
+            <button class="btn-action" (click)="openClinicInMaps(clinic); $event.stopPropagation()" title="Open in Maps">
+              <i class="icon-map"></i>
+            </button>
+            <button class="btn-action" *ngIf="clinic.email" (click)="emailPharmacy(clinic.email); $event.stopPropagation()" title="Send email">
+              <i class="icon-email"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pharmacy-detail-panel" *ngIf="selectedClinic">
+      <div class="detail-header">
+        <h2>Clinic Details</h2>
+        <button class="btn-close" (click)="closeClinicDetail()">×</button>
+      </div>
+
+      <div class="detail-content">
+        <h3>{{ selectedClinic.name }}</h3>
+        <span class="status-badge" [class]="getClinicStatusClass(selectedClinic)">
+          {{ getClinicStatusText(selectedClinic) }}
+        </span>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Address</label>
+            <p>{{ selectedClinic.address }}</p>
+          </div>
+          <div class="info-item">
+            <label>Distance</label>
+            <p>{{ getClinicDistanceText(selectedClinic) }}</p>
+          </div>
+          <div class="info-item">
+            <label>Phone</label>
+            <p><a [href]="'tel:' + selectedClinic.phoneNumber">{{ selectedClinic.phoneNumber }}</a></p>
+          </div>
+          <div class="info-item" *ngIf="selectedClinic.email">
+            <label>Email</label>
+            <p><a [href]="'mailto:' + selectedClinic.email">{{ selectedClinic.email }}</a></p>
+          </div>
+        </div>
+
+        <div class="map-section">
+            <label>Map</label>
+          <iframe
+            class="map-frame"
+            [src]="getMapEmbedUrl(selectedClinic.latitude, selectedClinic.longitude)"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-primary" (click)="callPharmacy(selectedClinic.phoneNumber)">
+            <i class="icon-call"></i> Call
+          </button>
+          <button class="btn-primary" (click)="openClinicInMaps(selectedClinic)">
+            <i class="icon-map"></i> Directions
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

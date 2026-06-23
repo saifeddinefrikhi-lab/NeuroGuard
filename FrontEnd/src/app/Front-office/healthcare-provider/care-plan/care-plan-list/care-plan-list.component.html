@@ -1,0 +1,144 @@
+<div class="container-fluid px-4 mt-0 mb-5">
+  <div class="sticky-action d-flex align-items-center gap-2 mb-4" *ngIf="canCreate">
+    <button class="btn-modern btn-add" (click)="onAdd()">
+      <i class="ti ti-plus"></i>
+      <span>New Care Plan</span>
+    </button>
+    <button class="btn-modern btn-add ms-2" [routerLink]="['/provider/care-plans/ml-recommendation']" style="background-color: var(--bs-primary);">
+      <i class="ti ti-brain"></i>
+      <span>Generate ML Care Plan</span>
+    </button>
+  </div>
+
+  <div class="page-header mb-5">
+    <div class="page-header-content d-flex justify-content-between align-items-start">
+      <div>
+        <h1 class="page-title">
+          <i class="ti ti-heart-rate-monitor"></i> Care Plans
+        </h1>
+        <p class="page-subtitle">Nutrition, sleep, activity, and medication plans</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading care plans...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>
+    <strong>Error:</strong> {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="!loading && plans.length === 0" class="empty-state-container">
+    <div class="empty-state">
+      <i class="ti ti-clipboard-list"></i>
+      <h4>No care plans</h4>
+      <p>No care plans to display.</p>
+      <button *ngIf="canCreate" class="btn-modern btn-add" (click)="onAdd()">
+        <i class="ti ti-plus"></i>
+        <span>Create the first plan</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Advanced search -->
+  <div *ngIf="!loading && plans.length > 0" class="advanced-search mb-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light d-flex align-items-center">
+        <i class="ti ti-filter me-2"></i>
+        <span>Advanced search</span>
+          <button *ngIf="hasActiveFilters" type="button" class="btn btn-sm btn-outline-primary ms-auto" (click)="resetFilters()">
+          <i class="ti ti-x me-1"></i> All
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label small text-muted">Patient name</label>
+            <input type="text" class="form-control" [(ngModel)]="searchPatient" placeholder="Patient name or ID"
+              (ngModelChange)="onFilterChange()" />
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label small text-muted">Doctor / provider name</label>
+            <input type="text" class="form-control" [(ngModel)]="searchProvider" placeholder="Doctor name or ID"
+              (ngModelChange)="onFilterChange()" />
+          </div>
+          <div class="col-12 col-md-6 col-lg-2">
+            <label class="form-label small text-muted">Priority</label>
+            <select class="form-select" [(ngModel)]="priorityFilter" (ngModelChange)="onFilterChange()">
+              <option *ngFor="let o of priorityOptions" [value]="o.value">{{ o.label }}</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-2">
+            <label class="form-label small text-muted">Status</label>
+            <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+              <option *ngFor="let o of statusOptions" [value]="o.value">{{ o.label }}</option>
+            </select>
+          </div>
+          <div class="col-12 col-lg-2 d-flex align-items-end">
+            <button type="button" class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+              <i class="ti ti-refresh me-1"></i> Reset
+            </button>
+          </div>
+        </div>
+        <p *ngIf="hasActiveFilters" class="small text-muted mt-2 mb-0">
+          <i class="ti ti-info-circle me-1"></i> {{ filteredPlans.length }} plan(s) out of {{ plans.length }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && plans.length > 0 && filteredPlans.length === 0" class="alert alert-info">
+    <i class="ti ti-search-off me-2"></i>
+    No plan matches the selected criteria. Adjust the filters or click <strong>All</strong> to show everything.
+  </div>
+
+  <div class="histories-grid" *ngIf="!loading && plans.length > 0 && filteredPlans.length > 0">
+    <div class="history-card" *ngFor="let p of filteredPlans">
+      <div class="history-card-header">
+        <div class="patient-section">
+          <h3 class="patient-name">{{ p.patientName || 'Patient #' + p.patientId }}</h3>
+            <p class="patient-id">
+            <i class="ti ti-hash"></i> Plan #{{ p.id }} · Provider: {{ p.providerName || 'N/A' }}
+            <span class="priority-badge priority-{{ (p.priority || 'MEDIUM') | lowercase }}">
+              {{ (p.priority || 'MEDIUM') === 'HIGH' ? 'High' : ((p.priority || 'MEDIUM') === 'LOW' ? 'Low' : 'Medium') }}
+            </span>
+          </p>
+          <div class="section-statuses">
+            <span class="section-status-dot" [ngClass]="(p.nutritionStatus || 'TODO') === 'DONE' ? 'done' : 'todo'" title="Nutrition">N</span>
+            <span class="section-status-dot" [ngClass]="(p.sleepStatus || 'TODO') === 'DONE' ? 'done' : 'todo'" title="Sleep">S</span>
+            <span class="section-status-dot" [ngClass]="(p.activityStatus || 'TODO') === 'DONE' ? 'done' : 'todo'" title="Activity">A</span>
+            <span class="section-status-dot" [ngClass]="(p.medicationStatus || 'TODO') === 'DONE' ? 'done' : 'todo'" title="Medication">M</span>
+          </div>
+        </div>
+      </div>
+      <div class="history-card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label"><i class="ti ti-calendar"></i> Updated</span>
+            <span class="info-value">{{ p.updatedAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="history-card-footer">
+        <button class="btn-modern btn-view" (click)="onView(p.id)">
+          <i class="ti ti-eye"></i>
+          <span>View</span>
+        </button>
+        <button *ngIf="canEdit" class="btn-modern btn-edit" (click)="onEdit(p.id)">
+          <i class="ti ti-edit"></i>
+          <span>Edit</span>
+        </button>
+        <button *ngIf="canDelete" class="btn-modern btn-delete" (click)="onDelete(p)">
+          <i class="ti ti-trash"></i>
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

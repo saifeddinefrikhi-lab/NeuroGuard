@@ -1,0 +1,266 @@
+<div class="patient-reservations-container">
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="bi bi-calendar-check"></i> My Reservations
+      </h1>
+      <p class="page-subtitle">Manage your consultation reservations</p>
+    </div>
+    <button class="btn btn-primary btn-lg" (click)="showCreateForm = !showCreateForm" *ngIf="!showCreateForm">
+      <i class="bi bi-plus-circle"></i> New Reservation
+    </button>
+  </div>
+
+  <!-- Create Reservation Form -->
+  <div class="create-form-card" *ngIf="showCreateForm" [@fadeInOut]>
+    <div class="form-header">
+      <h2>Create New Reservation</h2>
+      <button class="btn btn-close" (click)="cancelForm()"></button>
+    </div>
+
+    <form [formGroup]="reservationForm" (ngSubmit)="createReservation()" class="reservation-form">
+      <div class="form-section">
+        <div class="form-group">
+          <label for="provider" class="form-label">Select Healthcare Provider <span class="text-danger">*</span></label>
+          <select class="form-select" id="provider" formControlName="providerId" (change)="onProviderChange()">
+            <option value="" disabled>Choose a provider...</option>
+            <option *ngFor="let provider of providers" [value]="provider.id">
+              {{ provider.firstName }} {{ provider.lastName }}
+              <span class="text-muted" *ngIf="provider.specialization">- {{ provider.specialization }}</span>
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="reservationForm.get('providerId')?.invalid && reservationForm.get('providerId')?.touched">
+            Provider is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="date" class="form-label">Reservation Date <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" id="date" formControlName="reservationDate" 
+                 (change)="onDateChange(reservationForm.get('reservationDate')?.value)"
+                 [min]="today">
+          <div class="invalid-feedback" *ngIf="reservationForm.get('reservationDate')?.invalid && reservationForm.get('reservationDate')?.touched">
+            Date is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="consultationType" class="form-label">Consultation Type <span class="text-danger">*</span></label>
+          <div class="consultation-type-grid">
+            <div class="type-option">
+              <input type="radio" id="online" value="ONLINE" formControlName="consultationType">
+              <label for="online">
+                <i class="bi bi-camera-video"></i>
+                <span>Online</span>
+              </label>
+            </div>
+            <div class="type-option">
+              <input type="radio" id="presential" value="PRESENTIAL" formControlName="consultationType">
+              <label for="presential">
+                <i class="bi bi-person-check"></i>
+                <span>In-Person</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time Slots Section -->
+      <div class="form-section" *ngIf="reservationForm.get('reservationDate')?.value">
+        <label class="form-label">Available Time Slots <span class="text-danger">*</span></label>
+        <p class="text-muted small mb-3">8:00 AM - 5:00 PM</p>
+        
+        <div class="time-slots-grid">
+          <div *ngFor="let slot of timeSlots" class="time-slot-wrapper">
+            <input type="radio" 
+                   [id]="'slot-' + slot.time" 
+                   [value]="slot.time" 
+                   formControlName="timeSlot"
+                   [disabled]="!slot.available"
+                   class="time-slot-input">
+            <label [for]="'slot-' + slot.time" 
+                   class="time-slot-label"
+                   [ngClass]="{'available': slot.available, 'unavailable': !slot.available}">
+              <i [ngClass]="slot.available ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill'"></i>
+              {{ slot.time }}
+            </label>
+          </div>
+        </div>
+        <div class="invalid-feedback d-block" *ngIf="reservationForm.get('timeSlot')?.invalid && reservationForm.get('timeSlot')?.touched">
+          Time slot is required
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label for="notes" class="form-label">Notes (Optional)</label>
+        <textarea class="form-control" id="notes" formControlName="notes" rows="3" 
+                  placeholder="Add any special requirements or notes..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="reservationForm.invalid">
+          <i class="bi bi-check-circle"></i> Create Reservation
+        </button>
+        <button type="button" class="btn btn-light btn-lg" (click)="cancelForm()">
+          <i class="bi bi-x-circle"></i> Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section" *ngIf="!showCreateForm && reservations.length > 0">
+    <h5 class="filter-label">Filter by Status:</h5>
+    <div class="filter-buttons">
+      <button class="filter-btn" 
+              [class.active]="filterStatus === 'ALL'"
+              (click)="filterStatus = 'ALL'; applyFilter()">
+        All
+      </button>
+      <button class="filter-btn" 
+              [class.active]="filterStatus === 'PENDING'"
+              (click)="filterStatus = 'PENDING'; applyFilter()">
+        Pending
+      </button>
+      <button class="filter-btn" 
+              [class.active]="filterStatus === 'ACCEPTED'"
+              (click)="filterStatus = 'ACCEPTED'; applyFilter()">
+        Accepted
+      </button>
+      <button class="filter-btn" 
+              [class.active]="filterStatus === 'REJECTED'"
+              (click)="filterStatus = 'REJECTED'; applyFilter()">
+        Rejected
+      </button>
+    </div>
+  </div>
+
+  <!-- Reservations List -->
+  <div class="reservations-container" *ngIf="!showCreateForm">
+    <div *ngIf="filteredReservations.length === 0" class="no-data">
+      <div class="no-data-icon">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h3>No reservations found</h3>
+      <p>Create your first reservation to get started.</p>
+    </div>
+
+    <div class="reservations-grid">
+      <div *ngFor="let reservation of filteredReservations" class="reservation-card">
+        <div class="card-header">
+          <div class="status-badge" [ngClass]="'status-' + reservation.status">
+            {{ getStatusText(reservation.status) }}
+          </div>
+          <span class="card-date">{{ reservation.reservationDate | date: 'MMM d, yyyy' }}</span>
+        </div>
+
+        <div class="card-body">
+          <div class="info-row">
+            <span class="info-label">Provider:</span>
+            <span class="info-value font-weight-bold">{{ getProviderName(reservation.providerId) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Time:</span>
+            <span class="info-value">{{ reservation.timeSlot }}-{{ (parseInt(reservation.timeSlot.split(':')[0]) + 1).toString().padStart(2, '0') }}:{{ reservation.timeSlot.split(':')[1] }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Type:</span>
+            <span class="info-value">
+              <i [ngClass]="reservation.consultationType === 'ONLINE' ? 'bi bi-camera-video' : 'bi bi-person-check'"></i>
+              {{ getConsultationTypeDisplay(reservation.consultationType) }}
+            </span>
+          </div>
+          <div class="info-row" *ngIf="reservation.notes">
+            <span class="info-label">Notes:</span>
+            <span class="info-value text-muted">{{ reservation.notes }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn btn-sm btn-outline-primary" (click)="viewDetails(reservation)">
+            <i class="bi bi-eye"></i> View Details
+          </button>
+          <button class="btn btn-sm btn-outline-danger" 
+                  (click)="deleteReservation(reservation.id!)"
+                  [disabled]="reservation.status === 'DELETED' || reservation.status === 'COMPLETED'">
+            <i class="bi bi-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail View Modal -->
+  <div class="detail-modal" *ngIf="showDetailView && selectedReservation" [@fadeInOut]>
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Reservation Details</h3>
+        <button class="btn btn-close" (click)="closeDetailView()"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-section">
+          <h5>Basic Information</h5>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Provider</label>
+              <p>{{ getProviderName(selectedReservation.providerId) }}</p>
+            </div>
+            <div class="detail-item">
+              <label>Status</label>
+              <p>
+                <span class="status-badge" [ngClass]="'status-' + selectedReservation.status">
+                  {{ getStatusText(selectedReservation.status) }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selectedReservation.status === 'PENDING'">
+          <h5>Edit Reservation</h5>
+          <div class="edit-form">
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-control" [(ngModel)]="selectedReservation.reservationDate">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Time</label>
+              <input type="time" class="form-control" [(ngModel)]="selectedReservation.timeSlot">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select class="form-select" [(ngModel)]="selectedReservation.consultationType">
+                <option value="ONLINE">Online</option>
+                <option value="PRESENTIAL">In-Person</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" [(ngModel)]="selectedReservation.notes" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selectedReservation.consultationId">
+          <h5>Linked Consultation</h5>
+          <p class="text-success">
+            <i class="bi bi-check-circle"></i> Consultation created (ID: {{ selectedReservation.consultationId }})
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" 
+                (click)="updateReservation()"
+                *ngIf="selectedReservation.status === 'PENDING'">
+          <i class="bi bi-save"></i> Save Changes
+        </button>
+        <button class="btn btn-light" (click)="closeDetailView()">
+          <i class="bi bi-x-circle"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

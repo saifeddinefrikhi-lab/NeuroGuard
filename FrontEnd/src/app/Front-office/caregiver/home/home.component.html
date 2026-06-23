@@ -1,0 +1,94 @@
+<div class="row">
+  <!-- Statistics Cards Section (8 Cards) -->
+  <div class="col-md-6 col-xl-3" *ngFor="let analytic of AnalyticEcommerce">
+    <app-card [showHeader]="false" blockClass="dashboard-card">
+      <h6 class="mb-2 f-w-400 text-muted">{{ analytic.title }}</h6>
+      <h4 class="mb-3">
+        {{ analytic.amount }}
+        <span class="badge {{ analytic.background }} border {{ analytic.border }}">
+          <i antIcon type="{{ analytic.icon }}" theme="outline"></i>
+          {{ analytic.percentage }}
+        </span>
+      </h4>
+      <p class="mb-0 text-muted text-sm">
+        {{ analytic.note }}
+      </p>
+    </app-card>
+  </div>
+
+  <!-- Charts Section (Row 1) -->
+  <div class="col-md-12 col-xl-8">
+    <app-alert-trends-chart
+      [criticalAlerts]="criticalAlertsCount"
+      [warningAlerts]="warningAlertsCount"
+      [infoAlerts]="infoAlertsCount" />
+  </div>
+
+  <div class="col-md-12 col-xl-4">
+    <app-cognitive-assessment-chart
+      [averageMMSE]="averageMMSE"
+      [averageFunctionalAssessment]="averageFunctionalAssessment"
+      [averageADL]="averageADL" />
+  </div>
+
+  <!-- Charts Section (Row 2) -->
+  <div class="col-md-12 col-xl-6">
+    <app-progression-chart
+      [mildCases]="mildCasesCount"
+      [moderateCases]="moderateCasesCount"
+      [severeCases]="severeCasesCount" />
+  </div>
+
+  <div class="col-md-12 col-xl-6">
+    <app-health-risk-chart
+      [geneticRiskCount]="0"
+      [smokingCount]="0"
+      [cardiovascularCount]="0"
+      [diabetesCount]="0"
+      [depressionCount]="0"
+      [comorbidityCount]="patientsWithHighRisk"
+      [allergieCount]="patientsWithHighRisk" />
+  </div>
+
+  <!-- Latest High-Risk Alerts Section -->
+  <div class="col-md-12">
+    <h5 class="mb-3">Latest High-Risk Alerts</h5>
+    <div class="card tbl-card">
+      <div *ngIf="latestRiskAlerts.length === 0" class="empty-state px-3 py-3">
+        No unresolved alerts at the moment.
+      </div>
+
+      <div class="table-responsive" *ngIf="latestRiskAlerts.length > 0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>PATIENT</th>
+              <th>SEVERITY</th>
+              <th>MESSAGE</th>
+              <th>DATE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let alert of latestRiskAlerts">
+              <td class="fw-semibold">{{ alert.patientName }}</td>
+              <td>
+                <span
+                  class="severity-pill"
+                  [ngClass]="{
+                    'severity-critical': (alert.severity || '').toUpperCase() === 'CRITICAL',
+                    'severity-warning': (alert.severity || '').toUpperCase() === 'WARNING',
+                    'severity-info': (alert.severity || '').toUpperCase() === 'INFO'
+                  }"
+                >
+                  {{ alert.severity }}
+                </span>
+              </td>
+              <td class="text-muted">{{ alert.message }}</td>
+              <td>{{ alert.createdAt | date:'MMM d, y, h:mm a' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

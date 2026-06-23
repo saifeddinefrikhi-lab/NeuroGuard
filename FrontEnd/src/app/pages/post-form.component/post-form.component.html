@@ -1,0 +1,175 @@
+<div class="form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-content">
+      <h1 class="form-title">{{ isEdit ? 'Edit Post' : 'Create New Post' }}</h1>
+      <p class="form-subtitle">{{ isEdit ? 'Update your post content' : 'Share your thoughts with the community' }}</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-alert">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="postForm" (ngSubmit)="onSubmit()" *ngIf="!loading" class="post-form">
+    <!-- Title Field -->
+    <div class="form-group">
+      <label for="title" class="form-label">
+        Title <span class="required">*</span>
+      </label>
+      <input 
+        type="text" 
+        class="form-input" 
+        [class.invalid]="postForm.get('title')?.invalid && postForm.get('title')?.touched"
+        id="title" 
+        formControlName="title" 
+        placeholder="Enter a descriptive title...">
+      <div *ngIf="postForm.get('title')?.invalid && postForm.get('title')?.touched" class="error-message">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Title must be at least 3 characters long</span>
+      </div>
+      <div class="char-count" *ngIf="postForm.get('title')?.value">
+        {{ postForm.get('title')?.value.length }} characters
+      </div>
+    </div>
+
+    <!-- Category (optional) -->
+    <div class="form-group">
+      <label for="category" class="form-label">Category</label>
+      <select id="category" class="form-select" formControlName="categoryId">
+        <option [ngValue]="null">No category</option>
+        <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+      </select>
+      <p class="form-hint">Choose a topic so others can find your post.</p>
+    </div>
+
+    <!-- Content Field -->
+    <div class="form-group">
+      <label for="content" class="form-label">
+        Content <span class="required">*</span>
+      </label>
+      <div class="textarea-wrapper">
+        <textarea 
+          class="form-textarea" 
+          [class.invalid]="postForm.get('content')?.invalid && postForm.get('content')?.touched"
+          id="content" 
+          rows="12" 
+          formControlName="content" 
+          placeholder="Write your post content here...&#10;&#10;Share your experiences, ask questions, or start a discussion..."></textarea>
+      </div>
+      <div *ngIf="postForm.get('content')?.invalid && postForm.get('content')?.touched" class="error-message">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Content must be at least 10 characters long</span>
+      </div>
+      <div class="char-count" *ngIf="postForm.get('content')?.value">
+        {{ postForm.get('content')?.value.length }} characters
+      </div>
+    </div>
+
+    <!-- Images on NEW post: add before publishing -->
+    <div class="form-group images-section" *ngIf="isNewPostForm()">
+      <label class="form-label">Images (optional)</label>
+      <p class="form-hint">Add images to your post. JPEG, PNG, GIF or WebP, max 5MB each. They will be uploaded when you publish.</p>
+      <div class="post-images-inline" *ngIf="pendingImageFiles.length">
+        <div *ngFor="let url of pendingPreviewUrls; let i = index" class="post-image-wrap-inline">
+          <img [src]="url" alt="Preview {{ i + 1 }}" class="post-image-thumb">
+          <button type="button" (click)="removePendingImage(i)" class="btn-delete-image-inline" title="Remove">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
+      </div>
+      <div class="post-images-upload-inline">
+        <label class="upload-label-inline">
+          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple (change)="onPendingImagesSelected($event)" class="upload-input">
+          <span class="upload-btn-inline">Choose images</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Images (when editing or after create) -->
+    <div class="form-group images-section" *ngIf="currentPost">
+      <label class="form-label">Images</label>
+      <p class="form-hint" *ngIf="createdJustNow">Post published! Add images below (optional).</p>
+      <div class="post-images-inline" *ngIf="currentPost.imageUrls?.length">
+        <div *ngFor="let url of currentPost.imageUrls; let i = index" class="post-image-wrap-inline">
+          <img [src]="forumService.getPostImageUrl(url)" alt="Image {{ i + 1 }}" class="post-image-thumb">
+          <button type="button" (click)="deleteImage(i)" class="btn-delete-image-inline" title="Remove image">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
+      </div>
+      <div class="post-images-upload-inline">
+        <label class="upload-label-inline">
+          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple (change)="onImagesSelected($event)" #fileInput class="upload-input">
+          <span class="upload-btn-inline">Add images</span>
+        </label>
+        <span *ngIf="imageUploadError" class="upload-error">{{ imageUploadError }}</span>
+        <span *ngIf="uploadingImages" class="uploading">Uploading...</span>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="cancel()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        <span>{{ createdJustNow ? 'Back to forum' : 'Cancel' }}</span>
+      </button>
+      <button *ngIf="createdJustNow" type="button" class="btn-submit" (click)="viewPost()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span>View post</span>
+      </button>
+      <button *ngIf="!createdJustNow" type="submit" class="btn-submit" [disabled]="postForm.invalid || loading">
+        <svg *ngIf="!loading" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <div *ngIf="loading" class="btn-spinner"></div>
+        <span>{{ isEdit ? 'Update Post' : 'Publish Post' }}</span>
+      </button>
+    </div>
+  </form>
+
+  <!-- Tips Card -->
+  <div class="tips-card" *ngIf="!loading">
+    <div class="tips-header">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+      <span>Tips for a great post</span>
+    </div>
+    <ul class="tips-list">
+      <li>Be clear and concise with your title</li>
+      <li>Provide context and details in your content</li>
+      <li>Be respectful and considerate of others</li>
+      <li>Use proper formatting for readability</li>
+    </ul>
+  </div>
+</div>

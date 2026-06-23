@@ -1,0 +1,308 @@
+.card {
+  .card-body.dashboard-card {
+    padding: 18px;
+    padding-bottom: 20px;
+  }
+}
+
+// ---------- User stats section ----------
+.user-stats-section {
+  margin-bottom: 1.5rem;
+}
+
+.user-stats-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.user-stats-title {
+  margin: 0 0 0.2rem 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.user-stats-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.user-stats-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-stats-updated {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.btn-light-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.08);
+  border: 1px solid rgba(22, 119, 255, 0.25);
+  &:hover:not(:disabled) {
+    background: rgba(22, 119, 255, 0.14);
+    border-color: #1677ff;
+  }
+}
+
+// Grid for stats cards: 5 columns on xl, 3 on md, 2 on sm, 1 on xs
+.user-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1399px) {
+  .user-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .user-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 479px) {
+  .user-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Stat card: icon left, content right, accent border
+.user-stat-card {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  min-height: 88px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  &[data-role="total"] { border-left: 3px solid #1677ff; }
+  &[data-role="patients"] { border-left: 3px solid #52c41a; }
+  &[data-role="providers"] { border-left: 3px solid #faad14; }
+  &[data-role="caregivers"] { border-left: 3px solid #1677ff; }
+  &[data-role="admins"] { border-left: 3px solid #8c8c8c; }
+  &:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+}
+
+.user-stat-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  font-size: 1.25rem;
+  color: inherit;
+  &.bg-light-primary { background: rgba(22, 119, 255, 0.1); color: #1677ff; }
+  &.bg-light-success { background: rgba(82, 196, 26, 0.1); color: #52c41a; }
+  &.bg-light-warning { background: rgba(250, 173, 20, 0.12); color: #d48806; }
+  &.bg-light-info { background: rgba(22, 119, 255, 0.1); color: #1677ff; }
+  &.bg-light-secondary { background: rgba(140, 140, 140, 0.12); color: #595959; }
+}
+
+.user-stat-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-stat-card__label {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.user-stat-card__value {
+  margin: 0 0 0.2rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.user-stat-card__meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.stat-number {
+  font-variant-numeric: tabular-nums;
+}
+
+// Skeleton cards (same grid)
+.user-stat-skeleton-card {
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  min-height: 88px;
+}
+
+.user-stat-skeleton-card .skeleton-line {
+  height: 0.875rem;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.2s ease-in-out infinite;
+  &.title {
+    width: 55%;
+    margin-bottom: 0.75rem;
+  }
+  &.amount {
+    width: 40%;
+    height: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  &.subtitle {
+    width: 70%;
+  }
+}
+
+@keyframes skeleton-shine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.user-stats-error {
+  margin-bottom: 1rem;
+}
+
+// Chart + Insights row: side-by-side
+.user-stats-chart-row {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 991px) {
+  .user-stats-chart-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.user-stats-chart-wrap,
+.user-stats-insights-wrap {
+  min-width: 0;
+}
+
+.user-stats-chart-card {
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.user-stats-chart-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.user-stats-chart-inner {
+  position: relative;
+  min-height: 280px;
+  :host-context(.user-stats-chart-inner) apx-chart {
+    display: block;
+  }
+}
+
+.user-stats-insights-card {
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+}
+
+.user-stats-insights-title {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.insight-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.insight-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.insight-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.user-group {
+  img {
+    position: relative;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    z-index: 2;
+    transition: all 0.1s ease-in-out;
+    border: 2px solid var(--bs-white);
+    + img {
+      margin-left: -14px;
+    }
+    &:hover {
+      z-index: 5;
+    }
+  }
+}
+
+.badge-circle {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.badge-success {
+  background-color: var(--bs-success);
+}

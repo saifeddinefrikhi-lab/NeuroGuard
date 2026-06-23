@@ -1,0 +1,44 @@
+<div class="auth-main">
+  <div class="auth-wrapper v3">
+    <div class="auth-form">
+      <div class="card auth-card my-5">
+        <div class="card-body auth-card-body">
+          <div class="auth-header">
+            <div>
+              <h3 class="auth-title">Login</h3>
+              <p class="auth-subtitle">You will be redirected to Keycloak to authenticate.</p>
+            </div>
+            <a [routerLink]="['/register']" class="link-primary auth-link">Create account</a>
+          </div>
+
+          <div class="alert alert-info alert-dismissible fade show" role="alert" *ngIf="successMessage">
+            <i class="ti ti-info-circle me-2"></i>
+            {{ successMessage }}
+            <button type="button" class="btn-close" (click)="successMessage = ''" aria-label="Close"></button>
+          </div>
+
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+            <i class="ti ti-alert-circle me-2"></i>
+            <strong>Error!</strong> {{ errorMessage }}
+            <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+          </div>
+
+          <div class="d-grid gap-3">
+            <button type="button" class="btn btn-primary btn-auth" (click)="redirectToKeycloak()" [disabled]="isLoading">
+              <span *ngIf="!isLoading">Continue with Keycloak</span>
+              <span *ngIf="isLoading">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Redirecting...
+              </span>
+            </button>
+            <a [routerLink]="['/register']" class="btn btn-outline-secondary btn-auth">Create a Keycloak account</a>
+          </div>
+
+          <p class="mt-3 text-center text-muted">
+            Demo accounts are preloaded in the Keycloak realm export.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,167 @@
+<div class="assurance-container">
+  <div class="header-section">
+    <h1 class="page-title">My Insurance Profile</h1>
+    <p class="subtitle">Securely manage and view your healthcare coverage details.</p>
+    <button class="btn-premium primary-gradient" (click)="toggleForm()">
+      {{ showForm ? 'Cancel' : 'Add New Insurance' }}
+    </button>
+  </div>
+
+  <!-- Coverage Optimizer Section -->
+  <app-patient-coverage-optimizer></app-patient-coverage-optimizer>
+
+  <!-- Rentability Analysis Section -->
+  <app-patient-rentability-analysis [patientId]="currentPatientId"></app-patient-rentability-analysis>
+
+  <!-- Success Message -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <div class="alert-content">
+      <i class="feather icon-check-circle"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <div class="alert-content">
+      <i class="feather icon-alert-circle"></i>
+      <span>{{ errorMessage }}</span>
+    </div>
+    <button class="alert-close" (click)="errorMessage = null">
+      <i class="feather icon-x"></i>
+    </button>
+  </div>
+
+  <!-- Form Section (Glassmorphism design) -->
+  <div class="form-card glass-panel" *ngIf="showForm">
+    <h2 class="form-title">{{ isEditMode ? 'Edit Insurance Details' : 'Submit Assurance Details' }}</h2>
+    <form [formGroup]="assuranceForm" (ngSubmit)="onSubmit()">
+      <div class="input-group">
+        <label for="providerName">Insurance Provider <span class="required">*</span></label>
+        <input type="text" id="providerName" formControlName="providerName" placeholder="e.g. Allianz, Bupa..." class="premium-input" [class.input-error]="isFieldInvalid('providerName')">
+        <span class="error-message" *ngIf="isFieldInvalid('providerName')">
+          {{ getErrorMessage('providerName') }}
+        </span>
+      </div>
+      <div class="input-group">
+        <label for="policyNumber">Policy Number <span class="required">*</span></label>
+        <input type="text" id="policyNumber" formControlName="policyNumber" placeholder="Enter policy number" class="premium-input" [class.input-error]="isFieldInvalid('policyNumber')">
+        <span class="error-message" *ngIf="isFieldInvalid('policyNumber')">
+          {{ getErrorMessage('policyNumber') }}
+        </span>
+      </div>
+      <div class="input-group">
+        <label for="coverageDetails">Coverage Details</label>
+        <textarea id="coverageDetails" formControlName="coverageDetails" rows="2" placeholder="Describe coverage" class="premium-input" [class.input-error]="isFieldInvalid('coverageDetails')"></textarea>
+        <span class="error-message" *ngIf="isFieldInvalid('coverageDetails')">
+          {{ getErrorMessage('coverageDetails') }}
+        </span>
+      </div>
+      <div class="input-group">
+        <label for="illness">Illness/Condition <span class="required">*</span></label>
+        <input type="text" id="illness" formControlName="illness" placeholder="e.g. Alzheimer's, Parkinson's" class="premium-input" [class.input-error]="isFieldInvalid('illness')">
+        <span class="error-message" *ngIf="isFieldInvalid('illness')">
+          {{ getErrorMessage('illness') }}
+        </span>
+      </div>
+      <div class="input-group">
+        <label for="postalCode">Postal Code <span class="required">*</span></label>
+        <input type="text" id="postalCode" formControlName="postalCode" placeholder="Enter postal code (5 digits)" class="premium-input" [class.input-error]="isFieldInvalid('postalCode')">
+        <span class="error-message" *ngIf="isFieldInvalid('postalCode')">
+          {{ getErrorMessage('postalCode') }}
+        </span>
+      </div>
+      <div class="input-group">
+        <label for="mobilePhone">Mobile Phone <span class="required">*</span></label>
+        <input type="tel" id="mobilePhone" formControlName="mobilePhone" placeholder="e.g. +1 (555) 123-4567" class="premium-input" [class.input-error]="isFieldInvalid('mobilePhone')">
+        <span class="error-message" *ngIf="isFieldInvalid('mobilePhone')">
+          {{ getErrorMessage('mobilePhone') }}
+        </span>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-premium submit-btn" [disabled]="assuranceForm.invalid || isSubmitting">
+          <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Submit Application' }}</span>
+          <span *ngIf="isSubmitting" class="spinner"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- List Section -->
+  <div class="list-section mt-5" *ngIf="assurances.length > 0">
+    <h2 class="section-title">Your Active Submissions</h2>
+    <div class="assurance-cards">
+      <div class="assurance-card" *ngFor="let assurance of assurances">
+        <div class="card-header">
+          <div class="provider-info">
+            <i class="feather icon-shield card-icon"></i>
+            <h3 class="provider-name">{{ assurance.providerName }}</h3>
+          </div>
+          <span class="status-badge" [ngClass]="assurance.status.toLowerCase()">{{ assurance.status }}</span>
+        </div>
+        <div class="card-body">
+          <p><strong>Policy Number:</strong> {{ assurance.policyNumber }}</p>
+          <p><strong>Illness:</strong> {{ assurance.illness }}</p>
+          <p><strong>Postal Code:</strong> {{ assurance.postalCode }}</p>
+          <p><strong>Mobile Phone:</strong> {{ assurance.mobilePhone }}</p>
+          <p><strong>Submitted On:</strong> {{ assurance.createdAt | date:'mediumDate' }}</p>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action risk-assessment-btn" (click)="loadRiskAssessment(assurance.id)" title="View Risk Assessment">
+            <i class="feather icon-activity"></i> Risk Assessment
+          </button>
+          <button class="btn-action edit-btn" (click)="editAssurance(assurance)" title="Edit">
+            <i class="feather icon-edit"></i> Edit
+          </button>
+          <button class="btn-action delete-btn" (click)="confirmDelete(assurance.id)" title="Delete">
+            <i class="feather icon-trash-2"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Assessment Section -->
+  <div class="risk-assessment-section" *ngIf="showRiskAssessment">
+    <div class="risk-assessment-header">
+      <h2>Detailed Risk Assessment</h2>
+      <button class="btn-close" (click)="closeRiskAssessment()" title="Close">
+        <i class="feather icon-x"></i>
+      </button>
+    </div>
+    
+    <div class="risk-assessment-toolbar">
+      <button class="btn-action refresh-btn" (click)="refreshRiskAssessment(selectedAssuranceId!)" [disabled]="riskAssessmentLoading">
+        <i class="feather icon-refresh-cw"></i> Refresh Assessment
+      </button>
+    </div>
+
+    <div class="loading-spinner" *ngIf="riskAssessmentLoading">
+      <span class="spinner"></span>
+      <p>Loading assessment...</p>
+    </div>
+
+    <app-health-metrics [assessment]="selectedRiskAssessment" *ngIf="selectedRiskAssessment && !riskAssessmentLoading"></app-health-metrics>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="assurances.length === 0 && !showForm">
+    <div class="empty-icon-wrapper">
+      <i class="feather icon-umbrella"></i>
+    </div>
+    <h3>No Insurance Found</h3>
+    <p>You haven't submitted any assurance details yet.</p>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Confirm Delete</h3>
+      <p>Are you sure you want to delete this insurance record? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-delete" (click)="deleteAssurance()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

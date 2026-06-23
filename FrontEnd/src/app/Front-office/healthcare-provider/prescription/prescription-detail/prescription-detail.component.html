@@ -1,0 +1,56 @@
+<div class="container-fluid px-4 mt-3 mb-5">
+  <button class="btn btn-outline-secondary btn-sm mb-4" (click)="goBack()">
+    <i class="ti ti-arrow-left"></i> Back to list
+  </button>
+
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="ti ti-alert-circle me-2"></i>{{ errorMessage }}
+  </div>
+
+  <div *ngIf="prescription && !loading" class="modern-card">
+    <div class="card-header-modern">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h2 class="patient-name">{{ prescription.patientName || 'Patient #' + prescription.patientId }}</h2>
+          <p class="patient-id">
+            Prescription #{{ prescription.id }} · Dr {{ prescription.providerName || 'N/A' }}
+          </p>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap" *ngIf="canEdit || canDelete">
+          <button *ngIf="canEdit" class="btn-modern btn-edit" (click)="onEdit()">
+            <i class="ti ti-edit"></i> Edit
+          </button>
+          <button *ngIf="canDelete" class="btn-modern btn-delete" (click)="onDelete()">
+            <i class="ti ti-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body-modern">
+      <div class="section mb-4">
+        <h5 class="section-title mb-2"><i class="ti ti-file-prescription"></i> Prescription content</h5>
+        <div class="prescription-contenu">{{ prescription.contenu || 'Not specified' }}</div>
+      </div>
+      <div class="section mb-4" *ngIf="prescription.notes">
+        <h5 class="section-title mb-2"><i class="ti ti-notes"></i> Notes</h5>
+        <div class="prescription-notes">{{ prescription.notes }}</div>
+      </div>
+      <div class="record-metadata">
+        <div class="metadata-item">
+          <span class="metadata-label">Created on</span>
+          <span class="metadata-value">{{ prescription.createdAt | date:'medium' }}</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Last updated</span>
+          <span class="metadata-value">{{ prescription.updatedAt | date:'medium' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

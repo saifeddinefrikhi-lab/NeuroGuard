@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: user-service  # Name of the service registered in Eureka
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/neuroguard}
+  datasource:
+    url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  cloud:
+    discovery:
+      enabled: true
+      service-id: ${spring.application.name}
+  # Email configuration for password reset
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME:hamzaznaidi539@gmail.com}
+    password: ${EMAIL_PASSWORD:pqrl extr osqv jqou}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    protocol: smtp
+  # Enable async for email sending
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+
+server:
+  port: 8081  # Port on which the microservice will run
+
+keycloak:
+  realm: ${KEYCLOAK_REALM:neuroguard}
+  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://localhost:8080}
+  client-id: ${KEYCLOAK_CLIENT_ID:neuroguard-web}
+  admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:neuroguard-admin-cli}
+  admin-username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+  admin-password: ${KEYCLOAK_ADMIN_PASSWORD:admin123}
+  admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:neuroguard-admin-secret}
+
+# Email configuration for fallback & reset
+app:
+  mail:
+    from:
+      email: ${SENDER_EMAIL:MS_jihen@test-vz9dlemw6kp4kj50.mlsender.net}
+      name: ${SENDER_NAME:NeuroGuard Support}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
+
+# MailerSend configuration
+mailersend:
+  api-key: ${MAILERSEND_API_KEY:mlsn.6ec1face0ac47b812e0aba9321d5fb3fc9134886321ecfce6b9129f73b2c174a}
+  api-url: ${MAILERSEND_API_URL:https://api.mailersend.com/v1}

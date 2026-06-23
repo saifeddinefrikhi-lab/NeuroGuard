@@ -1,0 +1,104 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h3 class="title">Products</h3>
+      <p class="subtitle">Create, update and manage product stock.</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateForm()">New Product</button>
+  </div>
+
+  <div class="alerts">
+    <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+  </div>
+
+  <div class="toolbar row g-2 align-items-center">
+    <div class="col-12 col-md-6">
+      <input
+        class="form-control"
+        placeholder="Search by name..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchInput()"
+      />
+    </div>
+    <div class="col-auto">
+      <label class="me-2 text-muted small">Per page</label>
+      <select class="form-select form-select-sm d-inline-block w-auto" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+        <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card tbl-card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th class="sortable" (click)="toggleSort('name')">NAME {{ sortIndicator('name') }}</th>
+            <th class="text-end sortable" (click)="toggleSort('price')">PRICE {{ sortIndicator('price') }}</th>
+            <th class="text-end sortable" (click)="toggleSort('stock')">STOCK {{ sortIndicator('stock') }}</th>
+            <th class="text-end">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of products">
+            <td>{{ p.name }}</td>
+            <td class="text-end">{{ p.price | number : '1.2-2' }}</td>
+            <td class="text-end">{{ p.stock }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-2" (click)="openEditForm(p)">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" (click)="delete(p.id)">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="products.length === 0">
+            <td colspan="4" class="text-center text-muted py-4">No products found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2" *ngIf="totalElements > 0">
+      <span class="text-muted small">
+        Showing {{ rangeStart }}–{{ rangeEnd }} of {{ totalElements }}
+      </span>
+      <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-outline-secondary" [disabled]="first" (click)="goToPage(0)">«</button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="first" (click)="goToPage(pageIndex - 1)">‹</button>
+        <button type="button" class="btn btn-outline-secondary" disabled>
+          {{ pageIndex + 1 }} / {{ totalPages || 1 }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="last" (click)="goToPage(pageIndex + 1)">›</button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="last" (click)="goToPage(totalPages - 1)">»</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showForm">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h5 class="m-0">{{ isEditing ? 'Edit Product' : 'New Product' }}</h5>
+        <button class="btn btn-sm btn-light" (click)="closeForm()">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input class="form-control" [(ngModel)]="formData.name" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Price</label>
+          <input class="form-control" type="number" [(ngModel)]="formData.price" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Stock</label>
+          <input class="form-control" type="number" [(ngModel)]="formData.stock" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light me-2" (click)="closeForm()" [disabled]="isSubmitting">Cancel</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

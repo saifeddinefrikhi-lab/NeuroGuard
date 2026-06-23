@@ -1,0 +1,249 @@
+<div class="management-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>⚙️ Pharmacy & Clinic Management</h1>
+    <p class="subtitle">Add, edit, or delete pharmacies and clinics</p>
+  </div>
+
+  <!-- Entity Type Switch -->
+  <div class="switch-section">
+    <button class="switch-btn" [class.active]="entityType === 'pharmacy'" (click)="switchEntityType('pharmacy')">
+      💊 Pharmacies
+    </button>
+    <button class="switch-btn" [class.active]="entityType === 'clinic'" (click)="switchEntityType('clinic')">
+      🏥 Clinics
+    </button>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="notification-toast" [class.show]="displayNotification" [class.success]="notificationType === 'success'" [class.error]="notificationType === 'error'">
+    <span>{{ notificationMessage }}</span>
+  </div>
+
+  <div class="content-wrapper">
+    <!-- Form Section -->
+    <div class="form-section" *ngIf="showForm">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>{{ isEditMode ? 'Edit' : 'Add' }} a {{ getEntityLabel() | lowercase }}</h2>
+          <button class="btn-close" (click)="toggleForm()">✕</button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submitForm()" class="management-form">
+          <div class="form-grid">
+            <!-- Name -->
+            <div class="form-group">
+              <label for="name">Name *</label>
+              <input 
+                id="name"
+                type="text" 
+                formControlName="name" 
+                placeholder="Enter the name"
+                class="form-input">
+              <span class="error-text" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+                Name required (min. 3 characters)
+              </span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input 
+                id="email"
+                type="email" 
+                formControlName="email" 
+                placeholder="example@email.com"
+                class="form-input">
+              <span class="error-text" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+                Valid email required
+              </span>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-group">
+              <label for="phoneNumber">Phone Number *</label>
+              <input 
+                id="phoneNumber"
+                type="tel" 
+                formControlName="phoneNumber" 
+                placeholder="+216 12 345 678"
+                class="form-input">
+              <span class="error-text" *ngIf="form.get('phoneNumber')?.invalid && form.get('phoneNumber')?.touched">
+                Valid phone number required
+              </span>
+            </div>
+
+            <!-- Latitude -->
+            <div class="form-group">
+              <label for="latitude">Latitude *</label>
+              <input 
+                id="latitude"
+                type="number" 
+                formControlName="latitude" 
+                placeholder="36.8065"
+                step="0.00001"
+                class="form-input">
+              <span class="error-text" *ngIf="form.get('latitude')?.invalid && form.get('latitude')?.touched">
+                Valid latitude required (-90 to 90)
+              </span>
+            </div>
+
+            <!-- Longitude -->
+            <div class="form-group">
+              <label for="longitude">Longitude *</label>
+              <input 
+                id="longitude"
+                type="number" 
+                formControlName="longitude" 
+                placeholder="10.1815"
+                step="0.00001"
+                class="form-input">
+              <span class="error-text" *ngIf="form.get('longitude')?.invalid && form.get('longitude')?.touched">
+                Valid longitude required (-180 to 180)
+              </span>
+            </div>
+
+            <!-- Address -->
+            <div class="form-group full-width">
+              <label for="address">Address *</label>
+              <input 
+                id="address"
+                type="text" 
+                formControlName="address" 
+                placeholder="Enter the address"
+                class="form-input">
+              <span class="error-text" *ngIf="form.get('address')?.invalid && form.get('address')?.touched">
+                Address required
+              </span>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full-width">
+              <label for="description">Description</label>
+              <textarea 
+                id="description"
+                formControlName="description" 
+                placeholder="Enter a description (optional)"
+                class="form-input"
+                rows="3"></textarea>
+            </div>
+
+            <!-- Opening Time -->
+            <div class="form-group">
+              <label for="openingTime">Opening Time</label>
+              <input 
+                id="openingTime"
+                type="time" 
+                formControlName="openingTime"
+                class="form-input">
+            </div>
+
+            <!-- Closing Time -->
+            <div class="form-group">
+              <label for="closingTime">Closing Time</label>
+              <input 
+                id="closingTime"
+                type="time" 
+                formControlName="closingTime"
+                class="form-input">
+            </div>
+
+            <!-- Specialities -->
+            <div class="form-group full-width">
+              <label for="specialities">Specialities</label>
+              <input 
+                id="specialities"
+                type="text" 
+                formControlName="specialities" 
+                placeholder="e.g. Cardiologist, Dentist, etc."
+                class="form-input">
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="loading || !form.valid">
+              {{ loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create') }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="resetForm()" [disabled]="loading">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- List Section -->
+    <div class="list-section">
+      <div class="list-header">
+        <h2>{{ getEntityLabel() }}s ({{ getList().length }})</h2>
+        <button class="btn-add" (click)="toggleForm()" *ngIf="!showForm">
+          ➕ Add a {{ getEntityLabel() | lowercase }}
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="loading && getList().length === 0">
+        <p>Loading...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!loading && getList().length === 0">
+        <p>No {{ getEntityLabel() | lowercase }} found</p>
+        <button class="btn-primary" (click)="toggleForm()">
+          ➕ Create the first {{ getEntityLabel() | lowercase }}
+        </button>
+      </div>
+
+      <!-- Items Grid -->
+      <div class="items-grid" *ngIf="getList().length > 0">
+        <div class="item-card" *ngFor="let item of getList()">
+          <div class="item-header">
+            <h3>{{ item.name }}</h3>
+            <span class="item-id">#{{ item.id }}</span>
+          </div>
+
+          <div class="item-details">
+            <div class="detail-row">
+              <span class="label">📧 Email:</span>
+              <span class="value">{{ item.email || 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">📞 Phone:</span>
+              <span class="value">{{ item.phoneNumber }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">📍 Address:</span>
+              <span class="value">{{ item.address || 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">🌍 Coordinates:</span>
+              <span class="value">{{ item.latitude | number:'1.4-4' }}, {{ item.longitude | number:'1.4-4' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="item.description">
+              <span class="label">📝 Description:</span>
+              <span class="value">{{ item.description }}</span>
+            </div>
+            <div class="detail-row" *ngIf="item.openingTime || item.closingTime">
+              <span class="label">🕐 Hours:</span>
+              <span class="value">{{ item.openingTime || '---' }} to {{ item.closingTime || '---' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="item.specialities">
+              <span class="label">🏷️ Specialities:</span>
+              <span class="value">{{ item.specialities }}</span>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn-edit" (click)="editItem(item)" [disabled]="loading">
+              ✏️ Edit
+            </button>
+            <button class="btn-delete" (click)="deleteItem(item.id)" [disabled]="loading">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,121 @@
+@use '../../provider-medical-history-list/provider-medical-history-list' as *;
+
+:host {
+  ::ng-deep .page-header .page-title i { color: #667eea; }
+  ::ng-deep .info-label i { color: #667eea; }
+}
+
+.contenu-preview {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+  margin-top: 0.5rem;
+  max-height: 3em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre-wrap;
+}
+
+/* Toast Notification Styles */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #ffffff;
+  border-left: 4px solid #3b82f6;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  transform: translateX(120%);
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 9999;
+
+  &.show {
+    transform: translateX(0);
+  }
+
+  .toast-content {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+  }
+
+  .message {
+    flex: 1;
+    margin-left: 10px;
+
+    h4 {
+      margin: 0;
+      color: #1e40af;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 5px 0 0;
+      color: #374151;
+      font-size: 14px;
+    }
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 5px;
+
+    &:hover {
+      color: #111827;
+    }
+  }
+
+  // Notification type styles
+  &.notification-added {
+    border-left-color: #10b981;
+
+    .message h4 {
+      color: #047857;
+    }
+
+    .notification-icon {
+      color: #10b981;
+    }
+  }
+
+  &.notification-updated {
+    border-left-color: #3b82f6;
+
+    .message h4 {
+      color: #1e40af;
+    }
+
+    .notification-icon {
+      color: #3b82f6;
+    }
+  }
+
+  &.notification-deleted {
+    border-left-color: #f59e0b;
+
+    .message h4 {
+      color: #b45309;
+    }
+
+    .notification-icon {
+      color: #f59e0b;
+    }
+  }
+
+  &.notification-error {
+    border-left-color: #ef4444;
+
+    .message h4 {
+      color: #b91c1c;
+    }
+
+    .notification-icon {
+      color: #ef4444;
+    }
+  }
+}

@@ -1,0 +1,44 @@
+.sleep-stats-row {
+    display: flex;
+    gap: 20px;
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stat-label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #888;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--pc-heading-color);
+    }
+
+    .quality-badge {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+
+        &.good {
+            background: rgba(46, 216, 182, 0.15);
+            color: #2ed8b6;
+        }
+
+        &.moderate {
+            background: rgba(255, 182, 77, 0.15);
+            color: #ffb64d;
+        }
+
+        &.poor {
+            background: rgba(255, 83, 112, 0.15);
+            color: #ff5370;
+        }
+    }
+}

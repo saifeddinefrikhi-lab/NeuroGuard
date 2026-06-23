@@ -1,0 +1,30 @@
+.page-header {
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+  .page-subtitle {
+    color: #8c8c8c;
+    margin-bottom: 0;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.priority-low { background-color: #d4edda; color: #155724; }
+.priority-medium { background-color: #fff3cd; color: #856404; }
+.priority-high { background-color: #f8d7da; color: #721c24; }
+
+.dashboard-card {
+  height: 100%;
+}

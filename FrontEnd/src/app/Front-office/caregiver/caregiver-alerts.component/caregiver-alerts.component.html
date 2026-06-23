@@ -1,0 +1,190 @@
+<div class="alerts-container">
+  <div class="alerts-header">
+    <div class="header-content">
+      <h1 class="alerts-title">
+        <i class="ti ti-heartbeat"></i>
+        Patient Alerts
+      </h1>
+      <p class="alerts-subtitle">Monitor alerts for all patients under your care</p>
+    </div>
+  </div>
+
+  <div class="alerts-body">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading patient alerts...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="alert-message error-message">
+      <i class="ti ti-alert-circle"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && alerts.length === 0 && !error" class="empty-state">
+      <i class="ti ti-bell-off"></i>
+      <h3>No alerts for your patients</h3>
+      <p>All patients are doing well. We'll notify you of any concerns.</p>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel" *ngIf="!loading && alerts.length > 0">
+      <div class="patient-selector-wrapper">
+        <label for="patientSearch" class="selector-label">
+          <i class="ti ti-user-search"></i>
+          Select Patient
+        </label>
+        <div class="patient-selector-container">
+          <input
+            id="patientSearch"
+            type="text"
+            class="patient-search-input"
+            [value]="patientSearchQuery || getSelectedPatientName()"
+            placeholder="Search or select a patient..."
+            (input)="onPatientSearchChange($any($event.target).value)"
+            (focus)="openPatientDropdown()"
+            (blur)="closePatientDropdown()">
+          <i class="ti ti-search search-icon"></i>
+
+          <div class="patient-dropdown" *ngIf="showPatientDropdown && (patientSearchQuery || !selectedPatientId)">
+            <div *ngIf="filteredPatients.length > 0" class="dropdown-list">
+              <div *ngFor="let patient of filteredPatients"
+                   class="dropdown-item"
+                   (click)="selectPatient(patient)"
+                   (mousedown)="$event.preventDefault()">
+                <span class="patient-name">{{ patient.name }}</span>
+              </div>
+            </div>
+            <div *ngIf="filteredPatients.length === 0" class="dropdown-empty">
+              <i class="ti ti-search-off"></i>
+              <span>No patients found</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search, Filter, Sort Controls -->
+    <div class="controls-panel" *ngIf="!loading && alerts.length > 0 && selectedPatientId">
+      <div class="search-bar">
+        <i class="ti ti-search"></i>
+        <input type="text"
+               placeholder="Search by message or patient name..."
+               (input)="onSearchChange($any($event.target).value)"
+               class="search-input">
+      </div>
+
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="severityFilter">Severity:</label>
+          <select id="severityFilter" class="filter-select"
+                  (change)="onSeverityFilterChange($any($event.target).value)">
+            <option value="">All Severities</option>
+            <option value="INFO">Info</option>
+            <option value="WARNING">Warning</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="statusFilter">Status:</label>
+          <select id="statusFilter" class="filter-select"
+                  (change)="onStatusFilterChange($any($event.target).value)">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="sortBy">Sort By:</label>
+          <select id="sortBy" class="filter-select"
+                  (change)="onSortChange($any($event.target).value === 'date' ? 'date' : 'severity', sortOrder)">
+            <option [value]="'date'" [selected]="sortBy === 'date'">Date</option>
+            <option [value]="'severity'" [selected]="sortBy === 'severity'">Severity</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="sortOrder">Order:</label>
+          <select id="sortOrder" class="filter-select"
+                  (change)="onSortChange(sortBy, $any($event.target).value === 'asc' ? 'asc' : 'desc')">
+            <option value="desc" [selected]="sortOrder === 'desc'">Newest First</option>
+            <option value="asc" [selected]="sortOrder === 'asc'">Oldest First</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results State -->
+    <div *ngIf="!loading && alerts.length > 0 && selectedPatientId && filteredAlerts.length === 0" class="empty-state">
+      <i class="ti ti-search-off"></i>
+      <h3>No alerts match your filters</h3>
+      <p>Try adjusting your search or filter criteria.</p>
+    </div>
+
+    <!-- Alerts Grid -->
+    <div *ngIf="!loading && filteredAlerts.length > 0" class="alerts-grid">
+      <div *ngFor="let alert of filteredAlerts" class="alert-card" [class.resolved]="alert.resolved">
+        <div class="alert-card-header">
+          <span class="severity-badge" [class]="'severity-' + alert.severity.toLowerCase()">
+            <i class="ti" [class]="getSeverityIcon(alert.severity)"></i>
+            {{ alert.severity }}
+          </span>
+          <span class="alert-status" [class.resolved]="alert.resolved">
+            <i class="ti" [class]="alert.resolved ? 'ti-circle-check' : 'ti-clock'"></i>
+            {{ alert.resolved ? 'Resolved' : 'Pending' }}
+          </span>
+        </div>
+        
+        <div class="alert-card-body">
+          <h3 class="alert-message">{{ alert.message }}</h3>
+          <div class="alert-meta">
+            <span class="meta-item">
+              <i class="ti ti-user"></i>
+              {{ alert.patientName }}
+            </span>
+            <span class="meta-item">
+              <i class="ti ti-calendar"></i>
+              {{ alert.createdAt | date:'MMM d, y' }}
+            </span>
+            <span class="meta-item">
+              <i class="ti ti-clock"></i>
+              {{ alert.createdAt | date:'shortTime' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="alert-card-actions">
+          <button class="action-btn resolve" (click)="resolveAlert(alert.id)" 
+                  [disabled]="alert.resolved" title="Mark as Resolved">
+            <i class="ti ti-circle-check"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && filteredAlerts.length > 0 && totalPages > 1" class="pagination-container">
+      <button class="page-btn" (click)="goToPreviousPage()" [disabled]="currentPage === 1" title="Previous Page">
+        <i class="ti ti-chevron-left"></i>
+        <span>Previous</span>
+      </button>
+
+      <div class="page-selector">
+        <label for="pageSelect">Page:</label>
+        <select id="pageSelect" class="page-select" [(ngModel)]="currentPage" (ngModelChange)="onPageChange()">
+          <option *ngFor="let page of allPages" [value]="page">{{ page }}</option>
+        </select>
+        <span class="page-total">of {{ totalPages }}</span>
+      </div>
+
+      <button class="page-btn" (click)="goToNextPage()" [disabled]="currentPage === totalPages" title="Next Page">
+        <span>Next</span>
+        <i class="ti ti-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>

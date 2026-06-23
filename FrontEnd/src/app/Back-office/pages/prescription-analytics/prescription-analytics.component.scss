@@ -1,0 +1,159 @@
+// Gradient backgrounds for metric cards
+.bg-gradient-blue {
+  background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+}
+
+.bg-gradient-green {
+  background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+}
+
+.bg-gradient-purple {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+}
+
+.bg-gradient-orange {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+// Card styling
+.card {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+// Chart container
+.apx-chart {
+  min-height: 400px;
+}
+
+// Metric card styles
+.metric-card {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+  }
+}
+
+// Table styling
+.table-hover tbody tr:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+// Progress bar animations
+.progress-bar {
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+}
+
+// Badge styling
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+// Header styling
+h1 {
+  font-weight: 700;
+  color: #1F2937;
+
+  i {
+    opacity: 0.8;
+  }
+}
+
+.card-header {
+  border: none;
+  border-bottom: 2px solid #E5E7EB;
+
+  h5 {
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+  }
+
+  i {
+    opacity: 0.8;
+  }
+}
+
+// Alert styling
+.alert {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+
+  i {
+    opacity: 0.8;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 1rem !important;
+  }
+
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+// Text utilities with better emphasis
+.text-muted {
+  color: #6B7280 !important;
+  font-size: 0.875rem;
+}
+
+// Icon styling
+i {
+  &.opacity-50 {
+    opacity: 0.5;
+  }
+
+  &.opacity-75 {
+    opacity: 0.75;
+  }
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F3F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 4px;
+
+  &:hover {
+    background: #9CA3AF;
+  }
+}

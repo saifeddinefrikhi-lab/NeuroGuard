@@ -1,0 +1,48 @@
+<app-card cardTitle="Assign New Activity to Patient" [showHeader]="true" [cardClass]="'glass-card assignment-theme animate-fade-in thin-card'">
+    <div class="assignment-wrapper p-2">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="input-group-custom">
+                    <label class="form-label">Activity Description</label>
+                    <div class="input-with-icon">
+                        <i class="material-icons">directions_run</i>
+                        <input type="text" class="form-control" [(ngModel)]="newTaskText" placeholder="e.g. Afternoon stretch, Drink water...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="input-group-custom mt-2">
+                    <label class="form-label">Suggested Timeframe</label>
+                    <div class="input-with-icon">
+                        <i class="material-icons">event_repeat</i>
+                        <select class="form-select" [(ngModel)]="newTaskTime">
+                            <option value="Morning">Morning (8-12 AM)</option>
+                            <option value="Afternoon">Afternoon (12-5 PM)</option>
+                            <option value="Evening">Evening (5-9 PM)</option>
+                            <option value="Today">Flexible Today</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            @if (message) {
+            <div class="col-12 mt-3">
+                <div class="alert shadow-sm mb-0" [class.alert-success]="messageType === 'success'" [class.alert-danger]="messageType === 'error'">
+                    <i class="material-icons">{{ messageType === 'success' ? 'check_circle' : 'error_outline' }}</i>
+                    <span>{{ message }}</span>
+                </div>
+            </div>
+            }
+
+            <div class="col-12 mt-4">
+                <button class="btn btn-primary w-100 py-3" (click)="assignTask()" [disabled]="!patientId.trim() || !newTaskText.trim() || isProcessing">
+                    <div class="btn-content d-flex align-items-center justify-content-center gap-2">
+                        <i class="material-icons">{{ isProcessing ? 'sync' : 'send' }}</i>
+                        <span>{{ isProcessing ? 'Assigning...' : 'Assign to Patient Dashboard' }}</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+</app-card>

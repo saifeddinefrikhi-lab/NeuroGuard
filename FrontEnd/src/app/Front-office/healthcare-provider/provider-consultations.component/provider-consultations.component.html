@@ -1,0 +1,155 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h2 class="mb-0">Consultation Management</h2>
+      <p class="text-muted small mb-0">Create, edit, and manage patient consultations</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <input type="search" class="form-control form-control-sm header-search" placeholder="Search by title or ID" (input)="onSearch($event)">
+      <a routerLink="/provider/consultations/history" class="btn btn-outline-secondary">History</a>
+      <button class="btn btn-primary" (click)="openCreateForm()"><span class="me-1">+</span>New Consultation</button>
+    </div>
+  </div>
+
+  <!-- Create/Edit form -->
+  <div class="card mb-4" *ngIf="showForm">
+    <div class="card-header">{{ editingConsultation ? 'Edit' : 'Create' }} consultation</div>
+    <div class="card-body">
+      <div *ngIf="submitError" class="alert alert-danger">
+        {{ submitError }}
+      </div>
+      <div *ngIf="patientLoadError || caregiverLoadError" class="alert alert-danger">
+        <div *ngIf="patientLoadError">Patient error: {{ patientLoadError }}</div>
+        <div *ngIf="caregiverLoadError">Caregiver error: {{ caregiverLoadError }}</div>
+      </div>
+      <form [formGroup]="consultationForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label class="form-label">Title</label>
+          <input type="text" class="form-control" formControlName="title" required [class.is-invalid]="isInvalid('title')">
+          <div *ngIf="isInvalid('title')" class="invalid-feedback d-block">
+            <div *ngIf="getControl('title')?.errors?.['required']">Title is required.</div>
+            <div *ngIf="getControl('title')?.errors?.['minlength']">Title must contain at least 2 characters.</div>
+            <div *ngIf="getControl('title')?.errors?.['maxlength']">Title cannot exceed 255 characters.</div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" formControlName="description" [class.is-invalid]="isInvalid('description')"></textarea>
+          <div *ngIf="isInvalid('description')" class="invalid-feedback d-block">
+            <div *ngIf="getControl('description')?.errors?.['maxlength']">Description cannot exceed 1000 characters.</div>
+          </div>
+        </div>
+        <div class="alert alert-info small mb-3">
+          <a routerLink="/provider/availability">Set your availability</a> - Consultations can only be created during your declared time slots.
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Start Date and Time</label>
+            <input type="datetime-local" class="form-control" formControlName="startTime" required [class.is-invalid]="isInvalid('startTime') || (consultationForm.errors?.['startInPast'] && submitted)">
+            <div *ngIf="(isInvalid('startTime') || (consultationForm.errors?.['startInPast'] && submitted))" class="invalid-feedback d-block">
+              <div *ngIf="getControl('startTime')?.errors?.['required']">Start date/time is required.</div>
+              <div *ngIf="consultationForm.errors?.['startInPast']">Start date/time cannot be in the past.</div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">End Date and Time (optional)</label>
+            <input type="datetime-local" class="form-control" formControlName="endTime" [class.is-invalid]="consultationForm.errors?.['endBeforeStart'] && submitted">
+            <div *ngIf="consultationForm.errors?.['endBeforeStart'] && submitted" class="invalid-feedback d-block">End date/time must be after start date/time.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Type</label>
+            <select class="form-select" formControlName="type">
+              <option [value]="ConsultationType.PRESENTIAL">In-Person</option>
+              <option [value]="ConsultationType.ONLINE">Online</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Patient</label>
+            <select class="form-select" formControlName="patientId" required [class.is-invalid]="isInvalid('patientId')">
+              <option value="">-- Select a patient --</option>
+              <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }} ({{ p.email }})</option>
+            </select>
+            <div *ngIf="patientsLoading" class="form-text">Loading patients...</div>
+            <div *ngIf="isInvalid('patientId')" class="invalid-feedback d-block">Patient is required.</div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Caregiver (optional)</label>
+          <select class="form-select" formControlName="caregiverId" [class.is-invalid]="isInvalid('caregiverId')">
+            <option value="">-- No caregiver --</option>
+            <option *ngFor="let c of caregivers" [value]="c.id">{{ c.firstName }} {{ c.lastName }} ({{ c.email }})</option>
+          </select>
+          <div *ngIf="caregiversLoading" class="form-text">Loading caregivers...</div>
+          <div *ngIf="isInvalid('caregiverId')" class="invalid-feedback d-block">Invalid caregiver.</div>
+        </div>
+        <div *ngIf="submitted && consultationForm.invalid" class="alert alert-warning small mb-2">
+          Please correct invalid fields (title, start date, patient, etc.).
+        </div>
+        <button type="submit" class="btn btn-success">
+          {{ editingConsultation ? 'Update' : 'Create' }}
+        </button>
+        <button type="button" class="btn btn-outline-primary ms-2" (click)="trySubmit()">Test Create</button>
+        <button type="button" class="btn btn-secondary ms-2" (click)="cancelForm()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Consultation list -->
+  <table class="table table-striped modern-table" *ngIf="consultations.length > 0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Patient</th>
+        <th>Caregiver</th>
+        <th>Start</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of filteredConsultations()">
+        <td>{{ c.id }}</td>
+        <td>{{ c.title }}</td>
+        <td>{{ getPatientName(c) }}</td>
+        <td>{{ c.caregiverId ? getCaregiverName(c.caregiverId) : '-' }}</td>
+        <td>{{ formatDateTime(c.startTime) }}</td>
+        <td>{{ c.type === 'ONLINE' ? 'Online' : 'In-Person' }}</td>
+        <td>
+          <span class="status-badge" [ngClass]="{
+            'scheduled': c.status === 'SCHEDULED',
+            'ongoing': c.status === 'ONGOING',
+            'completed': c.status === 'COMPLETED',
+            'cancelled': c.status === 'CANCELLED'
+          }">{{ c.status }}</span>
+        </td>
+        <td class="actions">
+          <button class="btn btn-sm btn-warning me-1" (click)="openEditForm(c)">Edit</button>
+          <button class="btn btn-sm btn-danger me-1" (click)="deleteConsultation(c.id)">Delete</button>
+          <button class="btn btn-sm btn-info" *ngIf="c.type === 'ONLINE'" (click)="joinOnlineConsultation(c)">
+            Join
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="consultations.length === 0" class="alert alert-info">No consultations found.</div>
+</div>
+
+<div class="modal-overlay" *ngIf="showMeetingModal" (click)="closeMeetingModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">{{ meetingTitle }}</h5>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMeetingInNewTab()">Open in new tab</button>
+        <button type="button" class="btn-close" (click)="closeMeetingModal()" aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="modal-body p-0">
+      <iframe *ngIf="meetingUrl" [src]="meetingUrl" class="meeting-iframe" allow="camera; microphone; fullscreen"></iframe>
+    </div>
+  </div>
+</div>

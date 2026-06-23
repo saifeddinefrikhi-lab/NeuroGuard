@@ -1,0 +1,140 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h3 class="title">Orders</h3>
+      <p class="subtitle">Create and monitor orders (total is calculated automatically).</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateForm()">New Order</button>
+  </div>
+
+  <div class="alerts">
+    <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+  </div>
+
+  <div class="toolbar row g-2 align-items-center">
+    <div class="col-12 col-md-6">
+      <input
+        class="form-control"
+        placeholder="Search by status (e.g. NEW, PENDING)..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchInput()"
+      />
+    </div>
+    <div class="col-auto">
+      <label class="me-2 text-muted small">Per page</label>
+      <select class="form-select form-select-sm d-inline-block w-auto" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+        <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card tbl-card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th class="sortable" (click)="toggleSort('orderDate')">DATE {{ sortIndicator('orderDate') }}</th>
+            <th class="sortable" (click)="toggleSort('status')">STATUS {{ sortIndicator('status') }}</th>
+            <th class="text-end">LINES</th>
+            <th class="text-end sortable" (click)="toggleSort('total')">TOTAL {{ sortIndicator('total') }}</th>
+            <th class="text-end">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of orders">
+            <td>{{ o.orderDate | date : 'short' }}</td>
+            <td>{{ o.status }}</td>
+            <td class="text-end">{{ linesCount(o) }}</td>
+            <td class="text-end">{{ o.total | number : '1.2-2' }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-2" (click)="openEditForm(o)">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" (click)="delete(o.id)">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="orders.length === 0">
+            <td colspan="5" class="text-center text-muted py-4">No orders found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2" *ngIf="totalElements > 0">
+      <span class="text-muted small">
+        Showing {{ rangeStart }}–{{ rangeEnd }} of {{ totalElements }}
+      </span>
+      <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-outline-secondary" [disabled]="first" (click)="goToPage(0)">«</button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="first" (click)="goToPage(pageIndex - 1)">‹</button>
+        <button type="button" class="btn btn-outline-secondary" disabled>
+          {{ pageIndex + 1 }} / {{ totalPages || 1 }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="last" (click)="goToPage(pageIndex + 1)">›</button>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="last" (click)="goToPage(totalPages - 1)">»</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showForm">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h5 class="m-0">{{ formMode === 'edit' ? 'Edit order' : 'New order' }}</h5>
+        <button class="btn btn-sm btn-light" (click)="closeForm()">Close</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Status</label>
+          <input class="form-control" [(ngModel)]="formStatus" placeholder="NEW / PENDING / DELIVERED ..." />
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="m-0">Order lines</h6>
+          <button class="btn btn-sm btn-outline-primary" (click)="addLine()">Add line</button>
+        </div>
+
+        <div class="line card mb-2" *ngFor="let line of formLines; let i = index">
+          <div class="card-body py-3">
+            <div class="row g-2 align-items-end">
+              <div class="col-12 col-md-7">
+                <label class="form-label">Product</label>
+                <select class="form-select" [(ngModel)]="formLines[i].productId">
+                  <option [ngValue]="0">-- Select product --</option>
+                  <option *ngFor="let p of products" [ngValue]="p.id">
+                    {{ p.name }} (stock: {{ p.stock }})
+                  </option>
+                </select>
+              </div>
+              <div class="col-8 col-md-3">
+                <label class="form-label">Quantity</label>
+                <input class="form-control" type="number" [(ngModel)]="formLines[i].quantity" min="1" />
+              </div>
+              <div class="col-4 col-md-2 text-end">
+                <button class="btn btn-outline-danger" (click)="removeLine(i)">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Add PromoCode</label>
+          <input class="form-control" [(ngModel)]="formPromoCode" placeholder="PROMOCODE#" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-light me-2" (click)="closeForm()" [disabled]="isSubmitting">Cancel</button>
+        <button class="btn btn-primary" (click)="submitOrder()" [disabled]="isSubmitting">
+          {{
+            isSubmitting
+              ? formMode === 'edit'
+                ? 'Saving...'
+                : 'Creating...'
+              : formMode === 'edit'
+                ? 'Save changes'
+                : 'Create'
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

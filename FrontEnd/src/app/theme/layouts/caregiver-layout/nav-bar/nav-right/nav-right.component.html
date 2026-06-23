@@ -1,0 +1,138 @@
+<ul class="list-unstyled">
+  
+  <li class="dropdown pc-h-item" ngbDropdown>
+    <a href="javascript:" class="pc-head-link dropdown-toggle arrow-none me-0 bg-gray-200"
+       data-bs-toggle="dropdown" ngbDropdownToggle>
+      <i antIcon type="bell" theme="outline"></i>
+      @if (unreadCount > 0) {
+        <span class="badge bg-danger pc-h-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+      }
+    </a>
+    <div class="dropdown-menu dropdown-notification dropdown-menu-end pc-h-dropdown" ngbDropdownMenu>
+      <div class="dropdown-header d-flex align-items-center justify-content-between">
+        <h5 class="m-0">Notifications
+          @if (unreadCount > 0) {
+            <span class="badge bg-danger ms-1" style="font-size: 10px;">{{ unreadCount }}</span>
+          }
+        </h5>
+        <a href="javascript:" class="bg-transparent" title="Mark all as read" (click)="markAllRead()">
+          <i class="text-success d-flex f-20" antIcon theme="outline" type="check-circle"></i>
+        </a>
+      </div>
+      <div class="dropdown-divider mb-0"></div>
+      <ng-scrollbar style="min-height: 280px; max-height: 380px;" visibility="hover">
+        <div class="dropdown-header p-0 text-wrap header-notification-scroll">
+          <div class="list-group list-group-flush w-100">
+            @if (notifications.length === 0) {
+              <div class="p-4 text-center text-muted">
+                <i antIcon type="bell" theme="outline" style="font-size: 32px; opacity: 0.35;"></i>
+                <p class="mt-2 mb-0" style="font-size: 13px;">No notifications yet</p>
+              </div>
+            }
+            @for (notif of notifications; track notif.id) {
+              <div class="list-group-item list-group-item-action position-relative"
+                   [class.fw-bold]="!notif.read"
+                   style="border-left: 3px solid transparent;"
+                   [style.border-left-color]="!notif.read ? '#0d6efd' : 'transparent'">
+                <div class="d-flex align-items-start">
+                  <div class="flex-shrink-0">
+                    <div class="user-avatar {{ notif.avatarBg }}">
+                      <i class="d-flex" antIcon theme="outline" type="{{ notif.icon }}"></i>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1 ms-3" style="min-width: 0;">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <p class="text-body mb-0" style="font-size: 13px; line-height: 1.3;">
+                        <b>{{ notif.title }}</b>
+                      </p>
+                      <div class="d-flex align-items-center ms-2 flex-shrink-0" style="gap: 6px;">
+                        <span class="text-muted" style="font-size: 10px; white-space: nowrap;">
+                          {{ notif.timestamp | date: 'HH:mm' }}
+                        </span>
+                        <button class="btn btn-link p-0 text-muted"
+                                style="font-size: 12px; line-height: 1; min-width: 16px;"
+                                title="Dismiss"
+                                (click)="dismissOne($event, notif.id)">
+                          &times;
+                        </button>
+                      </div>
+                    </div>
+                    <p class="text-muted mb-0" style="font-size: 12px; line-height: 1.4; word-break: break-word;">
+                      {{ (notif.message.length > 75) ? (notif.message | slice:0:75) + '...' : notif.message }}
+                    </p>
+                    <span class="text-muted" style="font-size: 10.5px;">{{ timeAgo(notif.timestamp) }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </ng-scrollbar>
+      <div class="dropdown-divider mt-0"></div>
+      <div class="d-flex justify-content-between px-3 py-2">
+        <a href="javascript:" class="link-secondary" style="font-size: 13px;">View all</a>
+        @if (notifications.length > 0) {
+          <a href="javascript:" class="link-danger" style="font-size: 13px;" (click)="notifService.clearAll()">Clear all</a>
+        }
+      </div>
+    </div>
+  </li>
+
+
+  <li class="dropdown pc-h-item header-user-profile" ngbDropdown>
+    <a href="javascript:" class="pc-head-link dropdown-toggle arrow-none me-0" ngbDropdownToggle>
+      <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar me-2" />
+      <span class="f-w-600">{{ auth.currentUser?.name || 'User' }}</span>
+    </a>
+    <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown" ngbDropdownMenu>
+      <div class="dropdown-header">
+        <div class="d-flex mb-1">
+          <div class="flex-shrink-0">
+            <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar wid-35" />
+          </div>
+          <div class="flex-grow-1 ms-3 text-start">
+            <h6 class="mb-0">{{ auth.currentUser?.name || 'User' }}</h6>
+            <span>{{ auth.currentUser?.role || 'Guest' }}</span>
+          </div>
+<a href="javascript:" class="bg-transparent" (click)="logout()">
+          <i class="d-flex f-20" antIcon theme="outline" type="logout"></i>
+        </a>        </div>
+      </div>
+      <ul ngbNav #nav="ngbNav" class="nav drp-tabs nav-fill nav-tabs">
+        <li ngbNavItem="1">
+          <a ngbNavLink>
+            <i antIcon theme="outline" type="user" class="me-2"></i>
+            Profile
+          </a>
+          <ng-template ngbNavContent>
+            @for (task of profile; track task) {
+              <div>
+                <a href="javascript:" class="dropdown-item" (click)="task.action && task.action()">
+                  <i class="text-muted" antIcon theme="outline" type="{{ task.icon }}"></i>
+                  <span>{{ task.title }}</span>
+                </a>
+              </div>
+            }
+          </ng-template>
+        </li> 
+        <li ngbNavItem="2">
+          <a ngbNavLink>
+            <i class="me-2" antIcon theme="outline" type="setting"></i>
+            Setting
+          </a>
+          <ng-template ngbNavContent>
+            @for (task of setting; track task) {
+              <div>
+                <a href="javascript:" class="dropdown-item">
+                  <i class="text-muted" antIcon theme="outline" type="{{ task.icon }}"></i>
+                  <span>{{ task.title }}</span>
+                </a>
+              </div>
+            }
+          </ng-template>
+        </li>
+      </ul>
+      <div [ngbNavOutlet]="nav"></div>
+    </div>
+  </li>
+</ul>

@@ -1,0 +1,26 @@
+.period-selector {
+    display: flex;
+    gap: 6px;
+
+    .period-btn {
+        padding: 4px 14px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+        background: transparent;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #888;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &.active {
+            background: var(--bs-primary);
+            color: white;
+            border-color: var(--bs-primary);
+        }
+
+        &:hover:not(.active) {
+            background: rgba(0, 0, 0, 0.04);
+        }
+    }
+}

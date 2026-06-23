@@ -1,0 +1,96 @@
+<div class="container mt-4">
+  <div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-0">Consultation Management</h2>
+      <p class="text-muted small mb-0">Overview of all consultations</p>
+    </div>
+    <button class="btn btn-primary" (click)="refresh()">
+      <span class="me-1">↻</span> Refresh
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">Loading...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Stats -->
+  <div class="row mb-4" *ngIf="!loading && !error && consultations.length > 0">
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-total">
+        <div class="stats-value">{{ stats.total }}</div>
+        <div class="stats-label">Total</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-online">
+        <div class="stats-value">{{ stats.online }}</div>
+        <div class="stats-label">Online</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-presential">
+        <div class="stats-value">{{ stats.presential }}</div>
+        <div class="stats-label">In-Person</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-scheduled">
+        <div class="stats-value">{{ stats.scheduled }}</div>
+        <div class="stats-label">Scheduled</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-completed">
+        <div class="stats-value">{{ stats.completed }}</div>
+        <div class="stats-label">Completed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stats-card stats-cancelled">
+        <div class="stats-value">{{ stats.cancelled }}</div>
+        <div class="stats-label">Cancelled</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && !error">
+    <div class="card-header">All Consultations</div>
+    <div class="card-body p-0">
+      <table class="table table-striped modern-table mb-0" *ngIf="consultations.length > 0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Provider</th>
+            <th>Patient</th>
+            <th>Caregiver</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of consultations">
+            <td>{{ c.id }}</td>
+            <td>{{ c.title }}</td>
+            <td>{{ c.providerId }}</td>
+            <td>{{ c.patientId }}</td>
+            <td>{{ c.caregiverId ? c.caregiverId : '-' }}</td>
+            <td>{{ formatDateTime(c.startTime) }}</td>
+            <td>{{ c.type === 'ONLINE' ? 'Online' : 'In-Person' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="{
+                'scheduled': c.status === 'SCHEDULED',
+                'ongoing': c.status === 'ONGOING',
+                'completed': c.status === 'COMPLETED',
+                'cancelled': c.status === 'CANCELLED'
+              }">{{ c.status }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="consultations.length === 0" class="p-4 text-center text-muted">
+        No consultations found.
+      </div>
+    </div>
+  </div>
+</div>

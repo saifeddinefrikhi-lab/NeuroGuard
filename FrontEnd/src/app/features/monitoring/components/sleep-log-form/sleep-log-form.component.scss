@@ -1,0 +1,92 @@
+.sleep-theme {
+    background: linear-gradient(135deg, rgba(46, 49, 146, 0.1) 0%, rgba(102, 51, 153, 0.1) 100%);
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    
+    ::ng-deep .card-title {
+        color: #4834d4  !important;
+        font-weight: 700;
+    }
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    i {
+        position: absolute;
+        left: 12px;
+        color: #6c5ce7;
+        font-size: 1.1rem;
+    }
+
+    .form-control {
+        padding-left: 38px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1.5px solid #e0e0e0;
+        border-radius: 12px;
+        height: 48px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &:focus {
+            background: #fff;
+            border-color: #6c5ce7;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
+        }
+    }
+}
+
+.form-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: #636e72;
+    margin-bottom: 6px;
+}
+
+.btn-sleep {
+    background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(72, 52, 212, 0.25);
+    transition: all 0.3s ease;
+
+    .btn-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        i {
+            font-size: 1.3rem;
+        }
+    }
+
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(72, 52, 212, 0.35);
+    }
+
+    &:disabled {
+        background: #ced4da;
+        box-shadow: none;
+        opacity: 0.7;
+    }
+}
+
+.alert {
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    
+    i {
+        font-size: 1.2rem;
+    }
+}
